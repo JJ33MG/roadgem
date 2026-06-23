@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-mercury-blue: #af50ff;
+  --color-ghost-blue: #e1bdff;
+  --color-deep-space: #090909;
+  --color-midnight-slate: #0c0c10;
+  --color-graphite: #454545;
+  --color-lead: #6b6b6b;
+  --color-starlight: #f7f9fa;
+  --color-silver: #828384;
+  --color-pure-white: #ffffff;
+  --color-plum: #7f56d9;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-midnight-slate text-starlight font-body text-body;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display font-w360;
+  }
+
+  /* Consistent focus ring for accessibility across interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-mercury-blue);
+    outline-offset: 2px;
+  }
+
+  /* Dark-theme scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-deep-space);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-graphite);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-lead);
+  }
+}
+
+@layer components {
+  /* Filled Pill Button — Iris bg, white text, fully rounded */
+  .btn-primary {
+    @apply bg-mercury-blue text-white font-body font-w480 text-body
+      rounded-btn px-24 py-16 transition-all hover:bg-mercury-blue/90
+      hover:shadow-[0_0_24px_rgba(175,80,255,0.35)]
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none;
+  }
+
+  /* Ghost Pill Button — transparent bg, subtle border, hover -> iris glow */
+  .btn-header {
+    @apply bg-transparent text-starlight font-body rounded-btn-lg px-20 py-8
+      border border-starlight/15 transition-all hover:border-mercury-blue/60
+      hover:shadow-[0_0_16px_rgba(175,80,255,0.25)]
+      disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Ghost Nav Link */
+  .nav-link {
+    @apply text-starlight font-body transition-colors hover:text-mercury-blue;
+  }
+
+  /* Hero email/search input — left side rounded, right side sharp */
+  .input-pill-left {
+    @apply bg-transparent text-starlight placeholder-silver border border-lead
+      rounded-l-input rounded-r-none px-24 py-16 focus:outline-none focus:border-mercury-blue;
+  }
+
+  .input-field {
+    @apply bg-graphite text-starlight placeholder-silver border border-lead
+      rounded-input px-24 py-16 focus:outline-none focus:border-mercury-blue;
+  }
+
+  /* Interactive Feature List item */
+  .feature-link {
+    @apply border-b border-lead py-24 text-starlight transition-colors hover:text-mercury-blue;
+  }
+
+  /* Footer link */
+  .footer-link {
+    @apply text-silver font-body transition-colors hover:text-starlight;
+  }
+
+  .section {
+    @apply max-w-page mx-auto px-16 md:px-32;
+  }
+
+  .surface-1 {
+    @apply bg-midnight-slate;
+  }
+
+  .surface-2 {
+    @apply bg-graphite;
+  }
+
+  /* Standard content card — consistent border, radius and surface across the app, no box-shadow */
+  .card {
+    @apply rounded-container border border-starlight/10 bg-starlight/[0.03] p-24 transition-all;
+  }
+
+  /* Card variant for clickable / linked cards */
+  .card-interactive {
+    @apply card hover:border-mercury-blue/60 hover:bg-starlight/[0.05] hover:-translate-y-[2px];
+  }
+
+  /* Status / tier badges */
+  .badge {
+    @apply inline-flex items-center rounded-input px-12 py-4 text-caption font-w480;
+  }
+
+  .badge-free {
+    @apply badge bg-starlight/10 text-silver;
+  }
+
+  .badge-premium {
+    @apply badge bg-mercury-blue/15 text-mercury-blue;
+  }
+
+  /* Gradient accent text for hero/CTA headings */
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, var(--color-starlight) 35%, var(--color-mercury-blue) 100%);
+  }
+
+  /* Sparing editorial accent — GrandSlang substitute */
+  .text-serif-accent {
+    @apply font-serif-accent italic font-light text-mercury-blue;
+  }
+
+  /* Boarding Pass — glassmorphic panel */
+  .glass-panel {
+    @apply rounded-container border border-starlight/[0.12] p-24 backdrop-blur-xl;
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Outlined feature row — airport departure-board styling */
+  .feature-row {
+    @apply flex items-center justify-between border-b border-starlight/10 py-16
+      font-mono text-body-sm uppercase tracking-wide text-silver transition-colors
+      hover:border-mercury-blue/40 hover:text-starlight;
+  }
+
+  /* Gradient comparison card */
+  .gradient-card {
+    @apply rounded-container border border-starlight/10 p-24;
+    background-image: linear-gradient(160deg, rgba(175,80,255,0.12) 0%, rgba(9,9,9,0) 60%);
+  }
+}
+
+/* Google Places Autocomplete dropdown — match Mercury dark theme */
+.pac-container {
+  background-color: var(--color-midnight-slate);
+  border: 1px solid rgba(247, 249, 250, 0.1);
+  border-radius: 8px;
+  margin-top: 8px;
+  font-family: inherit;
+  box-shadow: none;
+}
+
+.pac-item {
+  background-color: var(--color-midnight-slate);
+  border-color: rgba(247, 249, 250, 0.1);
+  color: var(--color-silver);
+  padding: 8px 16px;
+}
+
+.pac-item:hover {
+  background-color: rgba(175, 80, 255, 0.15);
+}
+
+.pac-item-query {
+  color: var(--color-starlight);
+}
+
+.pac-matched {
+  color: var(--color-mercury-blue);
+}
+
+.pac-icon {
+  filter: invert(1) brightness(1.5);
+}

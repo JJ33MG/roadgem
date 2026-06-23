@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadGem — naar live</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.1.0/iconfont/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f5f4f1;
+    --bg-danger: #fcebeb;
+    --bg-success: #e1f5ee;
+    --bg-warning: #faeeda;
+    --text-primary: #1a1a1a;
+    --text-secondary: #5f5e5a;
+    --text-danger: #791f1f;
+    --text-success: #085041;
+    --text-warning: #633806;
+    --text-info: #185fa5;
+    --border: rgba(0,0,0,0.12);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg-secondary: #2c2c2a;
+      --bg-danger: #4a1b0c;
+      --bg-success: #04342c;
+      --bg-warning: #412402;
+      --text-primary: #f1efe8;
+      --text-secondary: #b4b2a9;
+      --text-danger: #f7c1c1;
+      --text-success: #9fe1cb;
+      --text-warning: #fac775;
+      --text-info: #85b7eb;
+      --border: rgba(255,255,255,0.15);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; gap: 16px;
+  }
+  .header h1 { font-size: 18px; font-weight: 500; margin: 0; }
+  .header p { font-size: 13px; color: var(--text-secondary); margin: 2px 0 0; }
+  .pct-box { text-align: right; min-width: 90px; }
+  #pct { font-size: 24px; font-weight: 500; margin: 0; }
+  .pct-label { font-size: 12px; color: var(--text-secondary); margin: 0; }
+  .progress-track {
+    height: 6px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem;
+    border: 0.5px solid var(--border);
+  }
+  #bar { height: 100%; width: 0%; background: var(--text-info); transition: width .2s; }
+  #board {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;
+  }
+  .card {
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .card-head i { font-size: 20px; color: var(--text-secondary); }
+  .card-head p { font-weight: 500; font-size: 15px; margin: 0; flex: 1; }
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md);
+    margin-bottom: 10px;
+  }
+  .badge.red { background: var(--bg-danger); color: var(--text-danger); }
+  .badge.teal { background: var(--bg-success); color: var(--text-success); }
+  .badge.amber { background: var(--bg-warning); color: var(--text-warning); }
+  .section-label {
+    font-size: 12px; color: var(--text-secondary); margin: 8px 0 4px; font-weight: 500;
+  }
+  .you-row {
+    display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.6;
+    cursor: pointer; margin-bottom: 2px;
+  }
+  .you-row input { margin-top: 3px; }
+  ul.me-list {
+    margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>RoadGem — naar live</h1>
+      <p>Vink af wat geregeld is. Voortgang wordt automatisch bijgehouden (lokaal in deze browser).</p>
+    </div>
+    <div class="pct-box">
+      <p id="pct">0%</p>
+      <p class="pct-label">klaar</p>
+    </div>
+  </div>
+  <div class="progress-track"><div id="bar"></div></div>
+  <div id="board"></div>
+</div>
+
+<script>
+const data = [
+  {
+    icon: 'ti-credit-card', title: 'Betaalintegratie', status: 'Blokkerend', badge: 'red',
+    you: [
+      'Kiezen: Stripe of Mollie',
+      'Account aanmaken (test-mode mag)',
+      'API keys (publishable + secret)',
+      'Prijs premium-abonnement bepalen'
+    ],
+    me: [
+      'Checkout-flow bouwen',
+      'Webhooks voor abonnementsstatus',
+      '"Upgrade"-knoppen koppelen aan echte flow'
+    ]
+  },
+  {
+    icon: 'ti-key', title: 'Productie API-keys', status: 'Blokkerend', badge: 'red',
+    you: [
+      'Google Maps key + facturatie + domeinrestrictie',
+      'Anthropic (Claude) productie key',
+      'OpenWeather productie key',
+      'Tavily key controleren/vernieuwen'
+    ],
+    me: [
+      '.env op juiste plekken zetten',
+      'Foutafhandeling bij quota-limieten testen'
+    ]
+  },
+  {
+    icon: 'ti-server-2', title: 'Database', status: 'Blokkerend', badge: 'red',
+    you: [
+      'Account bij Supabase, Neon of Railway (gratis tier ok)'
+    ],
+    me: [
+      'Migratie SQLite naar Postgres',
+      'prisma migrate deploy uitvoeren',
+      'Backup-strategie opzetten'
+    ]
+  },
+  {
+    icon: 'ti-world', title: 'Hosting & domein', status: 'Blokkerend', badge: 'red',
+    you: [
+      'Domeinnaam (al in bezit of nog registreren?)',
+      'Hostingvoorkeur frontend (bv. Vercel/Netlify)',
+      'Hostingvoorkeur backend (bv. Railway/Render/Fly.io)'
+    ],
+    me: [
+      'Build configureren + deployen',
+      'Env-vars instellen in hostingomgeving',
+      'HTTPS / domein koppelen'
+    ]
+  },
+  {
+    icon: 'ti-building-store', title: 'Hotel/restaurant booking', status: 'Kan later (v1 zonder kan)', badge: 'amber',
+    you: [
+      'Voorkeur provider? (Booking.com Affiliate, RateHawk, Amadeus, of laat mij opties uitzoeken)',
+      'Aanmelden bij gekozen affiliate-programma (eigen bedrijfsgegevens nodig)'
+    ],
+    me: [
+      'Opties + tradeoffs uitzoeken',
+      'Integratie bouwen zodra keys binnen zijn',
+      'Foto-fallbacks toevoegen aan hotel/restaurant-kaarten'
+    ]
+  },
+  {
+    icon: 'ti-mail', title: 'E-mail (optioneel)', status: 'Niet blokkerend', badge: 'teal',
+    you: [
+      'Wil je dit voor v1? (account-bevestiging, reset-mail)',
+      'Indien ja: account bij Resend/Postmark/SendGrid + key'
+    ],
+    me: [
+      'Mailer integreren in backend',
+      'Templates voor bevestiging/reset'
+    ]
+  },
+  {
+    icon: 'ti-activity', title: 'Monitoring (optioneel)', status: 'Niet blokkerend', badge: 'teal',
+    you: [
+      'Sentry-account aanmaken (gratis tier)'
+    ],
+    me: [
+      'Sentry koppelen frontend + backend',
+      'Logging 4xx/5xx per route'
+    ]
+  }
+];
+
+const board = document.getElementById('board');
+const STORAGE_KEY = 'roadgem-live-go-progress';
+const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+data.forEach((cat, ci) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  card.innerHTML = `
+    <div class="card-head">
+      <i class="ti ${cat.icon}" aria-hidden="true"></i>
+      <p>${cat.title}</p>
+    </div>
+    <span class="badge ${cat.badge}">${cat.status}</span>
+    <p class="section-label">Van jou nodig</p>
+    <div class="you-list"></div>
+    <p class="section-label">Wat ik doe</p>
+    <ul class="me-list">
+      ${cat.me.map(m => `<li>${m}</li>`).join('')}
+    </ul>
+  `;
+
+  const youList = card.querySelector('.you-list');
+  cat.you.forEach((item, ii) => {
+    const id = 'item-' + ci + '-' + ii;
+    const row = document.createElement('label');
+    row.className = 'you-row';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = id;
+    cb.checked = !!saved[id];
+    cb.addEventListener('change', () => {
+      saved[id] = cb.checked;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      updateProgress();
+    });
+    const span = document.createElement('span');
+    span.textContent = item;
+    row.appendChild(cb);
+    row.appendChild(span);
+    youList.appendChild(row);
+  });
+
+  board.appendChild(card);
+});
+
+function updateProgress() {
+  const boxes = document.querySelectorAll('#board input[type=checkbox]');
+  const checked = document.querySelectorAll('#board input[type=checkbox]:checked').length;
+  const pct = Math.round((checked / boxes.length) * 100);
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('bar').style.width = pct + '%';
+}
+updateProgress();
+</script>
+</body>
+</html>

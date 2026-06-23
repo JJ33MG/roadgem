@@ -1,0 +1,122 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { prisma } from '../utils/prisma';
+import { AgentRunner } from '../utils/agentRunner';
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+
+const DESTINATIONS = [
+  'Lisbon, Portugal', 'Porto, Portugal', 'Barcelona, Spain', 'Madrid, Spain',
+  'Seville, Spain', 'Valencia, Spain', 'Paris, France', 'Lyon, France',
+  'Marseille, France', 'Amsterdam, Netherlands', 'Brussels, Belgium',
+  'Bruges, Belgium', 'Rome, Italy', 'Florence, Italy', 'Naples, Italy',
+  'Amalfi Coast, Italy', 'Prague, Czech Republic', 'Vienna, Austria',
+  'Santorini, Greece', 'Athens, Greece', 'Dubrovnik, Croatia',
+  'Berlin, Germany', 'Munich, Germany', 'Copenhagen, Denmark',
+];
+
+async function researchGemsForDestination(destination: string, runner: AgentRunner): Promise<number> {
+  await runner.log('info', `Researching hidden gems for ${destination}`);
+
+  const prompt = `You are a local travel expert researching authentic hidden gems for "${destination}".
+
+Find 6 genuinely hidden, non-touristy gems that locals love. Avoid famous landmarks.
+
+For each gem provide:
+- name: exact place name
+- description: 1 sentence why locals love it (max 20 words)
+- address: real street address
+- category: one of [restaurant, café, bar, viewpoint, nature, culture, historic, market, activity, other]
+- whyHidden: 1 sentence why tourists miss it (max 15 words)
+
+Respond ONLY with a JSON array:
+[
+  {
+    "name": "string",
+    "description": "string",
+    "address": "string",
+    "category": "string",
+    "whyHidden": "string"
+  }
+]`;
+
+  const message = await client.messages.create({
+    model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : '';
+  const jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) {
+    await runner.log('warning', `No valid JSON from Claude for ${destination}`);
+    return 0;
+  }
+
+  const gems = JSON.parse(jsonMatch[0]);
+
+  // Store in DB as a "pre-researched" destination entry
+  await prisma.agentLog.create({
+    data: {
+      runId: runner.getRunId()!,
+      level: 'success',
+      message: `Found ${gems.length} gems for ${destination}`,
+      data: JSON.stringify({ destination, gems }),
+    },
+  });
+
+  await runner.log('success', `${gems.length} gems found for ${destination}`, { destination, count: gems.length });
+  return gems.length;
+}
+
+async function main() {
+  const runner = new AgentRunner('gems-agent');
+  await runner.start();
+
+  try {
+    let totalGems = 0;
+    let destinationsProcessed = 0;
+
+    // Process a batch of destinations (rotate through them)
+    const lastRun = await prisma.agentRun.findFirst({
+      where: { agentName: 'gems-agent', status: 'completed' },
+      orderBy: { startedAt: 'desc' },
+    });
+
+    // Figure out where we left off
+    const lastIndex = lastRun?.result
+      ? parseInt(lastRun.result.match(/offset:(\d+)/)?.[1] ?? '0')
+      : 0;
+    const batchSize = 5;
+    const startIndex = lastIndex % DESTINATIONS.length;
+
+    await runner.log('info', `Processing destinations ${startIndex}–${startIndex + batchSize} of ${DESTINATIONS.length}`);
+
+    for (let i = 0; i < batchSize; i++) {
+      const destination = DESTINATIONS[(startIndex + i) % DESTINATIONS.length];
+      try {
+        const count = await researchGemsForDestination(destination, runner);
+        totalGems += count;
+        destinationsProcessed++;
+        // Small delay to avoid rate limiting
+        await new Promise((r) => setTimeout(r, 1500));
+      } catch (err) {
+        await runner.log('error', `Failed for ${destination}: ${err}`);
+      }
+    }
+
+    const nextOffset = (startIndex + batchSize) % DESTINATIONS.length;
+    await runner.finish(
+      `Researched ${destinationsProcessed} destinations, found ${totalGems} hidden gems. offset:${nextOffset}`
+    );
+  } catch (err) {
+    await runner.fail(`Agent crashed: ${err}`);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+main();

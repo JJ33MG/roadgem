@@ -219,6 +219,35 @@ export interface AccommodationOption {
   affiliateUrl: string;
 }
 
+export interface AgentLog {
+  id: string;
+  runId: string;
+  level: 'info' | 'success' | 'warning' | 'error';
+  message: string;
+  data: string | null;
+  createdAt: string;
+}
+
+export interface AgentRun {
+  id: string;
+  agentName: string;
+  status: 'running' | 'completed' | 'failed';
+  startedAt: string;
+  finishedAt: string | null;
+  result: string | null;
+  error: string | null;
+  logs?: AgentLog[];
+}
+
+export interface AgentStats {
+  totalRuns: number;
+  runningRuns: number;
+  completedRuns: number;
+  failedRuns: number;
+  totalLogs: number;
+  agentSummary: { agentName: string; _count: { id: number }; _max: { startedAt: string } }[];
+}
+
 export interface GeneratedTrip {
   tripId: string;
   destination: string;

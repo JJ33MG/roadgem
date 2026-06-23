@@ -16,6 +16,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { SignupPage } from '@/pages/SignupPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { PricingPage } from '@/pages/PricingPage';
+import AgentsDashboardPage from '@/pages/AgentsDashboardPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -40,6 +41,8 @@ function AnimatedRoutes() {
           <Route path="/trips/:tripId/days/:dayNumber" element={<DayDetailPage />} />
           <Route path="/trips/:tripId/hotels" element={<HotelOptionsPage />} />
           <Route path="/trips/:tripId/restaurants" element={<RestaurantOptionsPage />} />
+
+          <Route path="/agents" element={<AgentsDashboardPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />

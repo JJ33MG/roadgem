@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: '/plan', label: 'Plan a trip' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/agents', label: 'Agents 🤖' },
 ];
 
 export function Header() {

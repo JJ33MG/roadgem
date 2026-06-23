@@ -80,3 +80,24 @@ model TripActivity {
   estimatedCost Float
   notes         String
 }
+
+model AgentRun {
+  id          String   @id @default(cuid())
+  agentName   String
+  status      String   @default("running")
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime?
+  result      String?
+  error       String?
+  logs        AgentLog[]
+}
+
+model AgentLog {
+  id        String   @id @default(cuid())
+  runId     String
+  run       AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  level     String   @default("info")
+  message   String
+  data      String?
+  createdAt DateTime @default(now())
+}

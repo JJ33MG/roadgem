@@ -12,6 +12,9 @@ import type {
   SubscriptionTier,
   AccommodationOption,
   AccommodationType,
+  AgentRun,
+  AgentLog,
+  AgentStats,
 } from '@/types';
 
 // --- Auth ---
@@ -94,6 +97,13 @@ export const accommodationsApi = {
 };
 
 // --- Utilities ---
+export const agentsApi = {
+  getRuns: () => apiClient.get<AgentRun[]>('/agents/runs'),
+  getRunLogs: (runId: string) => apiClient.get<AgentLog[]>(`/agents/runs/${runId}/logs`),
+  getStats: () => apiClient.get<AgentStats>('/agents/stats'),
+  trigger: (name: string) => apiClient.post(`/agents/${name}/trigger`, {}),
+};
+
 export const utilsApi = {
   getFuelPrices: (lat: number, lng: number) =>
     apiClient.get<FuelStation[]>('/fuel-prices', { params: { lat, lng } }),

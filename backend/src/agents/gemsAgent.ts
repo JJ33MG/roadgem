@@ -57,17 +57,20 @@ Respond ONLY with a JSON array:
 
   const gems = JSON.parse(jsonMatch[0]);
 
-  // Store in DB as a "pre-researched" destination entry
-  await prisma.agentLog.create({
-    data: {
-      runId: runner.getRunId()!,
-      level: 'success',
-      message: `Found ${gems.length} gems for ${destination}`,
-      data: JSON.stringify({ destination, gems }),
-    },
+  // Remove old gems for this destination and replace with fresh ones
+  await prisma.destinationGem.deleteMany({ where: { destination } });
+  await prisma.destinationGem.createMany({
+    data: gems.map((g: any) => ({
+      destination,
+      name: g.name,
+      description: g.description,
+      address: g.address,
+      category: g.category,
+      whyHidden: g.whyHidden,
+    })),
   });
 
-  await runner.log('success', `${gems.length} gems found for ${destination}`, { destination, count: gems.length });
+  await runner.log('success', `${gems.length} gems saved for ${destination}`, { destination, count: gems.length });
   return gems.length;
 }
 

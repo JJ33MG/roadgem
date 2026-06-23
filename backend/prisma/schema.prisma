@@ -81,6 +81,20 @@ model TripActivity {
   notes         String
 }
 
+model DestinationGem {
+  id          String   @id @default(cuid())
+  destination String
+  name        String
+  description String
+  address     String
+  category    String
+  whyHidden   String
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+
+  @@index([destination])
+}
+
 model AgentRun {
   id          String   @id @default(cuid())
   agentName   String

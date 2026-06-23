@@ -74,7 +74,24 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     }
 
     const weather = await getWeather(destination, startDate, endDate);
-    const hiddenGems = await findHiddenGems(tripData.stops || []);
+
+    // Use pre-researched gems from DB first, fall back to Tavily if none exist
+    const destinationKey = destination.split(',')[0].trim();
+    const preResearched = await prisma.destinationGem.findMany({
+      where: { destination: { contains: destinationKey, mode: 'insensitive' } },
+      take: 6,
+    });
+
+    const hiddenGems = preResearched.length > 0
+      ? preResearched.map((g) => ({
+          name: g.name,
+          description: g.description,
+          address: g.address,
+          category: g.category,
+          whyHidden: g.whyHidden,
+          photoUrl: g.photoUrl ?? undefined,
+        }))
+      : await findHiddenGems(tripData.stops || []);
 
     const saved = await prisma.trip.create({
       data: {

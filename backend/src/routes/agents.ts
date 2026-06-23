@@ -60,16 +60,23 @@ router.get('/stats', async (_req: Request, res: Response) => {
 router.post('/:name/trigger', async (req: Request, res: Response) => {
   const { name } = req.params;
   const allowedAgents: Record<string, string> = {
-    'gems-agent': 'gemsAgent.ts',
-    'seo-agent': 'seoAgent.ts',
+    'gems-agent': 'gemsAgent.js',
+    'seo-agent': 'seoAgent.js',
   };
 
   if (!allowedAgents[name]) {
     return res.status(404).json({ error: 'Unknown agent' });
   }
 
-  const scriptPath = path.join(__dirname, '..', 'agents', allowedAgents[name]);
-  const cmd = `npx ts-node --project "${path.join(__dirname, '..', '..', 'tsconfig.json')}" "${scriptPath}"`;
+  // Use compiled JS in production (dist/), ts-node source in development
+  const isDev = process.env.NODE_ENV !== 'production';
+  const scriptPath = isDev
+    ? path.join(__dirname, '..', 'agents', allowedAgents[name].replace('.js', '.ts'))
+    : path.join(__dirname, 'agents', allowedAgents[name]);
+
+  const cmd = isDev
+    ? `npx ts-node --project "${path.join(__dirname, '..', '..', 'tsconfig.json')}" "${scriptPath}"`
+    : `node "${scriptPath}"`;
 
   exec(cmd, { cwd: path.join(__dirname, '..', '..') }, (error, _stdout, stderr) => {
     if (error) console.error(`Agent ${name} error:`, stderr);

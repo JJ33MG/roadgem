@@ -58,6 +58,16 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   /* Filled Pill Button — Iris bg, white text, fully rounded */
   .btn-primary {

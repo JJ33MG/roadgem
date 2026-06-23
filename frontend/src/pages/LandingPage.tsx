@@ -151,7 +151,7 @@ export function LandingPage() {
 
         {/* Hero content */}
         <motion.div
-          className="section relative z-10 flex flex-col items-center gap-24 py-40"
+          className="section relative z-10 flex flex-col items-center gap-16 sm:gap-24 py-32 sm:py-40"
           initial="hidden"
           animate="visible"
           variants={stagger}
@@ -172,7 +172,7 @@ export function LandingPage() {
           <motion.h1
             variants={fadeUp}
             transition={{ duration: 0.6 }}
-            className="relative max-w-4xl text-display font-display font-w360 leading-[1.05] text-starlight"
+            className="relative max-w-4xl text-3xl sm:text-display font-display font-w360 leading-[1.05] text-starlight"
           >
             {/* Animated gradient glow behind headline */}
             <span
@@ -191,7 +191,7 @@ export function LandingPage() {
           <motion.p
             variants={fadeUp}
             transition={{ duration: 0.6 }}
-            className="max-w-lg text-subheading text-silver"
+            className="max-w-lg text-base sm:text-subheading text-silver px-4 sm:px-0"
           >
             Tell us where you want to go. Our AI handles everything — routes, hidden gems,
             hotels, weather and a full day-by-day itinerary.
@@ -264,7 +264,7 @@ export function LandingPage() {
       </div>
 
       {/* ── Features ─────────────────────────────────────────────────────── */}
-      <section className="section py-96">
+      <section className="section py-56 sm:py-96">
         <motion.div
           className="mb-56 max-w-xl"
           initial={{ opacity: 0, y: 20 }}
@@ -312,7 +312,7 @@ export function LandingPage() {
       </section>
 
       {/* ── How it works ─────────────────────────────────────────────────── */}
-      <section className="section py-96">
+      <section className="section py-56 sm:py-96">
         <motion.div
           className="mb-56"
           initial={{ opacity: 0, y: 20 }}
@@ -360,9 +360,9 @@ export function LandingPage() {
       </section>
 
       {/* ── CTA band ─────────────────────────────────────────────────────── */}
-      <section className="section py-96">
+      <section className="section py-56 sm:py-96">
         <motion.div
-          className="relative overflow-hidden rounded-container border border-mercury-blue/20 px-32 py-64 text-center"
+          className="relative overflow-hidden rounded-container border border-mercury-blue/20 px-20 py-48 sm:px-32 sm:py-64 text-center"
           style={{
             background: 'linear-gradient(160deg, rgba(175,80,255,0.15) 0%, rgba(127,86,217,0.08) 40%, rgba(9,9,9,0) 70%)',
           }}

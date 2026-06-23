@@ -58,36 +58,36 @@ function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; it
   const { label, icon: Icon } = SLOT_CONFIG[slot];
 
   return (
-    <div className="flex gap-12 rounded-container border border-lead/40 p-12 transition-colors hover:border-mercury-blue/30">
-      <div className="flex h-32 w-32 flex-shrink-0 items-center justify-center rounded-full bg-mercury-blue/20 text-mercury-blue">
-        <Icon size={16} />
+    <div className="flex gap-10 rounded-container border border-lead/40 p-10 sm:gap-12 sm:p-12 transition-colors hover:border-mercury-blue/30">
+      <div className="flex h-28 w-28 sm:h-32 sm:w-32 flex-shrink-0 items-center justify-center rounded-full bg-mercury-blue/20 text-mercury-blue">
+        <Icon size={14} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-8">
-          <p className="text-body-sm font-w480 text-starlight">{item.activity}</p>
+        <div className="flex items-baseline justify-between gap-6">
+          <p className="text-caption sm:text-body-sm font-w480 text-starlight leading-snug">{item.activity}</p>
           <span className="flex-shrink-0 text-caption text-silver">&euro;{item.estimatedCost}</span>
         </div>
-        <p className="text-caption text-silver">
+        <p className="text-[11px] sm:text-caption text-silver mt-1">
           {label} &middot; {item.time} &middot; {item.location}
         </p>
-        <p className="mt-4 text-caption text-lead">{item.description}</p>
-        {item.notes && <p className="mt-4 text-caption italic text-lead/80">{item.notes}</p>}
-        <div className="mt-6 flex flex-wrap gap-8">
+        <p className="mt-3 text-[11px] sm:text-caption text-lead">{item.description}</p>
+        {item.notes && <p className="mt-2 text-[11px] sm:text-caption italic text-lead/80">{item.notes}</p>}
+        <div className="mt-4 flex flex-wrap gap-6 sm:gap-8">
           <a href={buildViatorUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-            className="inline-flex items-center gap-4 text-caption text-mercury-blue/70 hover:text-mercury-blue">
-            Viator <ExternalLink size={10} />
+            className="inline-flex items-center gap-3 text-[11px] sm:text-caption text-mercury-blue/70 hover:text-mercury-blue">
+            Viator <ExternalLink size={9} />
           </a>
           <span className="text-caption text-graphite">·</span>
           <a href={buildGetYourGuideUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-            className="inline-flex items-center gap-4 text-caption text-mercury-blue/70 hover:text-mercury-blue">
-            GetYourGuide <ExternalLink size={10} />
+            className="inline-flex items-center gap-3 text-[11px] sm:text-caption text-mercury-blue/70 hover:text-mercury-blue">
+            GetYourGuide <ExternalLink size={9} />
           </a>
           {isFoodActivity(slot, item.activity) && (
             <>
               <span className="text-caption text-graphite">·</span>
               <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-                className="inline-flex items-center gap-4 text-caption text-mercury-blue/70 hover:text-mercury-blue">
-                TheFork <ExternalLink size={10} />
+                className="inline-flex items-center gap-3 text-[11px] sm:text-caption text-mercury-blue/70 hover:text-mercury-blue">
+                TheFork <ExternalLink size={9} />
               </a>
             </>
           )}
@@ -99,13 +99,13 @@ function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; it
 
 function DayTabs({ days, activeDay, onSelect }: { days: GeneratedItineraryDay[]; activeDay: number; onSelect: (day: number) => void }) {
   return (
-    <div className="flex flex-wrap gap-8">
+    <div className="flex gap-6 overflow-x-auto pb-1 scrollbar-none">
       {days.map((day) => (
         <button
           key={day.day}
           onClick={() => onSelect(day.day)}
           className={clsx(
-            'rounded-btn px-16 py-8 text-caption font-w480 transition-colors',
+            'flex-shrink-0 rounded-btn px-12 py-6 text-caption font-w480 transition-colors',
             activeDay === day.day
               ? 'bg-mercury-blue text-starlight'
               : 'bg-graphite text-silver hover:text-starlight'
@@ -227,14 +227,14 @@ export function TripResultsPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="section py-40"
+      className="section py-24 sm:py-40"
     >
       {/* Hero banner */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative h-[260px] overflow-hidden rounded-container sm:h-[340px]"
+        className="relative h-[220px] overflow-hidden rounded-container sm:h-[340px]"
       >
         <DestinationImage query={trip.destination} alt={trip.destination} className="h-full w-full" />
         <div
@@ -242,55 +242,55 @@ export function TripResultsPage() {
           className="absolute inset-0"
           style={{ backgroundImage: 'linear-gradient(180deg, rgba(9,9,9,0.2) 0%, rgba(9,9,9,0.75) 60%, rgba(9,9,9,0.95) 100%)' }}
         />
-        <div className="absolute bottom-0 left-0 right-0 p-24 sm:p-32">
-          <h1 className="text-heading font-display font-w360 text-starlight sm:text-heading-lg">{trip.destination}</h1>
-          <div className="mt-8 flex flex-wrap items-center gap-x-16 gap-y-4 text-body-sm text-silver">
+        <div className="absolute bottom-0 left-0 right-0 p-16 sm:p-32">
+          <h1 className="text-xl sm:text-heading font-display font-w360 text-starlight sm:text-heading-lg">{trip.destination}</h1>
+          <div className="mt-6 flex flex-wrap items-center gap-x-10 gap-y-2 text-[11px] sm:text-body-sm text-silver">
             <span>{format(new Date(trip.startDate), 'MMM d')} – {format(new Date(trip.endDate), 'MMM d, yyyy')}</span>
-            <span className="hidden sm:inline text-lead">·</span>
+            <span className="text-lead">·</span>
             <span>{trip.days} days</span>
-            <span className="hidden sm:inline text-lead">·</span>
+            <span className="text-lead">·</span>
             <span className="font-w480 text-starlight">&euro;{trip.totalCost.toLocaleString()}</span>
-            <span className="hidden sm:inline text-lead">·</span>
+            <span className="text-lead">·</span>
             <span>{trip.totalDistance.toLocaleString()} km</span>
           </div>
         </div>
-        {/* Action buttons in top-right */}
-        <div className="absolute right-16 top-16 flex gap-8 sm:right-24 sm:top-24">
+        {/* Action buttons */}
+        <div className="absolute right-10 top-10 flex gap-6 sm:right-24 sm:top-24">
           <button
             onClick={handleShare}
-            className="flex items-center gap-6 rounded-btn border border-starlight/20 bg-deep-space/60 px-12 py-8 text-caption text-starlight backdrop-blur-sm transition-colors hover:border-mercury-blue/60"
+            className="flex items-center gap-4 rounded-btn border border-starlight/20 bg-deep-space/60 px-10 py-6 text-[11px] sm:text-caption text-starlight backdrop-blur-sm transition-colors hover:border-mercury-blue/60"
           >
-            <Share2 size={14} /> {shareCopied ? 'Copied!' : 'Share'}
+            <Share2 size={12} /> {shareCopied ? 'Copied!' : 'Share'}
           </button>
           <button
             onClick={handleDownloadPdf}
             disabled={isExporting}
-            className="flex items-center gap-6 rounded-btn border border-starlight/20 bg-deep-space/60 px-12 py-8 text-caption text-starlight backdrop-blur-sm transition-colors hover:border-mercury-blue/60 disabled:opacity-50"
+            className="flex items-center gap-4 rounded-btn border border-starlight/20 bg-deep-space/60 px-10 py-6 text-[11px] sm:text-caption text-starlight backdrop-blur-sm transition-colors hover:border-mercury-blue/60 disabled:opacity-50"
           >
-            <Download size={14} /> {isExporting ? 'Exporting...' : 'PDF'}
+            <Download size={12} /> {isExporting ? '...' : 'PDF'}
           </button>
         </div>
       </motion.div>
 
-      <div className="mt-32 grid gap-24 lg:grid-cols-[1fr_360px]">
-        {/* Center — map */}
-        <div className="min-h-[420px] overflow-hidden rounded-container border border-lead/40">
+      <div className="mt-20 sm:mt-32 grid gap-16 sm:gap-24 lg:grid-cols-[1fr_360px]">
+        {/* Map — collapsible on mobile */}
+        <div className="overflow-hidden rounded-container border border-lead/40" style={{ minHeight: 280 }}>
           <TripMap
             stops={trip.stops}
             hiddenGems={trip.hiddenGems}
             accommodations={Object.values(selectedAccommodations)}
-            className="h-full"
+            className="h-[280px] sm:h-full sm:min-h-[420px]"
           />
         </div>
 
-        {/* Right sidebar — day-by-day itinerary */}
-        <aside className="rounded-container border border-lead/40 p-24">
-          <h3 className="mb-12 text-body-sm font-w480 text-starlight">Itinerary</h3>
+        {/* Itinerary */}
+        <aside className="rounded-container border border-lead/40 p-16 sm:p-24">
+          <h3 className="mb-10 text-body-sm font-w480 text-starlight">Itinerary</h3>
           <DayTabs days={trip.itinerary} activeDay={activeDay} onSelect={setActiveDay} />
 
           {dayWeather && (
-            <div className="mt-12 flex items-center gap-8 text-caption text-silver">
-              <Cloud size={14} />
+            <div className="mt-10 flex items-center gap-6 text-caption text-silver">
+              <Cloud size={13} />
               {dayWeather.temp}&deg;C &middot; {dayWeather.condition}
             </div>
           )}
@@ -302,7 +302,7 @@ export function TripResultsPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="mt-16 flex flex-col gap-8"
+              className="mt-12 flex flex-col gap-6 sm:gap-8"
             >
               {currentDay &&
                 slots.map((slot, i) => {
@@ -323,32 +323,32 @@ export function TripResultsPage() {
           </AnimatePresence>
 
           {/* Overnight stay */}
-          <div className="mt-16 border-t border-lead/40 pt-16">
+          <div className="mt-14 border-t border-lead/40 pt-14">
             <div className="flex items-center justify-between">
               <h3 className="text-body-sm font-w480 text-starlight">Overnight stay</h3>
               <button
                 onClick={() => setAccommodationModalOpen(true)}
                 className="btn-header flex items-center gap-4 text-caption"
               >
-                <BedDouble size={14} /> {selectedAccommodation ? 'Change' : 'Add'}
+                <BedDouble size={13} /> {selectedAccommodation ? 'Change' : 'Add'}
               </button>
             </div>
             {selectedAccommodation && (
-              <div className="mt-12">
+              <div className="mt-10">
                 <AccommodationCard accommodation={selectedAccommodation} selected />
               </div>
             )}
           </div>
 
           {/* Rental car */}
-          <div className="mt-16 border-t border-lead/40 pt-16">
-            <div className="flex items-center justify-between mb-12">
+          <div className="mt-14 border-t border-lead/40 pt-14">
+            <div className="flex items-center justify-between mb-10">
               <h3 className="text-body-sm font-w480 text-starlight">Rental car</h3>
               <button
                 onClick={() => setRentalCarModalOpen(true)}
                 className="btn-header flex items-center gap-4 text-caption"
               >
-                <Car size={14} /> Compare
+                <Car size={13} /> Compare
               </button>
             </div>
             <RentalCarCard rental={{
@@ -374,7 +374,7 @@ export function TripResultsPage() {
 
       {/* Hidden gems — premium feature */}
       {trip.hiddenGems?.length > 0 && (
-        <div className="relative mt-24 rounded-container border border-lead/40 p-24">
+        <div className="relative mt-16 sm:mt-24 rounded-container border border-lead/40 p-16 sm:p-24">
           <div className="flex items-center justify-between">
             <h3 className="text-body-sm font-w480 text-starlight">Local favourites & hidden spots</h3>
             {!isPremium && (
@@ -385,7 +385,7 @@ export function TripResultsPage() {
           </div>
 
           {isPremium ? (
-            <div className="mt-12 grid gap-12 sm:grid-cols-2">
+            <div className="mt-12 grid gap-10 grid-cols-2 sm:gap-12 sm:grid-cols-2 lg:grid-cols-3">
               {trip.hiddenGems.map((gem, i) => {
                 const badgeColor =
                   gem.category === 'restaurant' || gem.category === 'café' || gem.category === 'bar'
@@ -467,7 +467,7 @@ export function TripResultsPage() {
       )}
 
       {/* Highlights & tips */}
-      <div className="mt-24 grid gap-24 lg:grid-cols-2">
+      <div className="mt-16 sm:mt-24 grid gap-12 sm:gap-24 lg:grid-cols-2">
         {trip.highlights?.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}

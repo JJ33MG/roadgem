@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { tripsApi } from '@/lib/api';
 import { addDays, format } from 'date-fns';
 import { Download, Share2, Sunrise, Sun, Sunset, Cloud, BedDouble, Lock, ExternalLink, MapPin, Car } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -120,8 +121,10 @@ function DayTabs({ days, activeDay, onSelect }: { days: GeneratedItineraryDay[];
 export function TripResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { tripId } = useParams<{ tripId: string }>();
   const locationState = location.state as { trip?: GeneratedTrip; accommodationTypes?: AccommodationType[] } | null;
-  const trip = locationState?.trip;
+  const [trip, setTrip] = useState<GeneratedTrip | null>(locationState?.trip ?? null);
+  const [tripLoading, setTripLoading] = useState(!locationState?.trip);
   const accommodationTypes: AccommodationType[] =
     locationState?.accommodationTypes && locationState.accommodationTypes.length > 0
       ? locationState.accommodationTypes
@@ -129,6 +132,7 @@ export function TripResultsPage() {
   const { isPremium } = useSubscription();
   const [activeDay, setActiveDay] = useState(1);
   const [, setRentalCarModalOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [accommodationModalOpen, setAccommodationModalOpen] = useState(false);
   const [accommodationFilter, setAccommodationFilter] = useState<AccommodationType | 'all'>('all');
@@ -140,6 +144,19 @@ export function TripResultsPage() {
   const checkin = checkinDate ? format(checkinDate, 'yyyy-MM-dd') : undefined;
   const checkout = checkinDate ? format(addDays(checkinDate, 1), 'yyyy-MM-dd') : undefined;
 
+  useEffect(() => {
+    if (!trip && tripId) {
+      setTripLoading(true);
+      tripsApi.getById(tripId)
+        .then((res) => {
+          const data = res.data as unknown as GeneratedTrip;
+          setTrip(data);
+        })
+        .catch(() => setTrip(null))
+        .finally(() => setTripLoading(false));
+    }
+  }, [tripId]);
+
   const { accommodations, isLoading: accommodationsLoading } = useAccommodations({
     lat: currentStop?.latitude,
     lng: currentStop?.longitude,
@@ -149,6 +166,14 @@ export function TripResultsPage() {
     checkout,
     enabled: accommodationModalOpen,
   });
+
+  if (tripLoading) {
+    return (
+      <div className="section flex justify-center py-80">
+        <LoadingSpinner size={32} />
+      </div>
+    );
+  }
 
   if (!trip) {
     return (
@@ -166,6 +191,8 @@ export function TripResultsPage() {
 
   function handleShare() {
     navigator.clipboard.writeText(window.location.href);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
   }
 
   async function handleDownloadPdf() {
@@ -233,7 +260,7 @@ export function TripResultsPage() {
             onClick={handleShare}
             className="flex items-center gap-6 rounded-btn border border-starlight/20 bg-deep-space/60 px-12 py-8 text-caption text-starlight backdrop-blur-sm transition-colors hover:border-mercury-blue/60"
           >
-            <Share2 size={14} /> Share
+            <Share2 size={14} /> {shareCopied ? 'Copied!' : 'Share'}
           </button>
           <button
             onClick={handleDownloadPdf}

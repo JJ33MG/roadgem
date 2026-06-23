@@ -62,7 +62,7 @@ Respond with ONLY a single JSON object (no markdown, no commentary) matching thi
 
   const message = await client.messages.create({
     model: MODEL,
-    max_tokens: 4000,
+    max_tokens: 8000,
     messages: [{ role: 'user', content: prompt }],
   });
 

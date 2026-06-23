@@ -1,13 +1,41 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SearchForm } from '@/components/forms/SearchForm';
 import { useTripGeneration } from '@/hooks/useTripGeneration';
 import { PaywallModal } from '@/components/utility/PaywallModal';
 import type { TripSearchParams } from '@/types';
 
+const LOADING_MESSAGES = [
+  'Researching your destination...',
+  'Planning your daily itinerary...',
+  'Finding local highlights and hidden gems...',
+  'Calculating routes and distances...',
+  'Almost ready...',
+];
+
 export function SearchFormPage() {
   const navigate = useNavigate();
   const { isLoading, error, limitReached, generateTrip, dismissLimit } = useTripGeneration();
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      setLoadingMsgIndex(0);
+      intervalRef.current = setInterval(() => {
+        setLoadingMsgIndex(prev => Math.min(prev + 1, LOADING_MESSAGES.length - 1));
+      }, 8000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isLoading]);
 
   async function handleSubmit(params: TripSearchParams) {
     const trip = await generateTrip(params);
@@ -52,9 +80,20 @@ export function SearchFormPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mt-32 space-y-16"
           >
-            <p className="text-center text-caption text-silver">
-              Researching your destination and building your itinerary — this takes about 30 seconds.
-            </p>
+            <div className="flex h-6 items-center justify-center overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={loadingMsgIndex}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35 }}
+                  className="text-center text-caption text-silver"
+                >
+                  {LOADING_MESSAGES[loadingMsgIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
             {/* Skeleton preview */}
             <div className="rounded-container border border-lead/40 p-24 animate-pulse">
               <div className="h-[140px] rounded-container bg-graphite/50 mb-20" />

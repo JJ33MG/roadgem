@@ -107,7 +107,7 @@ function FloatingCard({
       animate={{ opacity: 1, y: [0, -8, 0] }}
       transition={{
         opacity: { delay, duration: 0.6 },
-        y: { delay, duration: 4 + delay * 0.5, repeat: Infinity, ease: 'easeInOut' },
+        y: { delay, duration: 3.2 + delay * 0.4, repeat: Infinity, ease: 'easeInOut' },
       }}
     >
       <span className="text-xl">{emoji}</span>
@@ -172,10 +172,19 @@ export function LandingPage() {
           <motion.h1
             variants={fadeUp}
             transition={{ duration: 0.6 }}
-            className="max-w-4xl text-display font-display font-w360 leading-[1.05] text-starlight"
+            className="relative max-w-4xl text-display font-display font-w360 leading-[1.05] text-starlight"
           >
-            Your next road trip,{' '}
-            <span className="text-gradient-accent">planned in 30 seconds.</span>
+            {/* Animated gradient glow behind headline */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-[80px] opacity-40"
+              style={{
+                background: 'radial-gradient(ellipse at center, #af50ff 0%, #7f56d9 40%, transparent 70%)',
+                animation: 'hero-glow 5s ease-in-out infinite',
+              }}
+            />
+            Discover roads{' '}
+            <span className="text-gradient-accent">less travelled.</span>
           </motion.h1>
 
           {/* Subheading */}
@@ -192,20 +201,24 @@ export function LandingPage() {
           <motion.div
             variants={fadeUp}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-12 sm:flex-row"
+            className="flex flex-col items-center gap-12"
           >
-            <Link to="/plan">
-              <motion.span
-                className="btn-primary inline-flex items-center gap-8"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                Plan my trip <ArrowRight size={16} />
-              </motion.span>
-            </Link>
-            <Link to="/dashboard" className="btn-header inline-flex items-center gap-8">
-              See example trips
-            </Link>
+            <div className="flex flex-col items-center gap-12 sm:flex-row">
+              <Link to="/plan">
+                <motion.span
+                  className="btn-primary inline-flex items-center gap-8"
+                  style={{ padding: '18px 32px' }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  Plan my trip <ArrowRight size={16} />
+                </motion.span>
+              </Link>
+              <Link to="/dashboard" className="btn-header inline-flex items-center gap-8">
+                See example trips
+              </Link>
+            </div>
+            <p className="text-caption text-silver/60">No signup required</p>
           </motion.div>
 
           {/* Stats */}

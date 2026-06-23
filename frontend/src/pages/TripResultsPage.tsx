@@ -41,6 +41,17 @@ function buildAutoEuropeUrl(pickup: string, from: string, to: string): string {
 function buildMapsUrl(address: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
+function buildTheForkUrl(activity: string, location: string): string {
+  return `https://www.thefork.com/search#cityName=${encodeURIComponent(location)}&searchPhrase=${encodeURIComponent(activity)}`;
+}
+
+const FOOD_KEYWORDS = ['dinner', 'restaurant', 'dining', 'lunch', 'food', 'eat', 'cuisine', 'cafe', 'café', 'bistro', 'brasserie', 'tavern', 'eatery'];
+
+function isFoodActivity(slot: 'morning' | 'afternoon' | 'evening', activity: string): boolean {
+  if (slot === 'evening') return true;
+  const lower = activity.toLowerCase();
+  return FOOD_KEYWORDS.some((kw) => lower.includes(kw));
+}
 
 function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; item: GeneratedItineraryDay['morning'] }) {
   const { label, icon: Icon } = SLOT_CONFIG[slot];
@@ -70,6 +81,15 @@ function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; it
             className="inline-flex items-center gap-4 text-caption text-mercury-blue/70 hover:text-mercury-blue">
             GetYourGuide <ExternalLink size={10} />
           </a>
+          {isFoodActivity(slot, item.activity) && (
+            <>
+              <span className="text-caption text-graphite">·</span>
+              <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
+                className="inline-flex items-center gap-4 text-caption text-mercury-blue/70 hover:text-mercury-blue">
+                TheFork <ExternalLink size={10} />
+              </a>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -339,37 +359,58 @@ export function TripResultsPage() {
 
           {isPremium ? (
             <div className="mt-12 grid gap-12 sm:grid-cols-2">
-              {trip.hiddenGems.map((gem, i) => (
-                <motion.div
-                  key={gem.name}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06, duration: 0.3 }}
-                  className="overflow-hidden rounded-container border border-starlight/10 transition-colors hover:border-mercury-blue/30"
-                >
-                  <DestinationImage query={`${gem.name}, ${trip.destination}`} alt={gem.name} className="h-[120px] w-full" />
-                  <div className="p-12">
-                    <div className="flex items-center gap-8">
-                      <span
-                        className="h-10 w-10 flex-shrink-0 rounded-full"
-                        style={{ backgroundColor: gem.category === 'restaurant' || gem.category === 'viewpoint' ? '#ffb648' : '#af50ff' }}
-                      />
-                      <p className="text-body-sm font-w480 text-starlight">{gem.name}</p>
+              {trip.hiddenGems.map((gem, i) => {
+                const badgeColor =
+                  gem.category === 'restaurant' || gem.category === 'café' || gem.category === 'bar'
+                    ? '#ffb648'
+                    : gem.category === 'viewpoint' || gem.category === 'nature'
+                    ? '#4ade80'
+                    : gem.category === 'culture' || gem.category === 'historic'
+                    ? '#af50ff'
+                    : gem.category === 'activity' || gem.category === 'market'
+                    ? '#60a5fa'
+                    : '#454545';
+                const badgeTextColor =
+                  gem.category === 'viewpoint' || gem.category === 'nature' || gem.category === 'activity' || gem.category === 'market'
+                    ? '#090909'
+                    : '#f7f9fa';
+                return (
+                  <motion.div
+                    key={gem.name}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.3 }}
+                    className="overflow-hidden rounded-container border border-starlight/10 transition-colors hover:border-mercury-blue/30"
+                  >
+                    <DestinationImage query={`${gem.name}, ${trip.destination}`} alt={gem.name} className="h-[140px] w-full" />
+                    <div className="p-12">
+                      <div className="flex items-start justify-between gap-8">
+                        <p className="text-body-sm font-w480 text-starlight leading-tight">{gem.name}</p>
+                        <span
+                          className="flex-shrink-0 rounded-full px-8 py-2 text-[10px] font-w480 capitalize"
+                          style={{ backgroundColor: badgeColor, color: badgeTextColor }}
+                        >
+                          {gem.category}
+                        </span>
+                      </div>
+                      {gem.address && (
+                        <p className="mt-2 text-caption text-silver truncate">{gem.address}</p>
+                      )}
+                      <p className="mt-6 text-caption text-lead">{gem.description}</p>
+                      {gem.address && (
+                        <a
+                          href={buildMapsUrl(gem.address)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-6 inline-flex items-center gap-4 text-caption text-mercury-blue/60 hover:text-mercury-blue"
+                        >
+                          <MapPin size={10} /> Open in Maps
+                        </a>
+                      )}
                     </div>
-                    <p className="mt-4 text-caption text-silver">{gem.description}</p>
-                    {gem.address && (
-                      <a
-                        href={buildMapsUrl(gem.address)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-6 inline-flex items-center gap-4 text-caption text-mercury-blue/60 hover:text-mercury-blue"
-                      >
-                        <MapPin size={10} /> {gem.address}
-                      </a>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className="relative mt-12">

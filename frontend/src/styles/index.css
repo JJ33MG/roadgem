@@ -199,3 +199,8 @@
 .pac-icon {
   filter: invert(1) brightness(1.5);
 }
+
+@keyframes hero-glow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.15); }
+}

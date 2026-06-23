@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
-import { exec } from 'child_process';
-import path from 'path';
+import { main as runGems } from '../agents/gemsAgent';
+import { main as runSeo } from '../agents/seoAgent';
 
 const router = Router();
 
@@ -57,30 +57,21 @@ router.get('/stats', async (_req: Request, res: Response) => {
   }
 });
 
-router.post('/:name/trigger', async (req: Request, res: Response) => {
-  const { name } = req.params;
-  const allowedAgents: Record<string, string> = {
-    'gems-agent': 'gemsAgent.js',
-    'seo-agent': 'seoAgent.js',
-  };
+const AGENTS: Record<string, () => Promise<void>> = {
+  'gems-agent': runGems,
+  'seo-agent': runSeo,
+};
 
-  if (!allowedAgents[name]) {
+router.post('/:name/trigger', (req: Request, res: Response) => {
+  const { name } = req.params;
+  const agentFn = AGENTS[name];
+
+  if (!agentFn) {
     return res.status(404).json({ error: 'Unknown agent' });
   }
 
-  // Use compiled JS in production (dist/), ts-node source in development
-  const isDev = process.env.NODE_ENV !== 'production';
-  const scriptPath = isDev
-    ? path.join(__dirname, '..', 'agents', allowedAgents[name].replace('.js', '.ts'))
-    : path.join(__dirname, 'agents', allowedAgents[name]);
-
-  const cmd = isDev
-    ? `npx ts-node --project "${path.join(__dirname, '..', '..', 'tsconfig.json')}" "${scriptPath}"`
-    : `node "${scriptPath}"`;
-
-  exec(cmd, { cwd: path.join(__dirname, '..', '..') }, (error, _stdout, stderr) => {
-    if (error) console.error(`Agent ${name} error:`, stderr);
-  });
+  // Fire and forget — run in background without blocking the request
+  agentFn().catch((err) => console.error(`Agent ${name} crashed:`, err));
 
   res.json({ message: `Agent ${name} triggered`, started: true });
 });

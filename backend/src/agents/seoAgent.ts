@@ -71,7 +71,7 @@ Respond ONLY with JSON:
   return true;
 }
 
-async function main() {
+export async function main() {
   const runner = new AgentRunner('seo-agent');
   await runner.start();
 
@@ -116,4 +116,4 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) main();

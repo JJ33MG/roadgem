@@ -71,7 +71,7 @@ Respond ONLY with a JSON array:
   return gems.length;
 }
 
-async function main() {
+export async function main() {
   const runner = new AgentRunner('gems-agent');
   await runner.start();
 
@@ -119,4 +119,4 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) main();

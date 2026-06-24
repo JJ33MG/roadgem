@@ -3,6 +3,7 @@ dotenv.config();
 
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
+import { sendMessage } from '../utils/agentBus';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
@@ -89,15 +90,22 @@ Be concise. Respond as JSON:
       recommendations,
     });
 
-    // Store recommendations so other agents can read them
-    await prisma.agentLog.create({
-      data: {
-        runId: runner.getRunId()!,
-        level: 'success',
-        message: 'Agent recommendations ready',
-        data: JSON.stringify({ type: 'recommendations', recommendations }),
-      },
-    });
+    // Send recommendations directly to other agents via message bus
+    if (recommendations?.gemsAgentPriority?.length > 0) {
+      await sendMessage('analytics-agent', 'gems-agent', 'PRIORITIZE_DESTINATIONS', {
+        destinations: recommendations.gemsAgentPriority,
+        reason: 'High trip demand detected by analytics',
+      });
+      await runner.log('info', `Told gems-agent to prioritize: ${recommendations.gemsAgentPriority.join(', ')}`);
+    }
+
+    if (recommendations?.seoAgentTopics?.length > 0) {
+      await sendMessage('analytics-agent', 'seo-agent', 'PRIORITIZE_TOPICS', {
+        topics: recommendations.seoAgentTopics,
+        reason: 'Popular destinations need better SEO coverage',
+      });
+      await runner.log('info', `Told seo-agent to focus on: ${recommendations.seoAgentTopics.join(', ')}`);
+    }
 
     await runner.finish(
       `Analysed ${recentTrips.length} trips. Top destination: ${topDestinations[0] ?? 'none'}. Avg budget: €${avgBudget}.`

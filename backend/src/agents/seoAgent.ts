@@ -3,6 +3,7 @@ dotenv.config();
 
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
+import { readMessages } from '../utils/agentBus';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
@@ -84,16 +85,44 @@ export async function main() {
       orderBy: { startedAt: 'desc' },
     });
 
+    // Read messages from Analytics and Trend agents
+    const priorityMessages = await readMessages<{ destinations?: string[]; topics?: string[] }>('seo-agent');
+    const priorityDestinations: string[] = [];
+
+    for (const msg of priorityMessages) {
+      if (msg.destinations) {
+        for (const dest of msg.destinations) {
+          const match = DESTINATIONS.find((d) =>
+            d.toLowerCase().includes(dest.toLowerCase()) ||
+            dest.toLowerCase().includes(d.split(',')[0].toLowerCase())
+          );
+          if (match && !priorityDestinations.includes(match)) {
+            priorityDestinations.push(match);
+          }
+        }
+      }
+    }
+
+    if (priorityDestinations.length > 0) {
+      await runner.log('info', `Priority destinations from other agents: ${priorityDestinations.join(', ')}`);
+    }
+
     const lastIndex = lastRun?.result
       ? parseInt(lastRun.result.match(/offset:(\d+)/)?.[1] ?? '0')
       : 0;
     const batchSize = 4;
     const startIndex = lastIndex % DESTINATIONS.length;
 
-    await runner.log('info', `Processing destinations ${startIndex}–${startIndex + batchSize} of ${DESTINATIONS.length}`);
+    const normalBatch = Array.from({ length: batchSize }, (_, i) =>
+      DESTINATIONS[(startIndex + i) % DESTINATIONS.length]
+    ).filter((d) => !priorityDestinations.includes(d));
 
-    for (let i = 0; i < batchSize; i++) {
-      const destination = DESTINATIONS[(startIndex + i) % DESTINATIONS.length];
+    const batch = [...priorityDestinations, ...normalBatch].slice(0, batchSize + priorityDestinations.length);
+
+    await runner.log('info', `Processing ${batch.length} destinations (${priorityDestinations.length} priority)`);
+
+    for (let i = 0; i < batch.length; i++) {
+      const destination = batch[i];
       try {
         const ok = await generateSeoContentForDestination(destination, runner);
         if (ok) successCount++;

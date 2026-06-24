@@ -3,6 +3,7 @@ dotenv.config();
 
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
+import { sendMessage } from '../utils/agentBus';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
@@ -96,10 +97,29 @@ Respond as JSON:
       trends,
     });
 
-    // Flag high-urgency destinations for Gems Agent to prioritise
-    const highUrgency = trends.trendingDestinations?.filter((d: any) => d.urgency === 'high') ?? [];
+    // Send trending destinations to Gems and SEO agents
+    const allDestinations = trends.trendingDestinations ?? [];
+    const highUrgency = allDestinations.filter((d: any) => d.urgency === 'high');
+    const allNames = allDestinations.map((d: any) => d.name);
+
+    if (allNames.length > 0) {
+      await sendMessage('trend-agent', 'gems-agent', 'TRENDING_DESTINATIONS', {
+        destinations: allNames,
+        highUrgency: highUrgency.map((d: any) => d.name),
+        reason: 'Trending on Reddit and travel sites',
+      });
+      await runner.log('info', `Told gems-agent about trending: ${allNames.join(', ')}`);
+
+      await sendMessage('trend-agent', 'seo-agent', 'TRENDING_DESTINATIONS', {
+        destinations: allNames,
+        travelTrends: trends.travelTrends ?? [],
+        reason: 'Write SEO content for trending destinations',
+      });
+      await runner.log('info', `Told seo-agent about trends`);
+    }
+
     if (highUrgency.length > 0) {
-      await runner.log('warning', `${highUrgency.length} high-urgency destinations need gems research: ${highUrgency.map((d: any) => d.name).join(', ')}`);
+      await runner.log('warning', `${highUrgency.length} high-urgency destinations flagged: ${highUrgency.map((d: any) => d.name).join(', ')}`);
     }
 
     await runner.finish(

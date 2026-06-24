@@ -81,6 +81,18 @@ model TripActivity {
   notes         String
 }
 
+model AgentMessage {
+  id          String   @id @default(cuid())
+  fromAgent   String
+  toAgent     String
+  type        String
+  payload     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([toAgent, read])
+}
+
 model DestinationGem {
   id          String   @id @default(cuid())
   destination String

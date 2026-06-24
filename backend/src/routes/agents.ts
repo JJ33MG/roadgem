@@ -60,6 +60,18 @@ router.get('/stats', async (_req: Request, res: Response) => {
   }
 });
 
+router.get('/messages', async (_req: Request, res: Response) => {
+  try {
+    const messages = await prisma.agentMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
 const AGENTS: Record<string, () => Promise<void>> = {
   'gems-agent': runGems,
   'seo-agent': runSeo,

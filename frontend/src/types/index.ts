@@ -219,6 +219,16 @@ export interface AccommodationOption {
   affiliateUrl: string;
 }
 
+export interface AgentMessage {
+  id: string;
+  fromAgent: string;
+  toAgent: string;
+  type: string;
+  payload: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export interface AgentLog {
   id: string;
   runId: string;

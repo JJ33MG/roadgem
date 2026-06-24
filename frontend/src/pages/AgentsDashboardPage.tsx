@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { agentsApi } from '@/lib/api';
-import type { AgentRun, AgentLog, AgentStats } from '@/types';
+import type { AgentRun, AgentLog, AgentStats, AgentMessage } from '@/types';
 
 const AGENT_META: Record<string, { label: string; description: string; icon: string; color: string }> = {
   'gems-agent': {
@@ -73,23 +73,33 @@ function duration(start: string, end?: string | null) {
   return `${Math.floor(s / 60)}m ${s % 60}s`;
 }
 
+const TYPE_LABEL: Record<string, string> = {
+  PRIORITIZE_DESTINATIONS: '📍 Prioritize destinations',
+  PRIORITIZE_TOPICS: '✏️ Prioritize topics',
+  TRENDING_DESTINATIONS: '🔥 Trending destinations',
+};
+
 export default function AgentsDashboardPage() {
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [stats, setStats] = useState<AgentStats | null>(null);
   const [selectedRun, setSelectedRun] = useState<AgentRun | null>(null);
   const [logs, setLogs] = useState<AgentLog[]>([]);
+  const [messages, setMessages] = useState<AgentMessage[]>([]);
+  const [activeTab, setActiveTab] = useState<'runs' | 'messages'>('runs');
   const [triggering, setTriggering] = useState<string | null>(null);
   const [triggerMsg, setTriggerMsg] = useState<string | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = async () => {
-    const [runsRes, statsRes] = await Promise.all([
+    const [runsRes, statsRes, messagesRes] = await Promise.all([
       agentsApi.getRuns(),
       agentsApi.getStats(),
+      agentsApi.getMessages(),
     ]);
     setRuns(runsRes.data);
     setStats(statsRes.data);
+    setMessages(messagesRes.data);
   };
 
   const fetchLogs = async (runId: string) => {
@@ -238,8 +248,84 @@ export default function AgentsDashboardPage() {
           )}
         </AnimatePresence>
 
+        {/* Tab switcher */}
+        <div className="flex gap-2 mb-6">
+          {(['runs', 'messages'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === tab
+                  ? 'bg-mercury-blue text-white'
+                  : 'bg-graphite/50 text-silver hover:text-starlight'
+              }`}
+            >
+              {tab === 'runs' ? '📋 Runs & Logs' : `💬 Agent Messages ${messages.length > 0 ? `(${messages.length})` : ''}`}
+            </button>
+          ))}
+        </div>
+
+        {/* Messages view */}
+        {activeTab === 'messages' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            {messages.length === 0 ? (
+              <div className="glass-panel rounded-xl p-12 text-center text-silver">
+                No messages yet — run the Analytics or Trend agent first.
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                {messages.map((msg) => {
+                  const from = AGENT_META[msg.fromAgent];
+                  const to = AGENT_META[msg.toAgent];
+                  let payload: any = {};
+                  try { payload = JSON.parse(msg.payload); } catch {}
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="glass-panel rounded-xl p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className="text-sm font-medium text-starlight">
+                          {from?.icon ?? '🤖'} {from?.label ?? msg.fromAgent}
+                        </span>
+                        <span className="text-graphite text-xs">→</span>
+                        <span className="text-sm font-medium text-mercury-blue">
+                          {to?.icon ?? '🤖'} {to?.label ?? msg.toAgent}
+                        </span>
+                        <span className="ml-auto text-xs text-graphite">{formatRelative(msg.createdAt)}</span>
+                      </div>
+                      <div className="text-xs font-mono text-mercury-blue/70 mb-2">
+                        {TYPE_LABEL[msg.type] ?? msg.type}
+                      </div>
+                      {payload.destinations && (
+                        <div className="flex flex-wrap gap-1">
+                          {payload.destinations.map((d: string) => (
+                            <span key={d} className="text-xs bg-mercury-blue/10 text-mercury-blue px-2 py-0.5 rounded-full">
+                              {d}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {payload.reason && (
+                        <p className="text-xs text-silver mt-2">"{payload.reason}"</p>
+                      )}
+                      <div className="mt-2 flex items-center gap-1">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${msg.read ? 'bg-graphite/50 text-silver' : 'bg-green-500/20 text-green-400'}`}>
+                          {msg.read ? 'read' : 'unread'}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Run history + logs */}
-        <div className="grid lg:grid-cols-2 gap-6">
+        {activeTab === 'runs' && <div className="grid lg:grid-cols-2 gap-6">
           {/* Run list */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -327,7 +413,7 @@ export default function AgentsDashboardPage() {
               <div ref={logsEndRef} />
             </div>
           </motion.div>
-        </div>
+        </div>}
       </div>
     </div>
   );

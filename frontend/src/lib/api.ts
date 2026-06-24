@@ -15,6 +15,7 @@ import type {
   AgentRun,
   AgentLog,
   AgentStats,
+  AgentMessage,
 } from '@/types';
 
 // --- Auth ---
@@ -101,6 +102,7 @@ export const agentsApi = {
   getRuns: () => apiClient.get<AgentRun[]>('/agents/runs'),
   getRunLogs: (runId: string) => apiClient.get<AgentLog[]>(`/agents/runs/${runId}/logs`),
   getStats: () => apiClient.get<AgentStats>('/agents/stats'),
+  getMessages: () => apiClient.get<AgentMessage[]>('/agents/messages'),
   trigger: (name: string) => apiClient.post(`/agents/${name}/trigger`, {}),
 };
 

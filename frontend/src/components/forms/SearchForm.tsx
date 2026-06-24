@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MapPin, Calendar, Wallet, Compass, Star, BedDouble } from 'lucide-react';
 import { DestinationInput } from './DestinationInput';
 import { DateRangePicker } from './DateRangePicker';
@@ -24,8 +25,14 @@ function SectionLabel({ icon: Icon, label }: { icon: typeof MapPin; label: strin
 }
 
 export function SearchForm({ isLoading, onSubmit }: SearchFormProps) {
+  const [searchParams] = useSearchParams();
   const [startLocation, setStartLocation] = useState('');
   const [destination, setDestination] = useState('');
+
+  useEffect(() => {
+    const dest = searchParams.get('destination');
+    if (dest) setDestination(dest);
+  }, []);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [budget, setBudget] = useState(1500);

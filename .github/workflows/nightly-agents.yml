@@ -35,6 +35,8 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_MODEL: claude-haiku-4-5-20251001
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
 
       - name: Run Trend Agent
         working-directory: backend
@@ -44,6 +46,8 @@ jobs:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_MODEL: claude-haiku-4-5-20251001
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
 
       - name: Run Hidden Gems Agent
         working-directory: backend
@@ -52,6 +56,9 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_MODEL: claude-haiku-4-5-20251001
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          GEMS_BATCH_SIZE: "10"
 
       - name: Run SEO Agent
         working-directory: backend
@@ -60,6 +67,9 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_MODEL: claude-haiku-4-5-20251001
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          SEO_BATCH_SIZE: "8"
 
   send-briefing:
     runs-on: ubuntu-latest
@@ -92,3 +102,5 @@ jobs:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}

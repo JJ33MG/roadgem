@@ -111,7 +111,7 @@ export async function main() {
     const lastIndex = lastRun?.result
       ? parseInt(lastRun.result.match(/offset:(\d+)/)?.[1] ?? '0')
       : 0;
-    const batchSize = 5;
+    const batchSize = parseInt(process.env.GEMS_BATCH_SIZE ?? '5');
     const startIndex = lastIndex % DESTINATIONS.length;
 
     // Put priority destinations first, then fill remaining slots from normal rotation

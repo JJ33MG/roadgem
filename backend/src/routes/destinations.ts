@@ -46,6 +46,46 @@ router.get('/suggestions', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
+// GET /api/destinations/sitemap — XML sitemap for all destination pages
+router.get('/sitemap', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const BASE = 'https://www.roadgem.com';
+    const destinations = await (prisma as any).destinationSeo.findMany({
+      select: { slug: true, updatedAt: true },
+    });
+
+    const staticPages = ['', '/plan', '/destinations', '/pricing'].map((path) => ({
+      loc: `${BASE}${path}`,
+      lastmod: new Date().toISOString().split('T')[0],
+      changefreq: 'weekly',
+      priority: path === '' ? '1.0' : '0.8',
+    }));
+
+    const destPages = destinations.map((d: any) => ({
+      loc: `${BASE}/destinations/${d.slug}`,
+      lastmod: new Date(d.updatedAt).toISOString().split('T')[0],
+      changefreq: 'weekly',
+      priority: '0.7',
+    }));
+
+    const allPages = [...staticPages, ...destPages];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allPages.map((p) => `  <url>
+    <loc>${p.loc}</loc>
+    <lastmod>${p.lastmod}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/destinations/seo — list all destinations with SEO content
 router.get('/seo', async (req: Request, res: Response, next: NextFunction) => {
   try {

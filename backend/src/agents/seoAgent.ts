@@ -122,7 +122,7 @@ export async function main() {
     const lastIndex = lastRun?.result
       ? parseInt(lastRun.result.match(/offset:(\d+)/)?.[1] ?? '0')
       : 0;
-    const batchSize = 4;
+    const batchSize = parseInt(process.env.SEO_BATCH_SIZE ?? '4');
     const startIndex = lastIndex % DESTINATIONS.length;
 
     const normalBatch = Array.from({ length: batchSize }, (_, i) =>

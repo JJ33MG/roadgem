@@ -5,19 +5,10 @@ import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
 import { readMessages } from '../utils/agentBus';
 import { traceAgentRun, createGeneration, endGeneration } from '../utils/langfuse';
+import { DESTINATIONS } from '../utils/destinations';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-
-const DESTINATIONS = [
-  'Lisbon, Portugal', 'Porto, Portugal', 'Barcelona, Spain', 'Madrid, Spain',
-  'Seville, Spain', 'Valencia, Spain', 'Paris, France', 'Lyon, France',
-  'Marseille, France', 'Amsterdam, Netherlands', 'Brussels, Belgium',
-  'Bruges, Belgium', 'Rome, Italy', 'Florence, Italy', 'Naples, Italy',
-  'Amalfi Coast, Italy', 'Prague, Czech Republic', 'Vienna, Austria',
-  'Santorini, Greece', 'Athens, Greece', 'Dubrovnik, Croatia',
-  'Berlin, Germany', 'Munich, Germany', 'Copenhagen, Denmark',
-];
 
 async function researchGemsForDestination(destination: string, runner: AgentRunner): Promise<number> {
   await runner.log('info', `Researching hidden gems for ${destination}`);

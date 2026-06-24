@@ -16,6 +16,24 @@ const AGENT_META: Record<string, { label: string; description: string; icon: str
     icon: '📈',
     color: 'plum',
   },
+  'analytics-agent': {
+    label: 'Analytics Agent',
+    description: 'Analyses trip patterns and tells other agents what to prioritise',
+    icon: '📊',
+    color: 'mercury-blue',
+  },
+  'trend-agent': {
+    label: 'Trend Agent',
+    description: 'Monitors Reddit and travel sites for trending destinations',
+    icon: '🔥',
+    color: 'plum',
+  },
+  'briefing-agent': {
+    label: 'Briefing Agent',
+    description: 'Sends you a daily email summary of everything agents did overnight',
+    icon: '☀️',
+    color: 'mercury-blue',
+  },
 };
 
 const STATUS_STYLE: Record<string, string> = {

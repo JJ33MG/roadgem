@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { main as runGems } from '../agents/gemsAgent';
 import { main as runSeo } from '../agents/seoAgent';
+import { main as runAnalytics } from '../agents/analyticsAgent';
+import { main as runTrend } from '../agents/trendAgent';
+import { main as runBriefing } from '../agents/briefingAgent';
 
 const router = Router();
 
@@ -60,6 +63,9 @@ router.get('/stats', async (_req: Request, res: Response) => {
 const AGENTS: Record<string, () => Promise<void>> = {
   'gems-agent': runGems,
   'seo-agent': runSeo,
+  'analytics-agent': runAnalytics,
+  'trend-agent': runTrend,
+  'briefing-agent': runBriefing,
 };
 
 router.post('/:name/trigger', (req: Request, res: Response) => {

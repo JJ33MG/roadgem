@@ -107,6 +107,22 @@ model DestinationGem {
   @@index([destination])
 }
 
+model DestinationSeo {
+  id                    String   @id @default(cuid())
+  destination           String   @unique
+  slug                  String   @unique
+  title                 String
+  metaDescription       String
+  h1                    String
+  intro                 String
+  topKeywords           String
+  faq                   String
+  internalLinkSuggestions String
+  updatedAt             DateTime @updatedAt
+
+  @@index([slug])
+}
+
 model AgentRun {
   id          String   @id @default(cuid())
   agentName   String

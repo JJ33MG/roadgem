@@ -7,6 +7,7 @@ import { MobileMenu } from './MobileMenu';
 const NAV_LINKS = [
   { to: '/', label: 'Home' },
   { to: '/plan', label: 'Plan a trip' },
+  { to: '/destinations', label: 'Destinations' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/dashboard', label: 'Dashboard' },
 ];

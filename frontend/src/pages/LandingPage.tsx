@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Compass, Map, Sparkles, Wallet, Fuel, ArrowRight, Star, MapPin, Clock, ChevronDown } from 'lucide-react';
+import { Compass, Map, Sparkles, Wallet, Fuel, ArrowRight, Star, MapPin, Clock, ChevronDown, Sunrise, Sun, Sunset, Gem } from 'lucide-react';
 
 const FEATURES = [
   {
@@ -356,6 +356,110 @@ export function LandingPage() {
               <p className="text-body-sm text-silver">{item.description}</p>
             </motion.div>
           ))}
+        </motion.div>
+      </section>
+
+      {/* ── Trip preview ─────────────────────────────────────────────────── */}
+      <section className="section py-56 sm:py-96">
+        <motion.div
+          className="mb-48"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-serif-accent mb-12 text-heading-sm">See it in action</p>
+          <h2 className="text-heading font-display font-w360 text-starlight">
+            What your trip looks like
+          </h2>
+          <p className="mt-16 max-w-lg text-body text-silver">
+            Every trip comes with a day-by-day itinerary, interactive map, hidden gems and curated stays.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6 }}
+          className="overflow-hidden rounded-container border border-mercury-blue/20"
+          style={{ background: 'linear-gradient(160deg, rgba(175,80,255,0.06) 0%, rgba(9,9,9,0) 60%)' }}
+        >
+          {/* Mock trip header */}
+          <div className="border-b border-starlight/[0.07] px-20 py-16 sm:px-28 sm:py-20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-heading-sm font-display font-w360 text-starlight">Lisbon → Porto → Sintra</h3>
+                <p className="mt-2 text-caption text-silver">Jun 14 – Jun 19 &middot; 5 days &middot; <span className="text-starlight font-w480">€640</span> &middot; 320 km</p>
+              </div>
+              <span className="hidden sm:flex items-center gap-6 rounded-full bg-mercury-blue/10 border border-mercury-blue/20 px-12 py-6 text-caption text-mercury-blue">
+                <Sparkles size={11} /> AI generated
+              </span>
+            </div>
+          </div>
+
+          {/* Mock day */}
+          <div className="grid gap-0 sm:grid-cols-2">
+            <div className="border-b sm:border-b-0 sm:border-r border-starlight/[0.07] p-20 sm:p-28">
+              <div className="mb-14 flex items-center gap-8">
+                <span className="rounded-full bg-mercury-blue text-white px-10 py-3 text-caption font-w480">Day 1</span>
+                <span className="text-caption text-silver">Lisbon</span>
+              </div>
+              {[
+                { slot: 'Morning', icon: Sunrise, time: '09:00', activity: 'Pastéis de Belém breakfast', cost: 8 },
+                { slot: 'Afternoon', icon: Sun, time: '14:00', activity: 'Tram 28 & Alfama exploration', cost: 12 },
+                { slot: 'Evening', icon: Sunset, time: '19:30', activity: 'Fado dinner in Mouraria', cost: 45 },
+              ].map(({ slot, icon: Icon, time, activity, cost }) => (
+                <div key={slot} className="flex gap-10 rounded-container border border-lead/30 p-10 mb-6 last:mb-0">
+                  <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full bg-mercury-blue/15 text-mercury-blue">
+                    <Icon size={13} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-6">
+                      <p className="text-caption font-w480 text-starlight truncate">{activity}</p>
+                      <span className="flex-shrink-0 text-caption text-silver">&euro;{cost}</span>
+                    </div>
+                    <p className="text-[11px] text-silver mt-1">{slot} &middot; {time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mock hidden gems */}
+            <div className="p-20 sm:p-28">
+              <div className="mb-14 flex items-center gap-8">
+                <Gem size={14} className="text-mercury-blue" />
+                <span className="text-body-sm font-w480 text-starlight">Hidden gems</span>
+              </div>
+              {[
+                { name: 'LX Factory Sunday Market', category: 'market', why: 'Locals only know this spot' },
+                { name: 'Miradouro da Graça', category: 'viewpoint', why: 'No tourist crowds before 10am' },
+                { name: 'Taberna da Rua das Flores', category: 'restaurant', why: 'Menu changes daily, cash only' },
+              ].map((gem) => {
+                const color = gem.category === 'market' || gem.category === 'viewpoint' ? '#4ade80' : '#ffb648';
+                const textColor = '#090909';
+                return (
+                  <div key={gem.name} className="flex items-start gap-10 rounded-container border border-starlight/10 p-10 mb-6 last:mb-0">
+                    <span
+                      className="mt-1 flex-shrink-0 rounded-full px-8 py-2 text-[10px] font-w480 capitalize"
+                      style={{ backgroundColor: color, color: textColor }}
+                    >
+                      {gem.category}
+                    </span>
+                    <div>
+                      <p className="text-caption font-w480 text-starlight">{gem.name}</p>
+                      <p className="text-[11px] text-silver mt-1">{gem.why}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="mt-14">
+                <Link to="/plan" className="btn-primary inline-flex w-full items-center justify-center gap-8 text-body-sm">
+                  Get my version <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </section>
 

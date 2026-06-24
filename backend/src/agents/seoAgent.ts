@@ -62,16 +62,33 @@ Respond ONLY with JSON:
 
   const seoContent = JSON.parse(jsonMatch[0]);
 
-  await prisma.agentLog.create({
-    data: {
-      runId: runner.getRunId()!,
-      level: 'success',
-      message: `SEO content generated for ${destination}`,
-      data: JSON.stringify({ destination, seoContent }),
+  const slug = destination.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  await (prisma as any).destinationSeo.upsert({
+    where: { slug },
+    update: {
+      title: seoContent.title ?? '',
+      metaDescription: seoContent.metaDescription ?? '',
+      h1: seoContent.h1 ?? '',
+      intro: seoContent.intro ?? '',
+      topKeywords: JSON.stringify(seoContent.topKeywords ?? []),
+      faq: JSON.stringify(seoContent.faq ?? []),
+      internalLinkSuggestions: JSON.stringify(seoContent.internalLinkSuggestions ?? []),
+    },
+    create: {
+      destination,
+      slug,
+      title: seoContent.title ?? '',
+      metaDescription: seoContent.metaDescription ?? '',
+      h1: seoContent.h1 ?? '',
+      intro: seoContent.intro ?? '',
+      topKeywords: JSON.stringify(seoContent.topKeywords ?? []),
+      faq: JSON.stringify(seoContent.faq ?? []),
+      internalLinkSuggestions: JSON.stringify(seoContent.internalLinkSuggestions ?? []),
     },
   });
 
-  await runner.log('success', `SEO content ready for ${destination}`, { destination });
+  await runner.log('success', `SEO content saved for ${destination}`, { destination });
   return true;
 }
 

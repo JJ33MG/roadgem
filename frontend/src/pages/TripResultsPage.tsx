@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { tripsApi } from '@/lib/api';
 import { addDays, format } from 'date-fns';
-import { Download, Share2, Sunrise, Sun, Sunset, Cloud, BedDouble, Lock, ExternalLink, MapPin, Car } from 'lucide-react';
+import { Download, Share2, Sunrise, Sun, Sunset, Cloud, BedDouble, Lock, ExternalLink, MapPin, Car, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { TripMap } from '@/components/map/TripMap';
@@ -272,7 +272,47 @@ export function TripResultsPage() {
         </div>
       </motion.div>
 
-      <div className="mt-20 sm:mt-32 grid gap-16 sm:gap-24 lg:grid-cols-[1fr_360px]">
+      {/* Route stops strip */}
+      {trip.stops?.length > 0 && (
+        <div className="mt-16 sm:mt-24 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-0 min-w-max pb-2">
+            {trip.stops.map((stop: any, i: number) => (
+              <div key={stop.location ?? i} className="flex items-center">
+                <button
+                  onClick={() => setActiveDay(i + 1)}
+                  className={clsx(
+                    'flex flex-col items-center gap-3 rounded-container px-12 py-8 transition-all text-center',
+                    activeDay === i + 1
+                      ? 'bg-mercury-blue/15 border border-mercury-blue/40'
+                      : 'border border-transparent hover:border-lead/40'
+                  )}
+                >
+                  <div className={clsx(
+                    'flex h-24 w-24 items-center justify-center rounded-full text-[10px] font-mono',
+                    activeDay === i + 1 ? 'bg-mercury-blue text-white' : 'bg-graphite text-silver'
+                  )}>
+                    {i + 1}
+                  </div>
+                  <span className={clsx(
+                    'text-[11px] font-w480 whitespace-nowrap max-w-[90px] truncate',
+                    activeDay === i + 1 ? 'text-starlight' : 'text-silver'
+                  )}>
+                    {stop.location?.split(',')[0] ?? `Stop ${i + 1}`}
+                  </span>
+                  {stop.distanceFromPrev > 0 && (
+                    <span className="text-[10px] text-lead">{stop.distanceFromPrev} km</span>
+                  )}
+                </button>
+                {i < trip.stops.length - 1 && (
+                  <ChevronRight size={12} className="mx-2 flex-shrink-0 text-lead/50" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-16 sm:mt-24 grid gap-16 sm:gap-24 lg:grid-cols-[1fr_360px]">
         {/* Map — collapsible on mobile */}
         <div className="overflow-hidden rounded-container border border-lead/40" style={{ minHeight: 280 }}>
           <TripMap

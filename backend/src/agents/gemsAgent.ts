@@ -10,12 +10,95 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
-async function researchGemsForDestination(destination: string, runner: AgentRunner): Promise<number> {
-  await runner.log('info', `Researching hidden gems for ${destination}`);
+// Gem counts per depth level
+const GEMS_PER_LEVEL = [0, 6, 12, 20];
 
-  const prompt = `You are a local travel expert researching authentic hidden gems for "${destination}".
+// Ensure all seed destinations are in the DB queue
+async function seedQueue(): Promise<void> {
+  for (const destination of DESTINATIONS) {
+    const country = destination.split(', ')[1] ?? 'Europe';
+    await (prisma as any).destinationQueue.upsert({
+      where: { destination },
+      update: {},
+      create: { destination, country, source: 'seed' },
+    });
+  }
+}
 
-Find 6 genuinely hidden, non-touristy gems that locals love. Avoid famous landmarks.
+// Discover new destinations with Claude when coverage threshold is reached
+async function discoverNewDestinations(runner: AgentRunner): Promise<number> {
+  const existing = await (prisma as any).destinationQueue.findMany({
+    select: { destination: true },
+  });
+  const existingNames = existing.map((d: any) => d.destination);
+
+  const prompt = `You are expanding RoadGem, an AI road trip planner for Europe.
+
+We already cover these ${existingNames.length} destinations:
+${existingNames.join(', ')}
+
+Suggest 30 MORE European destinations road trippers love that are NOT in our list.
+Prioritise: underrated cities, scenic regions, off-the-beaten-path gems, hidden coastal towns, mountain villages.
+Avoid major tourist traps already in the list.
+
+Respond ONLY with a JSON array:
+[{"destination": "City, Country", "country": "Country"}]`;
+
+  const generation = createGeneration(null, 'gems-discover', process.env.CLAUDE_MODEL || 'claude-sonnet-4-6', prompt);
+  const message = await client.messages.create({
+    model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
+    max_tokens: 1500,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : '';
+  endGeneration(generation, text, { input: message.usage.input_tokens, output: message.usage.output_tokens });
+
+  const jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) return 0;
+
+  const newDests: { destination: string; country: string }[] = JSON.parse(jsonMatch[0]);
+  let added = 0;
+
+  for (const d of newDests) {
+    if (!d.destination || existingNames.includes(d.destination)) continue;
+    try {
+      await (prisma as any).destinationQueue.create({
+        data: { destination: d.destination, country: d.country, source: 'auto-discovery' },
+      });
+      added++;
+    } catch {
+      // already exists — skip
+    }
+  }
+
+  await runner.log('success', `Auto-discovered ${added} new destinations`, { added });
+  return added;
+}
+
+async function researchGemsForDestination(
+  destination: string,
+  currentDepth: number,
+  runner: AgentRunner
+): Promise<number> {
+  const targetGems = GEMS_PER_LEVEL[Math.min(currentDepth + 1, GEMS_PER_LEVEL.length - 1)];
+  const alreadyHave = GEMS_PER_LEVEL[currentDepth];
+  const findMore = targetGems - alreadyHave;
+
+  await runner.log('info', `Researching ${destination} (depth ${currentDepth} → ${currentDepth + 1}, finding ${findMore} more gems)`);
+
+  const existingNames = currentDepth > 0
+    ? (await prisma.destinationGem.findMany({ where: { destination }, select: { name: true } }))
+        .map((g) => g.name)
+    : [];
+
+  const exclusion = existingNames.length > 0
+    ? `\nDo NOT include these already-known places: ${existingNames.join(', ')}.`
+    : '';
+
+  const prompt = `You are a local travel expert for "${destination}".
+
+Find ${findMore} genuinely hidden, non-touristy gems that locals love. Avoid famous landmarks.${exclusion}
 
 For each gem provide:
 - name: exact place name
@@ -25,17 +108,9 @@ For each gem provide:
 - whyHidden: 1 sentence why tourists miss it (max 15 words)
 
 Respond ONLY with a JSON array:
-[
-  {
-    "name": "string",
-    "description": "string",
-    "address": "string",
-    "category": "string",
-    "whyHidden": "string"
-  }
-]`;
+[{"name":"string","description":"string","address":"string","category":"string","whyHidden":"string"}]`;
 
-  const generation = createGeneration(null, `gems-${destination}`, process.env.CLAUDE_MODEL || 'claude-sonnet-4-6', prompt);
+  const generation = createGeneration(null, `gems-${destination}-d${currentDepth + 1}`, process.env.CLAUDE_MODEL || 'claude-sonnet-4-6', prompt);
   const message = await client.messages.create({
     model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
     max_tokens: 2000,
@@ -44,6 +119,7 @@ Respond ONLY with a JSON array:
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '';
   endGeneration(generation, text, { input: message.usage.input_tokens, output: message.usage.output_tokens });
+
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) {
     await runner.log('warning', `No valid JSON from Claude for ${destination}`);
@@ -52,8 +128,7 @@ Respond ONLY with a JSON array:
 
   const gems = JSON.parse(jsonMatch[0]);
 
-  // Remove old gems for this destination and replace with fresh ones
-  await prisma.destinationGem.deleteMany({ where: { destination } });
+  // Append new gems (don't delete existing ones)
   await prisma.destinationGem.createMany({
     data: gems.map((g: any) => ({
       destination,
@@ -63,82 +138,104 @@ Respond ONLY with a JSON array:
       category: g.category,
       whyHidden: g.whyHidden,
     })),
+    skipDuplicates: true,
   });
 
-  await runner.log('success', `${gems.length} gems saved for ${destination}`, { destination, count: gems.length });
+  // Update depth in queue
+  await (prisma as any).destinationQueue.update({
+    where: { destination },
+    data: { gemDepth: currentDepth + 1, lastResearched: new Date() },
+  });
+
+  await runner.log('success', `${gems.length} gems added for ${destination} (total depth ${currentDepth + 1})`, {
+    destination, count: gems.length, depth: currentDepth + 1,
+  });
   return gems.length;
 }
 
 export async function main() {
-  await traceAgentRun('gems-agent', async (trace) => {
+  await traceAgentRun('gems-agent', async (_trace) => {
   const runner = new AgentRunner('gems-agent');
   await runner.start();
 
   try {
-    let totalGems = 0;
-    let destinationsProcessed = 0;
+    // Ensure all seed destinations are queued
+    await seedQueue();
 
-    // Process a batch of destinations (rotate through them)
-    const lastRun = await prisma.agentRun.findFirst({
-      where: { agentName: 'gems-agent', status: 'completed' },
-      orderBy: { startedAt: 'desc' },
-    });
+    const batchSize = parseInt(process.env.GEMS_BATCH_SIZE ?? '10');
 
-    // Read messages from Analytics and Trend agents
+    // Read priority messages from other agents
     const priorityMessages = await readMessages<{ destinations: string[]; highUrgency?: string[] }>('gems-agent');
     const priorityDestinations: string[] = [];
 
     for (const msg of priorityMessages) {
       if (msg.destinations) {
         for (const dest of msg.destinations) {
-          // Match against our known destinations list
-          const match = DESTINATIONS.find((d) =>
-            d.toLowerCase().includes(dest.toLowerCase()) ||
-            dest.toLowerCase().includes(d.split(',')[0].toLowerCase())
-          );
-          if (match && !priorityDestinations.includes(match)) {
-            priorityDestinations.push(match);
+          const match = await (prisma as any).destinationQueue.findFirst({
+            where: {
+              destination: { contains: dest.split(',')[0], mode: 'insensitive' },
+            },
+          });
+          if (match && !priorityDestinations.includes(match.destination)) {
+            // Boost priority in queue
+            await (prisma as any).destinationQueue.update({
+              where: { destination: match.destination },
+              data: { priority: { increment: 10 } },
+            });
+            priorityDestinations.push(match.destination);
           }
         }
       }
     }
 
-    if (priorityDestinations.length > 0) {
-      await runner.log('info', `Priority destinations from other agents: ${priorityDestinations.join(', ')}`);
-    }
+    // Check coverage: what % of destinations have at least depth 1?
+    const total = await (prisma as any).destinationQueue.count();
+    const covered = await (prisma as any).destinationQueue.count({ where: { gemDepth: { gte: 1 } } });
+    const coveragePct = total > 0 ? (covered / total) * 100 : 0;
 
-    // Figure out where we left off
-    const lastIndex = lastRun?.result
-      ? parseInt(lastRun.result.match(/offset:(\d+)/)?.[1] ?? '0')
-      : 0;
-    const batchSize = parseInt(process.env.GEMS_BATCH_SIZE ?? '5');
-    const startIndex = lastIndex % DESTINATIONS.length;
+    await runner.log('info', `Coverage: ${covered}/${total} destinations (${Math.round(coveragePct)}%)`);
 
-    // Put priority destinations first, then fill remaining slots from normal rotation
-    const normalBatch = Array.from({ length: batchSize }, (_, i) =>
-      DESTINATIONS[(startIndex + i) % DESTINATIONS.length]
-    ).filter((d) => !priorityDestinations.includes(d));
-
-    const batch = [...priorityDestinations, ...normalBatch].slice(0, batchSize + priorityDestinations.length);
-
-    await runner.log('info', `Processing ${batch.length} destinations (${priorityDestinations.length} priority, ${batch.length - priorityDestinations.length} scheduled)`);
-
-    for (let i = 0; i < batch.length; i++) {
-      const destination = batch[i];
-      try {
-        const count = await researchGemsForDestination(destination, runner);
-        totalGems += count;
-        destinationsProcessed++;
-        // Small delay to avoid rate limiting
-        await new Promise((r) => setTimeout(r, 1500));
-      } catch (err) {
-        await runner.log('error', `Failed for ${destination}: ${err}`);
+    // Auto-discover new destinations when 80% is covered
+    if (coveragePct >= 80 && total < 500) {
+      await runner.log('info', `Coverage at ${Math.round(coveragePct)}% — auto-discovering new destinations`);
+      const added = await discoverNewDestinations(runner);
+      if (added > 0) {
+        await runner.log('success', `Expanded destination list by ${added} new places`);
       }
     }
 
-    const nextOffset = (startIndex + batchSize) % DESTINATIONS.length;
+    // Select batch: prioritise by (gemDepth ASC, priority DESC) — untouched first, then deepen
+    const batch = await (prisma as any).destinationQueue.findMany({
+      orderBy: [{ gemDepth: 'asc' }, { priority: 'desc' }, { addedAt: 'asc' }],
+      take: batchSize,
+    });
+
+    let totalGems = 0;
+    let destinationsProcessed = 0;
+
+    await runner.log('info', `Processing ${batch.length} destinations`);
+
+    for (const item of batch) {
+      // Skip depth 3 (20+ gems) — they're comprehensive enough; revisit monthly
+      if (item.gemDepth >= 3) {
+        const daysSince = item.lastResearched
+          ? (Date.now() - new Date(item.lastResearched).getTime()) / 86400000
+          : 999;
+        if (daysSince < 30) continue;
+      }
+
+      try {
+        const count = await researchGemsForDestination(item.destination, item.gemDepth, runner);
+        totalGems += count;
+        destinationsProcessed++;
+        await new Promise((r) => setTimeout(r, 1500));
+      } catch (err) {
+        await runner.log('error', `Failed for ${item.destination}: ${err}`);
+      }
+    }
+
     await runner.finish(
-      `Researched ${destinationsProcessed} destinations, found ${totalGems} hidden gems. offset:${nextOffset}`
+      `Processed ${destinationsProcessed} destinations, added ${totalGems} gems. Coverage: ${Math.round(coveragePct)}% (${covered}/${total})`
     );
   } catch (err) {
     await runner.fail(`Agent crashed: ${err}`);

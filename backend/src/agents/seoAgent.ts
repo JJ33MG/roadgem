@@ -5,7 +5,6 @@ import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
 import { readMessages } from '../utils/agentBus';
 import { traceAgentRun, createGeneration, endGeneration } from '../utils/langfuse';
-import { DESTINATIONS } from '../utils/destinations';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
@@ -92,62 +91,61 @@ export async function main() {
     let successCount = 0;
     let destinationsProcessed = 0;
 
-    const lastRun = await prisma.agentRun.findFirst({
-      where: { agentName: 'seo-agent', status: 'completed' },
-      orderBy: { startedAt: 'desc' },
-    });
-
-    // Read messages from Analytics and Trend agents
+    // Read priority messages from other agents
     const priorityMessages = await readMessages<{ destinations?: string[]; topics?: string[] }>('seo-agent');
-    const priorityDestinations: string[] = [];
-
     for (const msg of priorityMessages) {
       if (msg.destinations) {
         for (const dest of msg.destinations) {
-          const match = DESTINATIONS.find((d) =>
-            d.toLowerCase().includes(dest.toLowerCase()) ||
-            dest.toLowerCase().includes(d.split(',')[0].toLowerCase())
-          );
-          if (match && !priorityDestinations.includes(match)) {
-            priorityDestinations.push(match);
+          const match = await (prisma as any).destinationQueue.findFirst({
+            where: { destination: { contains: dest.split(',')[0], mode: 'insensitive' } },
+          });
+          if (match) {
+            await (prisma as any).destinationQueue.update({
+              where: { destination: match.destination },
+              data: { priority: { increment: 5 } },
+            });
           }
         }
       }
     }
 
-    if (priorityDestinations.length > 0) {
-      await runner.log('info', `Priority destinations from other agents: ${priorityDestinations.join(', ')}`);
-    }
+    const batchSize = parseInt(process.env.SEO_BATCH_SIZE ?? '8');
 
-    const lastIndex = lastRun?.result
-      ? parseInt(lastRun.result.match(/offset:(\d+)/)?.[1] ?? '0')
-      : 0;
-    const batchSize = parseInt(process.env.SEO_BATCH_SIZE ?? '4');
-    const startIndex = lastIndex % DESTINATIONS.length;
+    // Pick destinations that have gems but no SEO yet, ordered by priority
+    const batch = await (prisma as any).destinationQueue.findMany({
+      where: { gemDepth: { gte: 1 }, seoGenerated: false },
+      orderBy: [{ priority: 'desc' }, { addedAt: 'asc' }],
+      take: batchSize,
+    });
 
-    const normalBatch = Array.from({ length: batchSize }, (_, i) =>
-      DESTINATIONS[(startIndex + i) % DESTINATIONS.length]
-    ).filter((d) => !priorityDestinations.includes(d));
+    // If all SEO is done, refresh oldest ones
+    const finalBatch = batch.length > 0 ? batch : await (prisma as any).destinationQueue.findMany({
+      where: { gemDepth: { gte: 1 } },
+      orderBy: [{ lastResearched: 'asc' }],
+      take: batchSize,
+    });
 
-    const batch = [...priorityDestinations, ...normalBatch].slice(0, batchSize + priorityDestinations.length);
+    await runner.log('info', `Processing ${finalBatch.length} destinations for SEO`);
 
-    await runner.log('info', `Processing ${batch.length} destinations (${priorityDestinations.length} priority)`);
-
-    for (let i = 0; i < batch.length; i++) {
-      const destination = batch[i];
+    for (const item of finalBatch) {
       try {
-        const ok = await generateSeoContentForDestination(destination, runner);
-        if (ok) successCount++;
+        const ok = await generateSeoContentForDestination(item.destination, runner);
+        if (ok) {
+          successCount++;
+          await (prisma as any).destinationQueue.update({
+            where: { destination: item.destination },
+            data: { seoGenerated: true },
+          });
+        }
         destinationsProcessed++;
         await new Promise((r) => setTimeout(r, 1500));
       } catch (err) {
-        await runner.log('error', `Failed for ${destination}: ${err}`);
+        await runner.log('error', `Failed for ${item.destination}: ${err}`);
       }
     }
 
-    const nextOffset = (startIndex + batchSize) % DESTINATIONS.length;
     await runner.finish(
-      `Generated SEO content for ${successCount}/${destinationsProcessed} destinations. offset:${nextOffset}`
+      `Generated SEO content for ${successCount}/${destinationsProcessed} destinations.`
     );
   } catch (err) {
     await runner.fail(`Agent crashed: ${err}`);

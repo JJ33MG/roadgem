@@ -107,6 +107,20 @@ model DestinationGem {
   @@index([destination])
 }
 
+model DestinationQueue {
+  id             String    @id @default(cuid())
+  destination    String    @unique
+  country        String
+  gemDepth       Int       @default(0)   // 0=untouched, 1=6gems, 2=12gems, 3=20+gems
+  seoGenerated   Boolean   @default(false)
+  priority       Int       @default(0)   // higher = process first
+  source         String    @default("seed") // seed | auto-discovery | trending | user
+  addedAt        DateTime  @default(now())
+  lastResearched DateTime?
+
+  @@index([gemDepth, priority])
+}
+
 model DestinationSeo {
   id                    String   @id @default(cuid())
   destination           String   @unique

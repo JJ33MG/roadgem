@@ -4,6 +4,7 @@ dotenv.config();
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
 import { readMessages } from '../utils/agentBus';
+import { traceAgentRun, createGeneration, endGeneration } from '../utils/langfuse';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
@@ -44,6 +45,7 @@ Respond ONLY with JSON:
   "internalLinkSuggestions": ["string"]
 }`;
 
+  const generation = createGeneration(null, `seo-${destination}`, process.env.CLAUDE_MODEL || 'claude-sonnet-4-6', prompt);
   const message = await client.messages.create({
     model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
     max_tokens: 1500,
@@ -51,6 +53,7 @@ Respond ONLY with JSON:
   });
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '';
+  endGeneration(generation, text, { input: message.usage.input_tokens, output: message.usage.output_tokens });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     await runner.log('warning', `No valid JSON from Claude for ${destination}`);
@@ -73,6 +76,7 @@ Respond ONLY with JSON:
 }
 
 export async function main() {
+  await traceAgentRun('seo-agent', async (_trace) => {
   const runner = new AgentRunner('seo-agent');
   await runner.start();
 
@@ -143,6 +147,7 @@ export async function main() {
   } finally {
     await prisma.$disconnect();
   }
+  }); // end traceAgentRun
 }
 
 if (require.main === module) main();

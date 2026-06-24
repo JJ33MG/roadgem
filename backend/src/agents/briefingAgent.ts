@@ -4,10 +4,12 @@ dotenv.config();
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
 import { sendEmail, buildBriefingEmail } from '../utils/email';
+import { traceAgentRun } from '../utils/langfuse';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'mignonjarne9@gmail.com';
 
 export async function main() {
+  await traceAgentRun('briefing-agent', async (_trace) => {
   const runner = new AgentRunner('briefing-agent');
   await runner.start();
 
@@ -81,6 +83,7 @@ export async function main() {
   } finally {
     await prisma.$disconnect();
   }
+  }); // end traceAgentRun
 }
 
 if (require.main === module) main();

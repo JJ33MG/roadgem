@@ -214,3 +214,33 @@
   0%, 100% { opacity: 0.35; transform: scale(1); }
   50% { opacity: 0.55; transform: scale(1.15); }
 }
+
+/* Light-theme card — white bg, soft shadow, no border */
+.card-light {
+  @apply rounded-2xl bg-white p-24 transition-all;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.card-light:hover {
+  box-shadow: 0 8px 32px rgba(175,80,255,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+/* Light ghost button — for use on white/light backgrounds */
+.btn-light {
+  @apply bg-transparent font-body font-w480 text-body rounded-btn px-24 py-16
+    border-2 border-mercury-blue text-mercury-blue transition-all
+    hover:bg-mercury-blue hover:text-white
+    disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Destination photo card — Airbnb style */
+.dest-card {
+  @apply rounded-2xl overflow-hidden cursor-pointer transition-all;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+
+.dest-card:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+  transform: translateY(-4px);
+}

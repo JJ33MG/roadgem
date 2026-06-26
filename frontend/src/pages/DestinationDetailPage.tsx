@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Gem, ChevronDown, ArrowRight, ExternalLink } from 'lucide-react';
+import { MapPin, Gem, ChevronDown, ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 import { DestinationImage } from '@/components/display/DestinationImage';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';

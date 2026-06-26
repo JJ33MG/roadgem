@@ -57,7 +57,13 @@ Respond ONLY with a JSON array:
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return 0;
 
-  const newDests: { destination: string; country: string }[] = JSON.parse(jsonMatch[0]);
+  let newDests: { destination: string; country: string }[];
+  try {
+    newDests = JSON.parse(jsonMatch[0]);
+  } catch {
+    await runner.log('warning', 'Could not parse discovery JSON from Claude');
+    return 0;
+  }
   let added = 0;
 
   for (const d of newDests) {
@@ -126,7 +132,13 @@ Respond ONLY with a JSON array:
     return 0;
   }
 
-  const gems = JSON.parse(jsonMatch[0]);
+  let gems: any[];
+  try {
+    gems = JSON.parse(jsonMatch[0]);
+  } catch {
+    await runner.log('warning', `Malformed JSON from Claude for ${destination}`);
+    return 0;
+  }
 
   // Append new gems (don't delete existing ones)
   await prisma.destinationGem.createMany({

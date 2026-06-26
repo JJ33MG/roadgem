@@ -87,7 +87,10 @@ Be concise. Respond as JSON:
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
     endGeneration(generation, text, { input: message.usage.input_tokens, output: message.usage.output_tokens });
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+    let recommendations: any = null;
+    if (jsonMatch) {
+      try { recommendations = JSON.parse(jsonMatch[0]); } catch { /* ignore */ }
+    }
 
     await runner.log('success', `Analytics complete for last 7 days`, {
       summary,

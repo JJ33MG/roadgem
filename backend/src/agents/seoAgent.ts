@@ -50,7 +50,13 @@ Respond ONLY with JSON:
     return false;
   }
 
-  const seoContent = JSON.parse(jsonMatch[0]);
+  let seoContent: any;
+  try {
+    seoContent = JSON.parse(jsonMatch[0]);
+  } catch {
+    await runner.log('warning', `Malformed JSON from Claude for ${destination}`);
+    return false;
+  }
 
   const slug = destination.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 

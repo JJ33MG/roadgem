@@ -95,7 +95,13 @@ Respond as JSON:
       return;
     }
 
-    const trends = JSON.parse(jsonMatch[0]);
+    let trends: any;
+    try {
+      trends = JSON.parse(jsonMatch[0]);
+    } catch {
+      await runner.finish('Malformed JSON from Claude for trend analysis.');
+      return;
+    }
 
     await runner.log('success', `Found ${trends.trendingDestinations?.length ?? 0} trending destinations`, {
       type: 'trends',

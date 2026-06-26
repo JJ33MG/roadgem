@@ -24,6 +24,12 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Run Prisma migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Generate Prisma client
         working-directory: backend
         run: npx prisma generate
@@ -32,6 +38,7 @@ jobs:
 
       - name: Run Analytics Agent
         working-directory: backend
+        continue-on-error: true
         run: npx ts-node --project tsconfig.json src/agents/analyticsAgent.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -42,6 +49,7 @@ jobs:
 
       - name: Run Trend Agent
         working-directory: backend
+        continue-on-error: true
         run: npx ts-node --project tsconfig.json src/agents/trendAgent.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -76,8 +84,7 @@ jobs:
   send-briefing:
     runs-on: ubuntu-latest
     needs: run-agents
-    # Only send briefing email on the 03:00 run (cron '0 1 * * *')
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1 * * *'
+    if: always() && (github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1 * * *')
     steps:
       - uses: actions/checkout@v4
 

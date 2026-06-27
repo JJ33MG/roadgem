@@ -348,18 +348,43 @@ export function TripResultsPage() {
 
         {/* Transit info banner */}
         {currentStop?.transit && activeDay > 1 && (
-          <div style={{ marginTop: 16, borderRadius: 12, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: 20, lineHeight: 1 }}>🚆</span>
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 480, color: 'rgba(147,197,253,0.9)', marginBottom: 2 }}>
-                Getting there · {currentStop.transit.duration} by {currentStop.transit.mode}
-              </p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-                {currentStop.transit.from} → {currentStop.transit.to}
-                {currentStop.transit.operator ? ` · ${currentStop.transit.operator}` : ''}
-              </p>
-              {currentStop.transit.notes && (
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{currentStop.transit.notes}</p>
+          <div style={{ marginTop: 16, borderRadius: 12, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+              <span style={{ fontSize: 20, lineHeight: 1 }}>🚆</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 12, fontWeight: 480, color: 'rgba(147,197,253,0.9)', marginBottom: 2 }}>
+                  Getting there · {currentStop.transit.duration} by {currentStop.transit.mode}
+                </p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+                  {currentStop.transit.from} → {currentStop.transit.to}
+                  {currentStop.transit.operator ? ` · ${currentStop.transit.operator}` : ''}
+                </p>
+                {currentStop.transit.notes && (
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{currentStop.transit.notes}</p>
+                )}
+              </div>
+            </div>
+            {/* Booking buttons */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a
+                href={`https://www.trainline.eu/search/${encodeURIComponent(currentStop.transit.from ?? '')}/${encodeURIComponent(currentStop.transit.to ?? '')}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.35)', padding: '6px 14px', fontSize: 12, fontWeight: 480, color: 'rgba(147,197,253,0.9)', textDecoration: 'none', cursor: 'pointer' }}>
+                🎫 Book on Trainline
+              </a>
+              <a
+                href={`https://www.omio.com/results?origin=${encodeURIComponent(currentStop.transit.from ?? '')}&destination=${encodeURIComponent(currentStop.transit.to ?? '')}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '6px 14px', fontSize: 12, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', cursor: 'pointer' }}>
+                Compare on Omio
+              </a>
+              {currentStop.transit.mode === 'bus' && (
+                <a
+                  href={`https://shop.flixbus.com/search?departureCity=${encodeURIComponent(currentStop.transit.from ?? '')}&arrivalCity=${encodeURIComponent(currentStop.transit.to ?? '')}`}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '6px 14px', fontSize: 12, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', cursor: 'pointer' }}>
+                  🚌 FlixBus
+                </a>
               )}
             </div>
           </div>

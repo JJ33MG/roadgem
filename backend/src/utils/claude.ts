@@ -22,7 +22,14 @@ export async function generateTripItinerary(
     transportType === 'rental_car'
       ? 'The traveler will RENT a car — include car rental pickup/dropoff considerations and mention rental-friendly stops. For each stop include "transit": null.'
       : transportType === 'public'
-      ? `The traveler uses PUBLIC TRANSPORT (trains and buses ONLY) — do NOT mention driving, parking, or car rental anywhere. For every stop after the first, include a "transit" object describing how to get there from the previous stop by train or bus (operator name, approximate journey time, and any transfer needed). Choose stops that are well-connected by rail. Example: "transit": { "mode": "train", "operator": "Thalys", "duration": "1h 22min", "from": "Brussels-Midi", "to": "Amsterdam Centraal", "notes": "Runs every hour" }`
+      ? `The traveler uses PUBLIC TRANSPORT (trains and buses ONLY) — do NOT mention driving, parking, or car rental anywhere.
+
+CRITICAL RULES for public transport trips:
+1. Choose stops that are major rail hubs with direct or 1-transfer connections between them (e.g. Amsterdam, Brussels, Paris, Cologne, Vienna, Prague, Barcelona — NOT small villages unreachable by train).
+2. For every stop after the first, you MUST include a "transit" object with: the real train/bus operator (Eurostar, Thalys/Izy, TGV, ICE, Intercity, Flixbus, etc.), realistic journey duration, the exact departure and arrival station names, and frequency or booking tip.
+3. In the itinerary, the first activity of each day should be arriving/settling in — mention the train arrival.
+4. Suggest buying tickets in advance for high-speed trains.
+Example transit object: { "mode": "train", "operator": "ICE / Deutsche Bahn", "duration": "1h 55min", "from": "Cologne Hbf", "to": "Frankfurt Hbf", "notes": "Runs every 30 min, book 2+ weeks ahead for best fares" }`
       : 'The traveler uses their OWN CAR — focus on road trip routes and parking tips. For each stop include "transit": null.';
 
   const prompt = `You are a travel planning assistant. Create a road trip itinerary starting from "${startLocation}" and traveling to/around "${destination}", lasting ${days} days, with a total budget of €${budget}. The traveler's style is "${travelStyle}" and their priorities are: ${priorities.join(', ')}.

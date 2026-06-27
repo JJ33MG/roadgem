@@ -45,6 +45,44 @@ export function buildTheForkUrl(restaurantName: string, location: string): strin
   return `https://www.thefork.com/search#cityName=${encodeURIComponent(location)}&searchPhrase=${q}`;
 }
 
+// --- Train & Bus ---
+
+export function buildTrainlineUrl(
+  origin: string,
+  destination: string,
+  departureDate?: string
+): string {
+  const params = new URLSearchParams({
+    origin,
+    destination,
+    outboundDate: departureDate ?? '',
+    transportModes: 'train',
+  });
+  const affiliate = process.env.TRAINLINE_AFFILIATE_ID;
+  // Trainline affiliate uses impact.com — partner ID appended as utm source until full integration
+  const base = `https://www.trainline.eu/search/${encodeURIComponent(origin)}/${encodeURIComponent(destination)}`;
+  return affiliate ? `${base}?utm_source=routify&utm_medium=affiliate&ref=${affiliate}` : base;
+}
+
+export function buildOmioUrl(
+  origin: string,
+  destination: string,
+  departureDate?: string
+): string {
+  const params = new URLSearchParams({ origin, destination });
+  if (departureDate) params.set('departure', departureDate);
+  const affiliate = process.env.OMIO_AFFILIATE_ID;
+  if (affiliate) params.set('ref', affiliate);
+  return `https://www.omio.com/results?${params.toString()}`;
+}
+
+export function buildFlixbusUrl(origin: string, destination: string): string {
+  const q = `${encodeURIComponent(origin)}-${encodeURIComponent(destination)}`;
+  const affiliate = process.env.FLIXBUS_AFFILIATE_ID;
+  const base = `https://shop.flixbus.com/search?rideDate=&departureCity=${encodeURIComponent(origin)}&arrivalCity=${encodeURIComponent(destination)}`;
+  return affiliate ? `${base}&utm_source=routify&utm_medium=affiliate&utm_campaign=${affiliate}` : base;
+}
+
 // --- Car Rental ---
 
 export function buildRentalcarsUrl(

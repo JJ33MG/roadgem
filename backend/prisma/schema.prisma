@@ -99,6 +99,8 @@ model DestinationGem {
   name        String
   description String
   address     String
+  latitude    Float?
+  longitude   Float?
   category    String
   whyHidden   String
   photoUrl    String?

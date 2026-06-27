@@ -1,13 +1,24 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { optionalAuth } from '../middleware/auth';
+import { optionalAuth, requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /api/templates — list all templates
-router.get('/', async (_req: Request, res: Response) => {
+async function userOwnsTemplate(userId: string, templateId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (user?.subscriptionTier === 'premium') return true;
+  const purchase = await prisma.templatePurchase.findUnique({
+    where: { userId_templateId: { userId, templateId } },
+  });
+  return !!purchase;
+}
+
+// GET /api/templates — list all templates, with owned flag if logged in
+router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).userId ?? null;
+
     const templates = await prisma.tripTemplate.findMany({
       orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }],
       select: {
@@ -28,7 +39,19 @@ router.get('/', async (_req: Request, res: Response) => {
         featured: true,
       },
     });
-    res.json({ templates });
+
+    let ownedIds = new Set<string>();
+    if (userId) {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (user?.subscriptionTier === 'premium') {
+        ownedIds = new Set(templates.map((t) => t.id));
+      } else {
+        const purchases = await prisma.templatePurchase.findMany({ where: { userId } });
+        ownedIds = new Set(purchases.map((p) => p.templateId));
+      }
+    }
+
+    res.json({ templates: templates.map((t) => ({ ...t, owned: ownedIds.has(t.id) })) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch templates' });
@@ -49,13 +72,16 @@ router.get('/:slug', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/templates/:id/use — clone template into user's trips (requires auth or free preview)
-router.post('/:id/use', optionalAuth, async (req: Request, res: Response) => {
+// POST /api/templates/:id/use — clone template into user's trips (must own it)
+router.post('/:id/use', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const template = await prisma.tripTemplate.findUnique({ where: { id: req.params.id } });
     if (!template) return res.status(404).json({ error: 'Not found' });
 
-    const userId = (req as any).userId ?? null;
+    const userId = req.userId!;
+
+    const owned = await userOwnsTemplate(userId, template.id);
+    if (!owned) return res.status(403).json({ error: 'not_purchased', message: 'Koop deze template eerst om hem te gebruiken.' });
 
     const trip = await prisma.trip.create({
       data: {

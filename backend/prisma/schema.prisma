@@ -153,6 +153,17 @@ model TripTemplate {
   @@index([featured])
 }
 
+model TemplatePurchase {
+  id         String   @id @default(cuid())
+  userId     String
+  templateId String
+  stripeId   String?
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, templateId])
+  @@index([userId])
+}
+
 model DestinationQueue {
   id             String    @id @default(cuid())
   destination    String    @unique

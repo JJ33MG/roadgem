@@ -11,6 +11,7 @@ import destinationsRouter from './routes/destinations';
 import stripeRouter from './routes/stripe';
 import agentsRouter from './routes/agents';
 import communityRouter from './routes/community';
+import { startScheduler } from './queue/scheduler';
 
 dotenv.config();
 
@@ -65,4 +66,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
+
+  // Start agent scheduler (only when Redis is available)
+  if (process.env.REDIS_URL) {
+    startScheduler();
+  } else {
+    console.log('[scheduler] REDIS_URL not set — skipping scheduler (set in Railway to enable)');
+  }
 });

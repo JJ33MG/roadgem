@@ -5,6 +5,9 @@ import { main as runSeo } from '../agents/seoAgent';
 import { main as runAnalytics } from '../agents/analyticsAgent';
 import { main as runTrend } from '../agents/trendAgent';
 import { main as runBriefing } from '../agents/briefingAgent';
+import { main as runBilling } from '../agents/billingAgent';
+import { main as runQuality } from '../agents/qualityAgent';
+import { main as runOptimizer } from '../agents/optimizerAgent';
 
 const router = Router();
 
@@ -78,6 +81,9 @@ const AGENTS: Record<string, () => Promise<void>> = {
   'analytics-agent': runAnalytics,
   'trend-agent': runTrend,
   'briefing-agent': runBriefing,
+  'billing-agent': runBilling,
+  'quality-agent': runQuality,
+  'optimizer-agent': runOptimizer,
 };
 
 router.post('/:name/trigger', (req: Request, res: Response) => {

@@ -338,11 +338,12 @@ export function TripResultsPage() {
         )}
 
         {/* Day photo */}
-        <div style={{ marginTop: 24, borderRadius: 16, overflow: 'hidden', height: 320 }}>
+        <div style={{ marginTop: 24, borderRadius: 16, overflow: 'hidden', height: 260, position: 'relative' }}>
           <DestinationImage
             query={currentStop?.location ?? trip.destination}
             alt={currentStop?.location ?? trip.destination}
             className="h-full w-full"
+            objectPosition="center 40%"
           />
         </div>
 

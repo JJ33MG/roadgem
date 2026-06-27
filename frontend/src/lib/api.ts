@@ -72,7 +72,7 @@ export const bookingsApi = {
 // --- Photos ---
 export const photosApi = {
   search: (query: string, count = 1) =>
-    apiClient.get<{ photos: string[] }>('/photos', { params: { query, count } }),
+    apiClient.get<{ photos: string[] }>('/photos', { params: { query, count, maxwidth: 1600 } }),
 };
 
 // --- Accommodations ---

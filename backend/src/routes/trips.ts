@@ -122,7 +122,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
         weather: JSON.stringify(weather),
         hiddenGems: JSON.stringify(hiddenGems),
         itineraryDays: {
-          create: (tripData.itinerary || []).map((day: any) => ({
+          create: (tripData.itinerary || []).slice(0, days).map((day: any) => ({
             day: day.day,
             activities: {
               create: (['morning', 'afternoon', 'evening'] as const)

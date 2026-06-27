@@ -7,9 +7,10 @@ interface DestinationImageProps {
   query: string;
   alt?: string;
   className?: string;
+  objectPosition?: string;
 }
 
-export function DestinationImage({ query, alt, className }: DestinationImageProps) {
+export function DestinationImage({ query, alt, className, objectPosition = 'center 35%' }: DestinationImageProps) {
   const { photos } = usePlacePhotos(query, 1);
   const [src, setSrc] = useState<string | null>(null);
   const [errored, setErrored] = useState(false);
@@ -52,6 +53,7 @@ export function DestinationImage({ query, alt, className }: DestinationImageProp
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition }}
         />
       )}
     </div>

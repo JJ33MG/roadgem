@@ -73,24 +73,20 @@ function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; it
           {label} &middot; {item.time} &middot; {item.location}
         </p>
         <p className="text-white/40" style={{ fontSize: 11, marginTop: 4 }}>{item.description}</p>
-        <div className="flex flex-wrap gap-6" style={{ marginTop: 6 }}>
+        <div className="flex flex-wrap gap-6" style={{ marginTop: 10 }}>
           <a href={buildViatorUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-            className="inline-flex items-center gap-3" style={{ fontSize: 11, color: 'rgba(245,166,35,0.6)' }}>
-            Viator <ExternalLink size={9} />
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 8, border: '1px solid rgba(245,166,35,0.35)', background: 'rgba(245,166,35,0.08)', padding: '5px 10px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 480 }}>
+            🎟️ Viator <ExternalLink size={10} />
           </a>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>·</span>
           <a href={buildGetYourGuideUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-            className="inline-flex items-center gap-3" style={{ fontSize: 11, color: 'rgba(245,166,35,0.6)' }}>
-            GetYourGuide <ExternalLink size={9} />
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 8, border: '1px solid rgba(245,166,35,0.35)', background: 'rgba(245,166,35,0.08)', padding: '5px 10px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 480 }}>
+            🗺️ GetYourGuide <ExternalLink size={10} />
           </a>
           {isFoodActivity(slot, item.activity) && (
-            <>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>·</span>
-              <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-                className="inline-flex items-center gap-3" style={{ fontSize: 11, color: 'rgba(245,166,35,0.6)' }}>
-                TheFork <ExternalLink size={9} />
-              </a>
-            </>
+            <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 8, border: '1px solid rgba(245,166,35,0.35)', background: 'rgba(245,166,35,0.08)', padding: '5px 10px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 480 }}>
+              🍽️ TheFork <ExternalLink size={10} />
+            </a>
           )}
         </div>
       </div>
@@ -422,39 +418,60 @@ export function TripResultsPage() {
           </AnimatePresence>
 
           {/* Overnight */}
-          <div style={{ marginTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 480, color: 'white' }}>Overnight stay</h3>
-              <button onClick={() => setAccommodationModalOpen(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, borderRadius: 9999, border: '1px solid rgba(255,255,255,0.15)', padding: '6px 12px', fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer', background: 'transparent' }}>
-                <BedDouble size={13} /> {selectedAccommodation ? 'Change' : 'Browse'}
-              </button>
+          <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 18 }}>🏨</span>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Overnachting</h3>
             </div>
-            {selectedAccommodation && (
-              <div style={{ marginTop: 10 }}><AccommodationCard accommodation={selectedAccommodation} selected /></div>
+            {selectedAccommodation ? (
+              <div>
+                <AccommodationCard accommodation={selectedAccommodation} selected />
+                <button onClick={() => setAccommodationModalOpen(true)}
+                  style={{ marginTop: 8, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', padding: '10px', fontSize: 13, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', background: 'transparent' }}>
+                  <BedDouble size={13} /> Andere optie kiezen
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setAccommodationModalOpen(true)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, border: '1px solid rgba(245,166,35,0.3)', background: 'rgba(245,166,35,0.06)', padding: '14px 16px', cursor: 'pointer' }}>
+                <div style={{ textAlign: 'left' }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Zoek een hotel of hostel</p>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Booking.com · Airbnb · Hostelworld</p>
+                </div>
+                <BedDouble size={18} color="rgba(245,166,35,0.7)" />
+              </button>
             )}
           </div>
 
           {/* Rental car */}
           {startDateStr && endDateStr && (
-            <div style={{ marginTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 16 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 480, color: 'white', marginBottom: 10 }}>Rental car</h3>
-              <div style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', padding: 12 }}>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>
-                  {pickupLocation} → {trip.destination} &nbsp;|&nbsp; {startDateStr} – {endDateStr}
-                </p>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
-                    target="_blank" rel="noopener noreferrer sponsored"
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 9999, border: '1px solid rgba(255,255,255,0.15)', padding: '8px 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>
-                    Rentalcars.com <ExternalLink size={11} />
-                  </a>
-                  <a href={buildAutoEuropeUrl(pickupLocation, startDateStr, endDateStr)}
-                    target="_blank" rel="noopener noreferrer sponsored"
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 9999, border: '1px solid rgba(255,255,255,0.15)', padding: '8px 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>
-                    AutoEurope <ExternalLink size={11} />
-                  </a>
-                </div>
+            <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 18 }}>🚗</span>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Huur een auto</h3>
+              </div>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 12 }}>
+                {pickupLocation} → {trip.destination} · {startDateStr} – {endDateStr}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
+                  target="_blank" rel="noopener noreferrer sponsored"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, border: '1px solid rgba(175,80,255,0.3)', background: 'rgba(175,80,255,0.08)', padding: '12px 16px', textDecoration: 'none' }}>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Rentalcars.com</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Vergelijk 100+ autoverhuurders</p>
+                  </div>
+                  <ExternalLink size={14} color="rgba(175,80,255,0.8)" />
+                </a>
+                <a href={buildAutoEuropeUrl(pickupLocation, startDateStr, endDateStr)}
+                  target="_blank" rel="noopener noreferrer sponsored"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, border: '1px solid rgba(175,80,255,0.3)', background: 'rgba(175,80,255,0.08)', padding: '12px 16px', textDecoration: 'none' }}>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>AutoEurope</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Beste prijs garantie Europa</p>
+                  </div>
+                  <ExternalLink size={14} color="rgba(175,80,255,0.8)" />
+                </a>
               </div>
             </div>
           )}

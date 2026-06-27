@@ -42,7 +42,7 @@ export function TemplatesPage() {
 
   useEffect(() => {
     apiClient.get('/api/templates').then((r: any) => {
-      setTemplates(r.templates ?? []);
+      setTemplates(r.data?.templates ?? []);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);

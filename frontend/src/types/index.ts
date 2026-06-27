@@ -48,6 +48,7 @@ export interface TripSearchParams {
   destination: string;
   startDate: string;
   endDate: string;
+  days?: number;
   budget: number;
   travelStyle: TravelStyle;
   priorities: Priority[];

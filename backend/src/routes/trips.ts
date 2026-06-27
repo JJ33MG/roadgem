@@ -33,7 +33,7 @@ const router = Router();
 
 router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { startLocation, destination, startDate, endDate, budget, travelStyle, priorities, transportType } = req.body;
+    const { startLocation, destination, startDate, endDate, budget, travelStyle, priorities, transportType, days: reqDays } = req.body;
 
     if (!startLocation || !destination || !startDate || !endDate || !budget) {
       return res
@@ -56,7 +56,8 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    const daysFromDates = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    const days = reqDays ? Math.max(1, Number(reqDays)) : daysFromDates;
 
     const tripData = await generateTripItinerary(
       startLocation,

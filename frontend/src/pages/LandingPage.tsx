@@ -200,6 +200,7 @@ export function LandingPage() {
       destination: to,
       startDate: sd.toISOString(),
       endDate: ed.toISOString(),
+      days: duration,
       budget,
       travelStyle,
       priorities: [],

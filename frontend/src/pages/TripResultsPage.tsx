@@ -167,7 +167,9 @@ export function TripResultsPage() {
 
   const mapsUrl = buildGoogleMapsRouteUrl(globeStops);
 
-  const currentStop = trip?.stops[Math.min(activeDay - 1, (trip?.stops?.length ?? 1) - 1)];
+  const currentStop = trip?.stops?.length
+    ? trip.stops[Math.min(activeDay - 1, trip.stops.length - 1)]
+    : undefined;
   const checkinDate = trip ? addDays(new Date(trip.startDate), activeDay - 1) : null;
   const checkin = checkinDate ? format(checkinDate, 'yyyy-MM-dd') : undefined;
   const checkout = checkinDate ? format(addDays(checkinDate, 1), 'yyyy-MM-dd') : undefined;

@@ -1,14 +1,79 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, MapPin, Calendar } from 'lucide-react';
+import { ChevronDown, ChevronUp, Calendar, X } from 'lucide-react';
 import { GlobeView, lookupCoords } from '@/components/display/GlobeView';
 import { useTripGeneration } from '@/hooks/useTripGeneration';
-import { DestinationInput } from '@/components/forms/DestinationInput';
 import { PaywallModal } from '@/components/utility/PaywallModal';
 import { AccommodationTypeSelector } from '@/components/forms/AccommodationTypeSelector';
 import { DateRangePicker } from '@/components/forms/DateRangePicker';
 import type { TravelStyle, AccommodationType } from '@/types';
+
+// ─── City autocomplete input ───────────────────────────────────────────────────
+
+const CITY_LIST = [
+  'Amsterdam', 'Rome', 'Lisbon', 'Barcelona', 'Berlin', 'Prague',
+  'Paris', 'Vienna', 'Porto', 'Madrid', 'Florence', 'Athens',
+  'Dubrovnik', 'Budapest', 'Bruges', 'Santorini', 'Amalfi', 'Sintra',
+  'Milan', 'Venice', 'Seville', 'Copenhagen', 'Stockholm', 'Oslo',
+  'Dublin', 'Edinburgh', 'Warsaw', 'Krakow', 'Zagreb', 'Ljubljana',
+  'Sarajevo', 'Belgrade', 'Sofia', 'Bucharest', 'Tallinn', 'Riga', 'Vilnius',
+];
+
+function CityInput({ id, placeholder, value, onChange }: {
+  id: string; placeholder: string; value: string; onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  const filtered = value.length >= 1
+    ? CITY_LIST.filter(c => c.toLowerCase().startsWith(value.toLowerCase()) && c.toLowerCase() !== value.toLowerCase()).slice(0, 5)
+    : [];
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <div className="flex items-center gap-8 rounded-xl border border-white/15 bg-white/8 px-12 py-10 transition-colors focus-within:border-[#f5a623]/50">
+        <input
+          id={id}
+          type="text"
+          value={value}
+          placeholder={placeholder}
+          onChange={e => { onChange(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          autoComplete="off"
+          spellCheck={false}
+          className="flex-1 bg-transparent text-body-sm text-white placeholder-white/35 outline-none"
+        />
+        {value && (
+          <button type="button" onClick={() => { onChange(''); setOpen(false); }} className="flex-shrink-0 text-white/30 hover:text-white/70">
+            <X size={12} />
+          </button>
+        )}
+      </div>
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-50 mt-4 w-full overflow-hidden rounded-xl border border-white/10 bg-[#0e1525] shadow-2xl">
+          {filtered.map(city => (
+            <li key={city}>
+              <button type="button"
+                onMouseDown={e => { e.preventDefault(); onChange(city); setOpen(false); }}
+                className="w-full px-14 py-10 text-left text-body-sm text-white/75 transition-colors hover:bg-white/8 hover:text-white">
+                {city}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -261,16 +326,12 @@ export function LandingPage() {
             {/* From / To */}
             <div className="mb-12 grid grid-cols-2 gap-8">
               <div>
-                <label className="mb-4 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
-                  <MapPin size={9} className="text-[#f5a623]" /> From
-                </label>
-                <DestinationInput id="from" label="" placeholder="Departing from..." value={from} onChange={setFrom} />
+                <label className="mb-4 block text-[11px] uppercase tracking-widest text-white/40">From</label>
+                <CityInput id="from" placeholder="e.g. Amsterdam" value={from} onChange={setFrom} />
               </div>
               <div>
-                <label className="mb-4 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
-                  <MapPin size={9} className="text-[#f5a623]" /> To
-                </label>
-                <DestinationInput id="to" label="" placeholder="Destination..." value={to} onChange={setTo} />
+                <label className="mb-4 block text-[11px] uppercase tracking-widest text-white/40">To</label>
+                <CityInput id="to" placeholder="e.g. Rome" value={to} onChange={setTo} />
               </div>
             </div>
 

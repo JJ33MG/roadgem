@@ -17,8 +17,18 @@ const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'https://routify.ink',
+  'https://www.routify.ink',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: ${origin} not allowed`));
+  },
   credentials: true,
 }));
 

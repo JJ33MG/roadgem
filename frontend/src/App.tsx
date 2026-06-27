@@ -19,6 +19,7 @@ import { PricingPage } from '@/pages/PricingPage';
 import AgentsDashboardPage from '@/pages/AgentsDashboardPage';
 import { DestinationsPage } from '@/pages/DestinationsPage';
 import { DestinationDetailPage } from '@/pages/DestinationDetailPage';
+import { CommunityPage } from '@/pages/CommunityPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -42,6 +43,8 @@ function AnimatedRoutes() {
 
           <Route path="/destinations" element={<DestinationsPage />} />
           <Route path="/destinations/:slug" element={<DestinationDetailPage />} />
+
+          <Route path="/community" element={<CommunityPage />} />
 
           <Route path="/trips/:tripId" element={<TripResultsPage />} />
           <Route path="/trips/:tripId/days/:dayNumber" element={<DayDetailPage />} />

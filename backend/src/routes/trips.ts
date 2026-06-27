@@ -33,7 +33,7 @@ const router = Router();
 
 router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { startLocation, destination, startDate, endDate, budget, travelStyle, priorities } = req.body;
+    const { startLocation, destination, startDate, endDate, budget, travelStyle, priorities, transportType } = req.body;
 
     if (!startLocation || !destination || !startDate || !endDate || !budget) {
       return res
@@ -64,7 +64,8 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       days,
       budget,
       travelStyle || 'balanced',
-      priorities || []
+      priorities || [],
+      transportType || 'own_car'
     );
 
     let totalDistance = 0;

@@ -19,7 +19,8 @@ model User {
   subscriptionTier    String    @default("free")
   subscriptionExpires DateTime?
 
-  trips Trip[]
+  trips         Trip[]
+  communityGems CommunityGem[]
 }
 
 model Trip {
@@ -107,6 +108,23 @@ model DestinationGem {
   createdAt   DateTime @default(now())
 
   @@index([destination])
+}
+
+model CommunityGem {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  location    String
+  description String
+  status      String   @default("pending") // pending | approved | rejected
+  aiScore     Int      @default(0)
+  aiFeedback  String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
 }
 
 model DestinationQueue {

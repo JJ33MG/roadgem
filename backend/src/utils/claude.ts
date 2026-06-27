@@ -15,9 +15,19 @@ export async function generateTripItinerary(
   days: number,
   budget: number,
   travelStyle: string,
-  priorities: string[]
+  priorities: string[],
+  transportType: string = 'own_car'
 ) {
+  const transportNote =
+    transportType === 'rental_car'
+      ? 'The traveler will RENT a car — include car rental pickup/dropoff considerations and mention rental-friendly stops.'
+      : transportType === 'public'
+      ? 'The traveler uses PUBLIC TRANSPORT (train/bus) — do NOT suggest driving routes, only use train or bus connections between cities. Skip car rental suggestions.'
+      : 'The traveler uses their OWN CAR — focus on road trip routes and parking tips.';
+
   const prompt = `You are a travel planning assistant. Create a road trip itinerary starting from "${startLocation}" and traveling to/around "${destination}", lasting ${days} days, with a total budget of €${budget}. The traveler's style is "${travelStyle}" and their priorities are: ${priorities.join(', ')}.
+
+Transport: ${transportNote}
 
 IMPORTANT: Every activity, location, and attraction in the itinerary MUST be physically located in or near "${destination}" and along the route from "${startLocation}" to "${destination}". Do NOT suggest activities from other cities or countries.
 

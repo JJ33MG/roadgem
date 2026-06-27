@@ -52,6 +52,7 @@ export interface TripSearchParams {
   travelStyle: TravelStyle;
   priorities: Priority[];
   accommodationTypes?: AccommodationType[];
+  transportType?: 'own_car' | 'rental_car' | 'public';
 }
 
 export interface GeoPoint {

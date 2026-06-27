@@ -5,7 +5,6 @@ import { ChevronDown, ChevronUp, Calendar, X } from 'lucide-react';
 import { GlobeView, lookupCoords } from '@/components/display/GlobeView';
 import { useTripGeneration } from '@/hooks/useTripGeneration';
 import { PaywallModal } from '@/components/utility/PaywallModal';
-import { AccommodationTypeSelector } from '@/components/forms/AccommodationTypeSelector';
 import { DateRangePicker } from '@/components/forms/DateRangePicker';
 import type { TravelStyle, AccommodationType } from '@/types';
 
@@ -111,6 +110,20 @@ const STYLE_OPTIONS: { label: string; value: TravelStyle; emoji: string }[] = [
   { label: 'Food', value: 'food', emoji: '🍷' },
 ];
 
+const TRANSPORT_OPTIONS = [
+  { label: 'Own car', value: 'own_car', emoji: '🚗', desc: 'Using my own vehicle' },
+  { label: 'Rental car', value: 'rental_car', emoji: '🔑', desc: "I'll need to rent" },
+  { label: 'Train / Bus', value: 'public', emoji: '🚆', desc: 'No car needed' },
+] as const;
+type TransportType = 'own_car' | 'rental_car' | 'public';
+
+const ACCOMMODATION_OPTIONS = [
+  { label: 'Hotel', value: 'hotel' as const, emoji: '🏨' },
+  { label: 'Hostel', value: 'hostel' as const, emoji: '🛏' },
+  { label: 'Camping', value: 'campsite' as const, emoji: '⛺' },
+  { label: 'Airbnb', value: 'airbnb' as const, emoji: '🏠' },
+];
+
 const QUICK_ROUTES = [
   { label: 'Amsterdam → Rome', from: 'Amsterdam', to: 'Rome' },
   { label: 'Lisbon → Barcelona', from: 'Lisbon', to: 'Barcelona' },
@@ -143,6 +156,7 @@ export function LandingPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [accommodation, setAccommodation] = useState<AccommodationType[]>(['hotel', 'hostel', 'campsite', 'airbnb']);
+  const [transport, setTransport] = useState<TransportType>('own_car');
 
   // Globe
   const [stops, setStops] = useState<GlobeStop[]>([]);
@@ -190,6 +204,7 @@ export function LandingPage() {
       travelStyle,
       priorities: [],
       accommodationTypes: accommodation,
+      transportType: transport,
     });
 
     if (trip) {
@@ -385,7 +400,7 @@ export function LandingPage() {
             </div>
 
             {/* Travel style */}
-            <div className="mb-16">
+            <div className="mb-12">
               <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Travel style</label>
               <div className="flex gap-6">
                 {STYLE_OPTIONS.map(opt => (
@@ -402,31 +417,68 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* Advanced toggle */}
+            {/* Transport */}
+            <div className="mb-12">
+              <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Transport</label>
+              <div className="flex gap-6">
+                {TRANSPORT_OPTIONS.map(opt => (
+                  <button key={opt.value} type="button" onClick={() => setTransport(opt.value)}
+                    className={`flex-1 rounded-xl py-10 text-center transition-all ${
+                      transport === opt.value
+                        ? 'bg-[#f5a623]/15 border border-[#f5a623] text-[#f5a623]'
+                        : 'border border-white/10 bg-white/5 text-white/60 hover:border-white/25 hover:text-white'
+                    }`}>
+                    <div className="text-base">{opt.emoji}</div>
+                    <div className="text-[11px] font-w480">{opt.label}</div>
+                    <div className="text-[10px] opacity-60">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Accommodation */}
+            <div className="mb-16">
+              <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Accommodation</label>
+              <div className="flex gap-6">
+                {ACCOMMODATION_OPTIONS.map(opt => {
+                  const selected = accommodation.includes(opt.value);
+                  return (
+                    <button key={opt.value} type="button"
+                      onClick={() => setAccommodation(prev =>
+                        selected ? prev.filter(v => v !== opt.value) : [...prev, opt.value]
+                      )}
+                      className={`flex-1 rounded-xl py-10 text-center transition-all ${
+                        selected
+                          ? 'bg-[#f5a623]/15 border border-[#f5a623] text-[#f5a623]'
+                          : 'border border-white/10 bg-white/5 text-white/60 hover:border-white/25 hover:text-white'
+                      }`}>
+                      <div className="text-base">{opt.emoji}</div>
+                      <div className="text-[11px] font-w480">{opt.label}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Advanced toggle — start date only */}
             <button type="button" onClick={() => setShowAdvanced(v => !v)}
               className="mb-12 flex items-center gap-6 text-caption text-white/40 transition-colors hover:text-white/70">
               {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-              {showAdvanced ? 'Fewer options' : 'More options'}
+              {showAdvanced ? 'Hide date' : 'Set start date'}
             </button>
 
             <AnimatePresence>
               {showAdvanced && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden space-y-12">
-                  <div>
-                    <label className="mb-6 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
-                      <Calendar size={9} className="text-[#f5a623]" /> Start date (optional)
-                    </label>
-                    <DateRangePicker
-                      startDate={startDate}
-                      endDate={null}
-                      onChange={({ startDate: s }) => setStartDate(s)}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Accommodation</label>
-                    <AccommodationTypeSelector value={accommodation} onChange={setAccommodation} />
-                  </div>
+                  exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden">
+                  <label className="mb-6 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
+                    <Calendar size={9} className="text-[#f5a623]" /> Start date (optional)
+                  </label>
+                  <DateRangePicker
+                    startDate={startDate}
+                    endDate={null}
+                    onChange={({ startDate: s }) => setStartDate(s)}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

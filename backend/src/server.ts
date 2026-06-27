@@ -10,6 +10,7 @@ import accommodationsRouter from './routes/accommodations';
 import destinationsRouter from './routes/destinations';
 import stripeRouter from './routes/stripe';
 import agentsRouter from './routes/agents';
+import communityRouter from './routes/community';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.use('/api/accommodations', accommodationsRouter);
 app.use('/api/destinations', destinationsRouter);
 app.use('/api/stripe', stripeRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/community', communityRouter);
 
 // Error handling middleware (must be registered after routes)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

@@ -69,6 +69,30 @@ const DEST_COORDS: Record<string, { lat: number; lng: number }> = {
   'palermo': { lat: 38.12, lng: 13.36 },
   'bologna': { lat: 44.50, lng: 11.34 },
   'valletta': { lat: 35.90, lng: 14.51 },
+  'london': { lat: 51.51, lng: -0.13 },
+  'manchester': { lat: 53.48, lng: -2.24 },
+  'istanbul': { lat: 41.01, lng: 28.97 },
+  'reykjavik': { lat: 64.14, lng: -21.94 },
+  'split': { lat: 43.51, lng: 16.44 },
+  'kotor': { lat: 42.42, lng: 18.77 },
+  'lyon': { lat: 45.75, lng: 4.85 },
+  'nice': { lat: 43.71, lng: 7.26 },
+  'marseille': { lat: 43.30, lng: 5.37 },
+  'malaga': { lat: 36.72, lng: -4.42 },
+  'valencia': { lat: 39.47, lng: -0.38 },
+  'granada': { lat: 37.18, lng: -3.60 },
+  'alicante': { lat: 38.35, lng: -0.48 },
+  'thessaloniki': { lat: 40.64, lng: 22.94 },
+  'corfu': { lat: 39.62, lng: 19.92 },
+  'gothenburg': { lat: 57.71, lng: 11.97 },
+  'rotterdam': { lat: 51.92, lng: 4.48 },
+  'antwerp': { lat: 51.22, lng: 4.40 },
+  'ghent': { lat: 51.05, lng: 3.72 },
+  'leuven': { lat: 50.88, lng: 4.70 },
+  'eindhoven': { lat: 51.44, lng: 5.48 },
+  'düsseldorf': { lat: 51.23, lng: 6.79 },
+  'sarajevo': { lat: 43.85, lng: 18.36 },
+  'cluj-napoca': { lat: 46.77, lng: 23.59 },
 };
 
 export function lookupCoords(name: string): { lat: number; lng: number } | null {
@@ -189,14 +213,14 @@ export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeVie
     globe
       .arcsData(arcs)
       .arcColor('color')
-      .arcDashLength(0.6)
-      .arcDashGap(0.1)
-      .arcDashAnimateTime(1000)
-      .arcStroke(1.4)
+      .arcDashLength(0.5)
+      .arcDashGap(0.12)
+      .arcDashAnimateTime(1200)
+      .arcStroke(0.4)
       .pointsData(allPoints)
       .pointColor('color')
       .pointAltitude('size')
-      .pointRadius((d: any) => d.type === 'stop' ? 0.55 : 0.28)
+      .pointRadius((d: any) => d.type === 'stop' ? 0.4 : 0.22)
       .pointLabel('label');
 
     // Pulse gem points by oscillating altitude

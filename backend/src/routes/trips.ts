@@ -75,18 +75,27 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
 
     const weather = await getWeather(destination, startDate, endDate);
 
-    // Use pre-researched gems from DB first, fall back to Tavily if none exist
-    const destinationKey = destination.split(',')[0].trim();
-    const preResearched = await prisma.destinationGem.findMany({
-      where: { destination: { contains: destinationKey, mode: 'insensitive' } },
-      take: 6,
-    });
+    // Fetch pre-researched gems for EACH stop, 2–3 per stop, so gems are distributed across the route
+    const stopLocations = (tripData.stops || []).map((s: any) => s.location?.split(',')[0].trim()).filter(Boolean);
+    const allStopKeys = [...new Set([...stopLocations, destination.split(',')[0].trim()])];
 
-    const hiddenGems = preResearched.length > 0
+    const preResearchedPerStop = await Promise.all(
+      allStopKeys.map((key: string) =>
+        prisma.destinationGem.findMany({
+          where: { destination: { contains: key, mode: 'insensitive' } },
+          take: 3,
+        })
+      )
+    );
+    const preResearched = preResearchedPerStop.flat();
+
+    const hiddenGems = preResearched.length >= allStopKeys.length
       ? preResearched.map((g) => ({
           name: g.name,
           description: g.description,
           address: g.address,
+          latitude: g.latitude ?? undefined,
+          longitude: g.longitude ?? undefined,
           category: g.category,
           whyHidden: g.whyHidden,
           photoUrl: g.photoUrl ?? undefined,

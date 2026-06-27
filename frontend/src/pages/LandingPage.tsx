@@ -12,12 +12,26 @@ import type { TravelStyle, AccommodationType } from '@/types';
 // ─── City autocomplete input ───────────────────────────────────────────────────
 
 const CITY_LIST = [
-  'Amsterdam', 'Rome', 'Lisbon', 'Barcelona', 'Berlin', 'Prague',
-  'Paris', 'Vienna', 'Porto', 'Madrid', 'Florence', 'Athens',
-  'Dubrovnik', 'Budapest', 'Bruges', 'Santorini', 'Amalfi', 'Sintra',
-  'Milan', 'Venice', 'Seville', 'Copenhagen', 'Stockholm', 'Oslo',
-  'Dublin', 'Edinburgh', 'Warsaw', 'Krakow', 'Zagreb', 'Ljubljana',
-  'Sarajevo', 'Belgrade', 'Sofia', 'Bucharest', 'Tallinn', 'Riga', 'Vilnius',
+  'Amsterdam', 'Athens', 'Amalfi', 'Antwerp', 'Alicante',
+  'Barcelona', 'Berlin', 'Brussels', 'Budapest', 'Bologna', 'Bern', 'Bruges', 'Bucharest', 'Belgrade',
+  'Copenhagen', 'Cologne', 'Cluj-Napoca', 'Corfu',
+  'Dubrovnik', 'Dublin', 'Düsseldorf',
+  'Edinburgh', 'Eindhoven',
+  'Florence', 'Frankfurt',
+  'Ghent', 'Geneva', 'Gothenburg', 'Granada',
+  'Hamburg', 'Helsinki',
+  'Istanbul',
+  'Krakow', 'Kotor',
+  'Lisbon', 'Ljubljana', 'London', 'Leuven', 'Lyon',
+  'Madrid', 'Milan', 'Malaga', 'Marseille', 'Munich',
+  'Naples', 'Nice',
+  'Oslo',
+  'Palermo', 'Paris', 'Porto', 'Prague',
+  'Reykjavik', 'Riga', 'Rome', 'Rotterdam',
+  'Santorini', 'Sarajevo', 'Seville', 'Sintra', 'Sofia', 'Split', 'Stockholm',
+  'Tallinn', 'Thessaloniki',
+  'Valencia', 'Venice', 'Vienna', 'Vilnius',
+  'Warsaw', 'Zagreb', 'Zurich',
 ];
 
 function CityInput({ id, placeholder, value, onChange }: {

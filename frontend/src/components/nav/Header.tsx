@@ -70,7 +70,7 @@ export function Header() {
         </div>
 
         {isMobileMenuOpen && (
-          <MobileMenu links={NAV_LINKS} onClose={() => setIsMobileMenuOpen(false)} />
+          <MobileMenu links={NAV_LINKS} onClose={() => setIsMobileMenuOpen(false)} onShareGem={() => setGemModalOpen(true)} />
         )}
       </header>
 

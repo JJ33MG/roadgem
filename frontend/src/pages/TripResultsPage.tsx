@@ -350,7 +350,7 @@ export function TripResultsPage() {
         )}
 
         {/* Day image + itinerary */}
-        <div className="mt-24 grid gap-16 sm:gap-20 lg:grid-cols-[1fr_380px]">
+        <div className="trip-results-grid mt-24 grid gap-16 sm:gap-20">
 
           {/* Day hero image */}
           <div className="overflow-hidden rounded-2xl" style={{ minHeight: 260 }}>
@@ -362,7 +362,7 @@ export function TripResultsPage() {
           </div>
 
           {/* Itinerary sidebar */}
-          <aside className="rounded-2xl border border-white/8 bg-white/3 p-16 sm:p-20">
+          <aside className="rounded-2xl border border-white/10 p-16 sm:p-20" style={{ background: 'rgba(255,255,255,0.04)', minHeight: 320 }}>
             <h3 className="mb-12 text-body-sm font-w480 text-white">Day-by-day</h3>
             <DayTabs days={trip.itinerary} activeDay={activeDay} onSelect={setActiveDay} />
 

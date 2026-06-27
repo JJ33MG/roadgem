@@ -20,10 +20,10 @@ export async function generateTripItinerary(
 ) {
   const transportNote =
     transportType === 'rental_car'
-      ? 'The traveler will RENT a car — include car rental pickup/dropoff considerations and mention rental-friendly stops.'
+      ? 'The traveler will RENT a car — include car rental pickup/dropoff considerations and mention rental-friendly stops. For each stop include "transit": null.'
       : transportType === 'public'
-      ? 'The traveler uses PUBLIC TRANSPORT (train/bus) — do NOT suggest driving routes, only use train or bus connections between cities. Skip car rental suggestions.'
-      : 'The traveler uses their OWN CAR — focus on road trip routes and parking tips.';
+      ? `The traveler uses PUBLIC TRANSPORT (trains and buses ONLY) — do NOT mention driving, parking, or car rental anywhere. For every stop after the first, include a "transit" object describing how to get there from the previous stop by train or bus (operator name, approximate journey time, and any transfer needed). Choose stops that are well-connected by rail. Example: "transit": { "mode": "train", "operator": "Thalys", "duration": "1h 22min", "from": "Brussels-Midi", "to": "Amsterdam Centraal", "notes": "Runs every hour" }`
+      : 'The traveler uses their OWN CAR — focus on road trip routes and parking tips. For each stop include "transit": null.';
 
   const prompt = `You are a travel planning assistant. Create a road trip itinerary starting from "${startLocation}" and traveling to/around "${destination}", lasting ${days} days, with a total budget of €${budget}. The traveler's style is "${travelStyle}" and their priorities are: ${priorities.join(', ')}.
 
@@ -54,7 +54,8 @@ Respond with ONLY a single JSON object (no markdown, no commentary) matching thi
       "activities": ["string"],
       "bestTimeOfDay": "string",
       "estimatedDuration": "string",
-      "localSpecialties": ["string"]
+      "localSpecialties": ["string"],
+      "transit": { "mode": "string", "operator": "string", "duration": "string", "from": "string", "to": "string", "notes": "string" } | null
     }
   ],
   "itinerary": [

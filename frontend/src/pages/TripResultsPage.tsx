@@ -321,8 +321,11 @@ export function TripResultsPage() {
                     <span style={{ fontSize: 11, fontWeight: 480, whiteSpace: 'nowrap', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', color: activeDay === i + 1 ? 'white' : 'rgba(255,255,255,0.5)' }}>
                       {stop.location?.split(',')[0] ?? `Stop ${i + 1}`}
                     </span>
-                    {stop.distanceFromPrev > 0 && (
+                    {stop.distanceFromPrev > 0 && !stop.transit && (
                       <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{stop.distanceFromPrev} km</span>
+                    )}
+                    {stop.transit && (
+                      <span style={{ fontSize: 10, color: 'rgba(96,165,250,0.7)' }}>🚆 {stop.transit.duration}</span>
                     )}
                   </button>
                   {i < trip.stops.length - 1 && (
@@ -342,6 +345,25 @@ export function TripResultsPage() {
             className="h-full w-full"
           />
         </div>
+
+        {/* Transit info banner */}
+        {currentStop?.transit && activeDay > 1 && (
+          <div style={{ marginTop: 16, borderRadius: 12, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>🚆</span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 480, color: 'rgba(147,197,253,0.9)', marginBottom: 2 }}>
+                Getting there · {currentStop.transit.duration} by {currentStop.transit.mode}
+              </p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+                {currentStop.transit.from} → {currentStop.transit.to}
+                {currentStop.transit.operator ? ` · ${currentStop.transit.operator}` : ''}
+              </p>
+              {currentStop.transit.notes && (
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{currentStop.transit.notes}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Itinerary */}
         <div style={{ marginTop: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', padding: 20 }}>

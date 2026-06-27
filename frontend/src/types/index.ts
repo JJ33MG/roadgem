@@ -151,6 +151,15 @@ export interface WeatherForecast {
 
 // --- Generated trip (from no-DB Claude-powered backend) ---
 
+export interface TransitInfo {
+  mode: string;
+  operator: string;
+  duration: string;
+  from: string;
+  to: string;
+  notes: string;
+}
+
 export interface GeneratedTripStop {
   location: string;
   reason: string;
@@ -161,6 +170,7 @@ export interface GeneratedTripStop {
   bestTimeOfDay: string;
   estimatedDuration: string;
   localSpecialties: string[];
+  transit?: TransitInfo | null;
 }
 
 export interface GeneratedItinerarySlot {

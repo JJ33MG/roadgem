@@ -1,272 +1,392 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Calendar, ChevronDown, ChevronUp, Wallet, Compass } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, Calendar } from 'lucide-react';
 import { GlobeView, lookupCoords } from '@/components/display/GlobeView';
 import { useTripGeneration } from '@/hooks/useTripGeneration';
-import { DateRangePicker } from '@/components/forms/DateRangePicker';
-import { BudgetSlider } from '@/components/forms/BudgetSlider';
-import { TravelStyleSelector } from '@/components/forms/TravelStyleSelector';
 import { DestinationInput } from '@/components/forms/DestinationInput';
 import { PaywallModal } from '@/components/utility/PaywallModal';
-import type { TravelStyle } from '@/types';
+import { AccommodationTypeSelector } from '@/components/forms/AccommodationTypeSelector';
+import { DateRangePicker } from '@/components/forms/DateRangePicker';
+import type { TravelStyle, AccommodationType } from '@/types';
 
-interface GlobeStop { lat: number; lng: number; label: string; }
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const LOADING_MESSAGES = [
-  'Researching your destination...',
-  'Planning your daily itinerary...',
-  'Finding hidden gems along the route...',
-  'Calculating routes and distances...',
-  'Almost ready...',
+const DURATION_OPTIONS = [
+  { label: '3 days', value: 3 },
+  { label: '5 days', value: 5 },
+  { label: '7 days', value: 7 },
+  { label: '14 days', value: 14 },
 ];
 
-const EXAMPLE_TRIPS = [
+const BUDGET_OPTIONS = [
+  { label: 'Budget', value: 800, desc: '< €800' },
+  { label: 'Comfort', value: 1800, desc: '€800–2k' },
+  { label: 'Luxury', value: 4000, desc: '> €2k' },
+];
+
+const STYLE_OPTIONS: { label: string; value: TravelStyle; emoji: string }[] = [
+  { label: 'Adventure', value: 'adventure', emoji: '🏔' },
+  { label: 'Culture', value: 'culture', emoji: '🎭' },
+  { label: 'Relaxed', value: 'relaxation', emoji: '🌅' },
+  { label: 'Food', value: 'food', emoji: '🍷' },
+];
+
+const QUICK_ROUTES = [
   { label: 'Amsterdam → Rome', from: 'Amsterdam', to: 'Rome' },
   { label: 'Lisbon → Barcelona', from: 'Lisbon', to: 'Barcelona' },
   { label: 'Berlin → Prague', from: 'Berlin', to: 'Prague' },
 ];
+
+const LOADING_MESSAGES = [
+  'Zooming in on your route...',
+  'Discovering hidden gems along the way...',
+  'Planning your day-by-day itinerary...',
+  'Finding the best accommodation...',
+  'Almost ready — finalising your trip...',
+];
+
+interface GlobeStop { lat: number; lng: number; label: string }
+type Phase = 'form' | 'zoom';
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { isLoading, error, limitReached, generateTrip, dismissLimit } = useTripGeneration();
 
   // Form state
-  const [startLocation, setStartLocation] = useState('');
-  const [destination, setDestination] = useState('');
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [budget, setBudget] = useState(1500);
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [duration, setDuration] = useState(7);
+  const [budget, setBudget] = useState(1800);
   const [travelStyle, setTravelStyle] = useState<TravelStyle | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [accommodation, setAccommodation] = useState<AccommodationType[]>(['hotel', 'hostel', 'campsite', 'airbnb']);
 
-  // Globe state
+  // Globe
   const [stops, setStops] = useState<GlobeStop[]>([]);
-  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const [phase, setPhase] = useState<Phase>('form');
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Parse destinations into globe stops
+  // Live globe stops from from/to inputs
   useEffect(() => {
-    const parts = [startLocation, destination].filter(Boolean);
-    const parsed = parts
-      .map((p) => { const c = lookupCoords(p); return c ? { ...c, label: p } : null; })
-      .filter((s): s is GlobeStop => s !== null);
+    const parts = [from, to].filter(Boolean);
+    const parsed = parts.map(p => { const c = lookupCoords(p); return c ? { ...c, label: p } : null; }).filter((s): s is GlobeStop => s !== null);
     setStops(parsed);
-  }, [startLocation, destination]);
+  }, [from, to]);
 
-  // Cycle loading messages
+  // Loading message rotation
   useEffect(() => {
     if (isLoading) {
-      setLoadingMsgIndex(0);
-      intervalRef.current = setInterval(() => {
-        setLoadingMsgIndex(prev => Math.min(prev + 1, LOADING_MESSAGES.length - 1));
-      }, 8000);
+      setLoadingMsgIdx(0);
+      intervalRef.current = setInterval(() => setLoadingMsgIdx(i => Math.min(i + 1, LOADING_MESSAGES.length - 1)), 7000);
     } else {
       if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isLoading]);
 
-  const isValid = startLocation.trim().length > 0 && destination.trim().length > 0 && startDate && endDate && travelStyle;
+  const isValid = from.trim() && to.trim() && travelStyle;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValid || !startDate || !endDate || !travelStyle) return;
+    if (!isValid || !travelStyle) return;
+
+    // Cinematic transition first — globe takes over immediately
+    setPhase('zoom');
+
+    const sd = startDate ?? new Date();
+    const ed = new Date(sd);
+    ed.setDate(ed.getDate() + duration);
+
     const trip = await generateTrip({
-      startLocation,
-      destination,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startLocation: from,
+      destination: to,
+      startDate: sd.toISOString(),
+      endDate: ed.toISOString(),
       budget,
       travelStyle,
       priorities: [],
-      accommodationTypes: ['hotel', 'hostel', 'campsite', 'airbnb'],
+      accommodationTypes: accommodation,
     });
+
     if (trip) {
       navigate(`/trips/${trip.tripId}`, { state: { trip } });
+    } else {
+      setPhase('form');
     }
   }
 
-  const loadExample = (from: string, to: string) => {
-    setStartLocation(from);
-    setDestination(to);
-  };
+  // ─── ZOOM phase ────────────────────────────────────────────────────────────
+  if (phase === 'zoom') {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#080c14]">
+        {/* Full-screen globe */}
+        <div className="absolute inset-0">
+          <GlobeView stops={stops} autoRotate={false} />
+        </div>
 
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(8,12,20,0.7) 100%)' }} />
+
+        {/* Logo top-left */}
+        <div className="absolute top-20 left-24 z-10 flex items-center gap-10">
+          <div className="h-8 w-8 rounded-full bg-[#f5a623]" />
+          <span className="font-display text-heading-sm font-w480 text-white">Routify</span>
+        </div>
+
+        {/* Center overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="text-center"
+          >
+            <p className="mb-8 font-mono text-caption uppercase tracking-widest text-[#f5a623]">
+              {from} → {to}
+            </p>
+            <h2 className="mb-32 text-2xl font-display font-w360 text-white">
+              Your {duration}-day journey
+            </h2>
+
+            {/* Animated route path indicator */}
+            <div className="mb-32 flex items-center justify-center gap-12">
+              <div className="flex items-center gap-8">
+                <div className="h-3 w-3 rounded-full bg-[#f5a623]" />
+                <span className="text-caption text-white/70">{from}</span>
+              </div>
+              <div className="h-px w-40 bg-gradient-to-r from-[#f5a623] to-[#f5a623]/30" />
+              <motion.div
+                className="h-2 w-2 rounded-full bg-[#f5a623]"
+                animate={{ x: [0, 40, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <div className="h-px w-40 bg-gradient-to-r from-[#f5a623]/30 to-[#f5a623]" />
+              <div className="flex items-center gap-8">
+                <div className="h-3 w-3 rounded-full bg-[#f5a623]" />
+                <span className="text-caption text-white/70">{to}</span>
+              </div>
+            </div>
+
+            {/* Loading message */}
+            <div className="h-6 overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={loadingMsgIdx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-body-sm text-white/60"
+                >
+                  {LOADING_MESSAGES[loadingMsgIdx]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            {/* Spinner */}
+            <div className="mt-24 flex justify-center">
+              <div className="h-8 w-8 rounded-full border-2 border-white/10 border-t-[#f5a623] animate-spin" />
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── FORM phase ────────────────────────────────────────────────────────────
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#080c14] text-white">
 
-      {/* Globe — full background right side */}
+      {/* Globe background */}
       <div className="absolute inset-0 flex items-center justify-end pointer-events-none select-none">
-        <div className="w-full h-full md:w-[60%]">
-          <GlobeView stops={stops} autoRotate={stops.length === 0 && !isLoading} />
+        <div className="w-full h-full md:w-[58%]">
+          <GlobeView stops={stops} autoRotate={stops.length === 0} />
         </div>
       </div>
 
-      {/* Gradients */}
+      {/* Gradient overlays */}
       <div aria-hidden className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(90deg, #080c14 40%, rgba(8,12,20,0.75) 65%, rgba(8,12,20,0.05) 100%)' }} />
+        style={{ background: 'linear-gradient(90deg, #080c14 42%, rgba(8,12,20,0.8) 62%, rgba(8,12,20,0.05) 100%)' }} />
       <div aria-hidden className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(180deg, rgba(8,12,20,0.6) 0%, transparent 15%, transparent 75%, rgba(8,12,20,0.9) 100%)' }} />
+        style={{ background: 'linear-gradient(180deg, rgba(8,12,20,0.5) 0%, transparent 18%, transparent 75%, rgba(8,12,20,1) 100%)' }} />
 
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-24 py-20 md:px-40">
         <div className="flex items-center gap-10">
           <div className="h-8 w-8 rounded-full bg-[#f5a623]" />
-          <span className="text-heading-sm font-display font-w480 text-white">Routify</span>
+          <span className="font-display text-heading-sm font-w480 text-white">Routify</span>
         </div>
         <div className="hidden items-center gap-32 md:flex">
-          {['Destinations', 'Pricing'].map((item) => (
+          {['Destinations', 'Pricing'].map(item => (
             <button key={item} onClick={() => navigate(`/${item.toLowerCase()}`)}
-              className="text-body-sm text-white/70 transition-colors hover:text-white">{item}</button>
+              className="text-body-sm text-white/60 transition-colors hover:text-white">{item}</button>
           ))}
         </div>
         <button onClick={() => navigate('/login')}
-          className="rounded-full border border-white/20 px-20 py-8 text-body-sm text-white/80 transition-all hover:border-white/40 hover:text-white">
+          className="rounded-full border border-white/20 px-20 py-8 text-body-sm text-white/70 transition-all hover:border-white/40 hover:text-white">
           Log in
         </button>
       </nav>
 
-      {/* Main content */}
+      {/* Hero */}
       <div className="relative z-10 min-h-[calc(100vh-80px)] flex items-center px-24 md:px-40">
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-[520px]">
 
-          {/* Badge */}
+          {/* Live badge */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-            className="mb-24 inline-flex items-center gap-8 rounded-full border border-white/10 bg-white/5 px-16 py-8 backdrop-blur-sm">
-            <span className="h-6 w-6 rounded-full bg-[#4ade80] animate-pulse" />
-            <span className="font-mono text-caption text-white/70">AI agents · 6× a day</span>
+            className="mb-24 inline-flex items-center gap-8 rounded-full border border-white/10 bg-white/5 px-14 py-6 backdrop-blur-sm">
+            <span className="h-5 w-5 rounded-full bg-[#4ade80] animate-pulse" />
+            <span className="font-mono text-caption text-white/60">AI agents · 6× a day</span>
           </motion.div>
 
           {/* Headline */}
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-32 text-[2.6rem] font-display font-w360 leading-[1.1] text-white sm:text-[3.4rem]">
-            Your European<br />road trip in{' '}
-            <span className="text-[#f5a623]">30 seconds.</span>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-40 font-display leading-[1.08]"
+            style={{ fontSize: 'clamp(2.4rem, 5vw, 3.6rem)', fontWeight: 360 }}>
+            Your European road trip<br />
+            in <span className="text-[#f5a623]">30 seconds.</span>
           </motion.h1>
 
-          {/* Search form */}
+          {/* ─── Search Form ─── */}
           <motion.form initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }} onSubmit={handleSubmit}
-            className="rounded-2xl border border-white/10 bg-white/5 p-20 backdrop-blur-md">
+            transition={{ duration: 0.5, delay: 0.2 }} onSubmit={handleSubmit}>
 
-            {/* Route row */}
-            <div className="mb-16 flex flex-col gap-10 sm:flex-row">
-              <div className="flex-1">
-                <label className="mb-6 flex items-center gap-6 text-caption text-white/50">
-                  <MapPin size={11} className="text-[#f5a623]" /> From
+            {/* From / To */}
+            <div className="mb-12 grid grid-cols-2 gap-8">
+              <div>
+                <label className="mb-4 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
+                  <MapPin size={9} className="text-[#f5a623]" /> From
                 </label>
-                <DestinationInput
-                  id="startLocation"
-                  label=""
-                  placeholder="Departing from..."
-                  value={startLocation}
-                  onChange={setStartLocation}
-                />
+                <DestinationInput id="from" label="" placeholder="Departing from..." value={from} onChange={setFrom} />
               </div>
-              <div className="flex-1">
-                <label className="mb-6 flex items-center gap-6 text-caption text-white/50">
-                  <Search size={11} className="text-[#f5a623]" /> To
+              <div>
+                <label className="mb-4 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
+                  <MapPin size={9} className="text-[#f5a623]" /> To
                 </label>
-                <DestinationInput
-                  value={destination}
-                  onChange={setDestination}
-                />
+                <DestinationInput id="to" label="" placeholder="Destination..." value={to} onChange={setTo} />
               </div>
             </div>
 
-            {/* Dates row */}
+            {/* Duration pills */}
+            <div className="mb-12">
+              <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Duration</label>
+              <div className="flex gap-6">
+                {DURATION_OPTIONS.map(opt => (
+                  <button key={opt.value} type="button" onClick={() => setDuration(opt.value)}
+                    className={`flex-1 rounded-full py-8 text-caption font-w480 transition-all ${
+                      duration === opt.value
+                        ? 'bg-[#f5a623] text-[#080c14]'
+                        : 'border border-white/15 bg-white/5 text-white/60 hover:border-white/30 hover:text-white'
+                    }`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Budget tier */}
+            <div className="mb-12">
+              <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Budget</label>
+              <div className="flex gap-6">
+                {BUDGET_OPTIONS.map(opt => (
+                  <button key={opt.value} type="button" onClick={() => setBudget(opt.value)}
+                    className={`flex-1 rounded-xl py-10 text-center transition-all ${
+                      budget === opt.value
+                        ? 'bg-[#f5a623]/15 border border-[#f5a623] text-[#f5a623]'
+                        : 'border border-white/10 bg-white/5 text-white/60 hover:border-white/25 hover:text-white'
+                    }`}>
+                    <div className="text-body-sm font-w480">{opt.label}</div>
+                    <div className="text-[10px] text-current opacity-60">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Travel style */}
             <div className="mb-16">
-              <label className="mb-6 flex items-center gap-6 text-caption text-white/50">
-                <Calendar size={11} className="text-[#f5a623]" /> Dates
-              </label>
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onChange={({ startDate: s, endDate: e }) => { setStartDate(s); setEndDate(e); }}
-              />
+              <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Travel style</label>
+              <div className="flex gap-6">
+                {STYLE_OPTIONS.map(opt => (
+                  <button key={opt.value} type="button" onClick={() => setTravelStyle(opt.value)}
+                    className={`flex-1 rounded-xl py-10 text-center transition-all ${
+                      travelStyle === opt.value
+                        ? 'bg-[#f5a623]/15 border border-[#f5a623] text-[#f5a623]'
+                        : 'border border-white/10 bg-white/5 text-white/60 hover:border-white/25 hover:text-white'
+                    }`}>
+                    <div className="text-base">{opt.emoji}</div>
+                    <div className="text-[11px] font-w480">{opt.label}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Advanced toggle */}
             <button type="button" onClick={() => setShowAdvanced(v => !v)}
-              className="mb-16 flex items-center gap-6 text-caption text-white/50 transition-colors hover:text-white/80">
+              className="mb-12 flex items-center gap-6 text-caption text-white/40 transition-colors hover:text-white/70">
               {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-              {showAdvanced ? 'Fewer options' : 'More options (budget, travel style)'}
+              {showAdvanced ? 'Fewer options' : 'More options'}
             </button>
 
             <AnimatePresence>
               {showAdvanced && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
-                  <div className="mb-16">
-                    <label className="mb-6 flex items-center gap-6 text-caption text-white/50">
-                      <Wallet size={11} className="text-[#f5a623]" /> Budget
+                  exit={{ opacity: 0, height: 0 }} className="mb-12 overflow-hidden space-y-12">
+                  <div>
+                    <label className="mb-6 flex items-center gap-5 text-[11px] uppercase tracking-widest text-white/40">
+                      <Calendar size={9} className="text-[#f5a623]" /> Start date (optional)
                     </label>
-                    <BudgetSlider value={budget} onChange={setBudget} />
+                    <DateRangePicker
+                      startDate={startDate}
+                      endDate={null}
+                      onChange={({ startDate: s }) => setStartDate(s)}
+                    />
                   </div>
-                  <div className="mb-16">
-                    <label className="mb-6 flex items-center gap-6 text-caption text-white/50">
-                      <Compass size={11} className="text-[#f5a623]" /> Travel style
-                    </label>
-                    <TravelStyleSelector value={travelStyle} onChange={setTravelStyle} />
+                  <div>
+                    <label className="mb-6 block text-[11px] uppercase tracking-widest text-white/40">Accommodation</label>
+                    <AccommodationTypeSelector value={accommodation} onChange={setAccommodation} />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
             {/* Error */}
-            {error && (
-              <div className="mb-12 rounded-xl border border-red-500/30 bg-red-500/10 px-16 py-10">
+            {error && phase === 'form' && (
+              <div className="mb-12 rounded-xl border border-red-500/30 bg-red-500/10 px-14 py-10">
                 <p className="text-caption text-red-400">{error}</p>
               </div>
             )}
 
-            {/* Submit */}
-            <button type="submit" disabled={!isValid || isLoading}
-              className="w-full rounded-full bg-[#f5a623] py-14 text-body-sm font-w480 text-[#080c14] transition-all hover:bg-[#f5a623]/90 disabled:opacity-40 disabled:cursor-not-allowed">
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-10">
-                  <span className="h-4 w-4 rounded-full border-2 border-[#080c14]/30 border-t-[#080c14] animate-spin" />
-                  Building your itinerary...
-                </span>
-              ) : 'Plan my trip →'}
-            </button>
-
-            {/* Loading message */}
-            <AnimatePresence>
-              {isLoading && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="mt-12 flex h-5 items-center justify-center overflow-hidden">
-                  <AnimatePresence mode="wait">
-                    <motion.p key={loadingMsgIndex}
-                      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.3 }}
-                      className="text-caption text-white/50 text-center">
-                      {LOADING_MESSAGES[loadingMsgIndex]}
-                    </motion.p>
-                  </AnimatePresence>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* CTA */}
+            <motion.button type="submit" disabled={!isValid || isLoading}
+              whileHover={{ scale: isValid && !isLoading ? 1.02 : 1 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full rounded-full bg-[#f5a623] py-16 text-body-sm font-w480 text-[#080c14] transition-all hover:bg-[#f5a623]/90 disabled:opacity-35 disabled:cursor-not-allowed shadow-[0_0_40px_rgba(245,166,35,0.25)]">
+              Plan my trip →
+            </motion.button>
           </motion.form>
 
-          {/* Example chips */}
-          {!isLoading && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-              className="mt-16 flex flex-wrap items-center gap-8">
-              <span className="text-caption text-white/40">Try:</span>
-              {EXAMPLE_TRIPS.map((t) => (
-                <button key={t.label} onClick={() => loadExample(t.from, t.to)}
-                  className="rounded-full border border-white/15 bg-white/5 px-14 py-6 text-caption text-white/70 transition-all hover:border-[#f5a623]/50 hover:text-white">
-                  {t.label}
-                </button>
-              ))}
-            </motion.div>
-          )}
+          {/* Quick routes */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+            className="mt-16 flex flex-wrap items-center gap-8">
+            <span className="text-caption text-white/30">Try:</span>
+            {QUICK_ROUTES.map(r => (
+              <button key={r.label} onClick={() => { setFrom(r.from); setTo(r.to); }}
+                className="rounded-full border border-white/12 bg-white/4 px-12 py-5 text-caption text-white/55 transition-all hover:border-[#f5a623]/40 hover:text-white/90">
+                {r.label}
+              </button>
+            ))}
+          </motion.div>
 
-          {/* Stats */}
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
-            className="mt-16 text-caption text-white/35">
-            Free to use · AI-powered · 110+ European destinations
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+            className="mt-12 text-caption text-white/25">
+            Free · No account needed · 110+ European destinations
           </motion.p>
         </div>
       </div>

@@ -41,22 +41,6 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
-// Temporary admin endpoint — secured by JWT_SECRET, remove after use
-app.post('/api/admin/set-premium', async (req: Request, res: Response) => {
-  const { secret, email } = req.body;
-  if (secret !== 'routify-admin-2026-temp') return res.status(403).json({ error: 'Forbidden' });
-  const { PrismaClient } = await import('@prisma/client');
-  const prisma = new PrismaClient();
-  try {
-    const user = await prisma.user.update({
-      where: { email },
-      data: { subscriptionTier: 'premium', subscriptionExpires: new Date('2027-12-31') },
-    });
-    res.json({ ok: true, email: user.email, tier: user.subscriptionTier });
-  } finally {
-    await prisma.$disconnect();
-  }
-});
 
 app.use('/api/auth', authRouter);
 app.use('/api/user', usersRouter);

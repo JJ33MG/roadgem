@@ -16,7 +16,7 @@ import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
 import { useAccommodations } from '@/hooks/useAccommodations';
 import { useSubscription } from '@/hooks/useSubscription';
 import { generateTripPDF } from '@/utils/generatePDF';
-import { GlobeView, lookupCoords } from '@/components/display/GlobeView';
+import { GlobeView, lookupCoords, buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
 import type { AccommodationOption, AccommodationType, GeneratedItineraryDay, GeneratedTrip } from '@/types';
 
 // ─── URL builders ─────────────────────────────────────────────────────────────
@@ -147,10 +147,21 @@ export function TripResultsPage() {
   const heroTextY = useTransform(scrollYProgress, [0, 0.25], [0, -40]);
   const heroTextOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
-  // Globe stops
-  const globeStops = trip?.stops
-    ?.map((s: any) => { const c = lookupCoords(s.location?.split(',')[0] ?? ''); return c ? { ...c, label: s.location } : null; })
-    .filter(Boolean) ?? [];
+  // Globe stops — prefer lat/lng from trip data, fall back to lookup
+  const globeStops = (trip?.stops ?? [])
+    .map((s: any) => {
+      if (s.latitude && s.longitude) return { lat: s.latitude, lng: s.longitude, label: s.location };
+      const c = lookupCoords(s.location?.split(',')[0] ?? '');
+      return c ? { ...c, label: s.location } : null;
+    })
+    .filter(Boolean) as { lat: number; lng: number; label: string }[];
+
+  // Globe gems — only ones with valid coords
+  const globeGems = (trip?.hiddenGems ?? [])
+    .filter((g: any) => g.latitude && g.longitude)
+    .map((g: any) => ({ lat: g.latitude, lng: g.longitude, label: g.name, category: g.category }));
+
+  const mapsUrl = buildGoogleMapsRouteUrl(globeStops);
 
   const currentStop = trip?.stops[Math.min(activeDay - 1, (trip?.stops?.length ?? 1) - 1)];
   const checkinDate = trip ? addDays(new Date(trip.startDate), activeDay - 1) : null;
@@ -232,7 +243,7 @@ export function TripResultsPage() {
       >
         {/* Globe */}
         <div className="absolute inset-0">
-          <GlobeView stops={globeStops as any} autoRotate={false} />
+          <GlobeView stops={globeStops} gems={globeGems} autoRotate={false} />
         </div>
 
         {/* Gradient vignette */}
@@ -260,7 +271,7 @@ export function TripResultsPage() {
           </div>
 
           {/* Action buttons */}
-          <div className="mt-16 flex gap-8">
+          <div className="mt-16 flex flex-wrap gap-8">
             <button onClick={handleShare}
               className="flex items-center gap-6 rounded-full border border-white/15 bg-white/8 px-16 py-8 text-caption text-white/70 backdrop-blur-sm transition-all hover:border-white/30 hover:text-white">
               <Share2 size={12} /> {shareCopied ? 'Copied!' : 'Share'}
@@ -269,6 +280,17 @@ export function TripResultsPage() {
               className="flex items-center gap-6 rounded-full border border-white/15 bg-white/8 px-16 py-8 text-caption text-white/70 backdrop-blur-sm transition-all hover:border-white/30 hover:text-white disabled:opacity-40">
               <Download size={12} /> {isExporting ? '...' : 'Export PDF'}
             </button>
+            {isPremium ? (
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-6 rounded-full bg-[#f5a623] px-16 py-8 text-caption font-w480 text-[#080c14] transition-all hover:bg-[#f5a623]/85">
+                <MapPin size={12} /> Navigate in Google Maps
+              </a>
+            ) : (
+              <Link to="/pricing"
+                className="flex items-center gap-6 rounded-full border border-[#f5a623]/40 px-16 py-8 text-caption text-[#f5a623]/70 backdrop-blur-sm transition-all hover:border-[#f5a623] hover:text-[#f5a623]">
+                <Lock size={12} /> Maps route — Premium
+              </Link>
+            )}
           </div>
         </motion.div>
       </motion.div>

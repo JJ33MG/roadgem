@@ -6,8 +6,16 @@ interface GlobeStop {
   label: string;
 }
 
+interface GlobeGem {
+  lat: number;
+  lng: number;
+  label: string;
+  category?: string;
+}
+
 interface GlobeViewProps {
   stops?: GlobeStop[];
+  gems?: GlobeGem[];
   autoRotate?: boolean;
 }
 
@@ -31,6 +39,36 @@ const DEST_COORDS: Record<string, { lat: number; lng: number }> = {
   'santorini': { lat: 36.40, lng: 25.46 },
   'amalfi': { lat: 40.63, lng: 14.60 },
   'sintra': { lat: 38.80, lng: -9.39 },
+  'milan': { lat: 45.46, lng: 9.19 },
+  'venice': { lat: 45.44, lng: 12.33 },
+  'seville': { lat: 37.39, lng: -5.99 },
+  'copenhagen': { lat: 55.68, lng: 12.57 },
+  'stockholm': { lat: 59.33, lng: 18.07 },
+  'oslo': { lat: 59.91, lng: 10.75 },
+  'dublin': { lat: 53.33, lng: -6.25 },
+  'edinburgh': { lat: 55.95, lng: -3.19 },
+  'warsaw': { lat: 52.23, lng: 21.01 },
+  'krakow': { lat: 50.06, lng: 19.94 },
+  'zagreb': { lat: 45.81, lng: 15.98 },
+  'ljubljana': { lat: 46.05, lng: 14.51 },
+  'belgrade': { lat: 44.80, lng: 20.46 },
+  'sofia': { lat: 42.70, lng: 23.32 },
+  'bucharest': { lat: 44.43, lng: 26.10 },
+  'tallinn': { lat: 59.44, lng: 24.75 },
+  'riga': { lat: 56.95, lng: 24.11 },
+  'vilnius': { lat: 54.69, lng: 25.28 },
+  'brussels': { lat: 50.85, lng: 4.35 },
+  'zurich': { lat: 47.38, lng: 8.54 },
+  'geneva': { lat: 46.20, lng: 6.14 },
+  'bern': { lat: 46.95, lng: 7.45 },
+  'munich': { lat: 48.14, lng: 11.58 },
+  'hamburg': { lat: 53.55, lng: 10.00 },
+  'cologne': { lat: 50.94, lng: 6.96 },
+  'frankfurt': { lat: 50.11, lng: 8.68 },
+  'naples': { lat: 40.85, lng: 14.27 },
+  'palermo': { lat: 38.12, lng: 13.36 },
+  'bologna': { lat: 44.50, lng: 11.34 },
+  'valletta': { lat: 35.90, lng: 14.51 },
 };
 
 export function lookupCoords(name: string): { lat: number; lng: number } | null {
@@ -41,11 +79,24 @@ export function lookupCoords(name: string): { lat: number; lng: number } | null 
   return null;
 }
 
-export function GlobeView({ stops = [], autoRotate = true }: GlobeViewProps) {
+// Build Google Maps directions deeplink from stops
+export function buildGoogleMapsRouteUrl(stops: GlobeStop[]): string {
+  if (stops.length === 0) return 'https://www.google.com/maps';
+  if (stops.length === 1) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stops[0].label)}`;
+  const origin = encodeURIComponent(stops[0].label);
+  const destination = encodeURIComponent(stops[stops.length - 1].label);
+  const waypoints = stops.slice(1, -1).map(s => encodeURIComponent(s.label)).join('|');
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+  if (waypoints) url += `&waypoints=${waypoints}`;
+  return url;
+}
+
+export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);
   const rafRef = useRef<number>(0);
   const angleRef = useRef(0);
+  const pulseRef = useRef<number>(0);
 
   const initGlobe = useCallback(async () => {
     if (!containerRef.current) return;
@@ -66,17 +117,14 @@ export function GlobeView({ stops = [], autoRotate = true }: GlobeViewProps) {
       .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
       .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png');
 
-    // Disable built-in controls so we control rotation ourselves
     globe.controls().enableZoom = false;
     globe.controls().enableRotate = false;
     globe.controls().enablePan = false;
 
-    // Initial POV — center on Europe
     globe.pointOfView({ lat: 48, lng: 10, altitude: 1.8 }, 0);
 
     globeRef.current = globe;
 
-    // Auto-rotate
     if (autoRotate) {
       const animate = () => {
         angleRef.current += 0.0015;
@@ -94,21 +142,20 @@ export function GlobeView({ stops = [], autoRotate = true }: GlobeViewProps) {
     initGlobe();
     return () => {
       cancelAnimationFrame(rafRef.current);
-      if (globeRef.current) {
-        globeRef.current._destructor?.();
-      }
+      cancelAnimationFrame(pulseRef.current);
+      if (globeRef.current) globeRef.current._destructor?.();
     };
   }, [initGlobe]);
 
-  // Update arcs + points when stops change
+  // Update arcs + stop points + gem points when data changes
   useEffect(() => {
     const globe = globeRef.current;
-    if (!globe || stops.length === 0) return;
+    if (!globe) return;
+    if (stops.length === 0 && gems.length === 0) return;
 
-    // Stop rotation
     cancelAnimationFrame(rafRef.current);
 
-    // Build arcs between consecutive stops
+    // Arcs between consecutive stops
     const arcs = stops.slice(0, -1).map((s, i) => ({
       startLat: s.lat,
       startLng: s.lng,
@@ -117,33 +164,62 @@ export function GlobeView({ stops = [], autoRotate = true }: GlobeViewProps) {
       color: '#f5a623',
     }));
 
-    // Points for each stop
-    const points = stops.map((s) => ({
+    // Stop points (gold, larger)
+    const stopPoints = stops.map((s, i) => ({
       lat: s.lat,
       lng: s.lng,
       label: s.label,
-      size: 0.4,
+      size: i === 0 || i === stops.length - 1 ? 0.55 : 0.4,
       color: '#f5a623',
+      type: 'stop',
     }));
+
+    // Gem points (white/cream, smaller — visible but subtle)
+    const gemPoints = gems.map(g => ({
+      lat: g.lat,
+      lng: g.lng,
+      label: g.label,
+      size: 0.25,
+      color: '#ffffff',
+      type: 'gem',
+    }));
+
+    const allPoints = [...stopPoints, ...gemPoints];
 
     globe
       .arcsData(arcs)
       .arcColor('color')
-      .arcDashLength(0.4)
-      .arcDashGap(0.2)
-      .arcDashAnimateTime(1500)
-      .arcStroke(0.5)
-      .pointsData(points)
+      .arcDashLength(0.5)
+      .arcDashGap(0.15)
+      .arcDashAnimateTime(1200)
+      .arcStroke(0.6)
+      .pointsData(allPoints)
       .pointColor('color')
       .pointAltitude('size')
-      .pointRadius(0.3)
+      .pointRadius((d: any) => d.type === 'stop' ? 0.35 : 0.18)
       .pointLabel('label');
 
+    // Pulse gem points by oscillating altitude
+    let t = 0;
+    const pulse = () => {
+      t += 0.05;
+      const pulsed = allPoints.map(p =>
+        p.type === 'gem'
+          ? { ...p, size: 0.18 + Math.sin(t + p.lat) * 0.08 }
+          : p
+      );
+      globe.pointsData(pulsed);
+      pulseRef.current = requestAnimationFrame(pulse);
+    };
+    pulseRef.current = requestAnimationFrame(pulse);
+
     // Fly to center of stops
-    const centerLat = stops.reduce((s, p) => s + p.lat, 0) / stops.length;
-    const centerLng = stops.reduce((s, p) => s + p.lng, 0) / stops.length;
-    globe.pointOfView({ lat: centerLat, lng: centerLng, altitude: 1.6 }, 1200);
-  }, [stops]);
+    if (stops.length > 0) {
+      const centerLat = stops.reduce((s, p) => s + p.lat, 0) / stops.length;
+      const centerLng = stops.reduce((s, p) => s + p.lng, 0) / stops.length;
+      globe.pointOfView({ lat: centerLat, lng: centerLng, altitude: 1.6 }, 1200);
+    }
+  }, [stops, gems]);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }

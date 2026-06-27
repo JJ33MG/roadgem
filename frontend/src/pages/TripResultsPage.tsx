@@ -29,15 +29,8 @@ function buildGemMapsUrl(gem: { latitude?: number; longitude?: number; address?:
 function buildViatorUrl(a: string, l: string) {
   return `https://www.viator.com/search?text=${encodeURIComponent(`${a} ${l}`)}`;
 }
-function buildGetYourGuideUrl(a: string, l: string) {
-  return `https://www.getyourguide.com/s/?q=${encodeURIComponent(`${a} ${l}`)}`;
-}
 function buildRentalcarsUrl(pickup: string, dropoff: string, from: string, to: string) {
   return `https://www.rentalcars.com/en/?pickup-location=${encodeURIComponent(pickup)}&dropoff-location=${encodeURIComponent(dropoff)}&pickup-date=${from}&dropoff-date=${to}`;
-}
-function buildAutoEuropeUrl(pickup: string, from: string, to: string) {
-  const toEu = (iso: string) => { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; };
-  return `https://www.autoeurope.eu/car-hire/?locationA=${encodeURIComponent(pickup)}&dateFrom=${toEu(from)}&dateTo=${toEu(to)}`;
 }
 function buildTheForkUrl(a: string, l: string) {
   return `https://www.thefork.com/search#cityName=${encodeURIComponent(l)}&searchPhrase=${encodeURIComponent(a)}`;
@@ -73,19 +66,16 @@ function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; it
           {label} &middot; {item.time} &middot; {item.location}
         </p>
         <p className="text-white/40" style={{ fontSize: 11, marginTop: 4 }}>{item.description}</p>
-        <div className="flex flex-wrap gap-6" style={{ marginTop: 10 }}>
-          <a href={buildViatorUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 8, border: '1px solid rgba(245,166,35,0.35)', background: 'rgba(245,166,35,0.08)', padding: '5px 10px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 480 }}>
-            🎟️ Viator <ExternalLink size={10} />
-          </a>
-          <a href={buildGetYourGuideUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 8, border: '1px solid rgba(245,166,35,0.35)', background: 'rgba(245,166,35,0.08)', padding: '5px 10px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 480 }}>
-            🗺️ GetYourGuide <ExternalLink size={10} />
-          </a>
-          {isFoodActivity(slot, item.activity) && (
+        <div style={{ marginTop: 10 }}>
+          {isFoodActivity(slot, item.activity) ? (
             <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 8, border: '1px solid rgba(245,166,35,0.35)', background: 'rgba(245,166,35,0.08)', padding: '5px 10px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 480 }}>
-              🍽️ TheFork <ExternalLink size={10} />
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(245,166,35,0.4)', background: 'rgba(245,166,35,0.1)', padding: '6px 12px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 500 }}>
+              🍽️ Reserveer tafel — TheFork <ExternalLink size={10} />
+            </a>
+          ) : (
+            <a href={buildViatorUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(245,166,35,0.4)', background: 'rgba(245,166,35,0.1)', padding: '6px 12px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 500 }}>
+              🎟️ Boek activiteit — Viator <ExternalLink size={10} />
             </a>
           )}
         </div>
@@ -290,8 +280,22 @@ export function TripResultsPage() {
         </div>
       </div>
 
+      {/* ── Sticky mobile booking bar ── */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100, padding: '12px 16px 20px', background: 'linear-gradient(transparent, rgba(8,12,20,0.98) 30%)', display: 'flex', gap: 8, pointerEvents: 'none' }}
+        className="md:hidden">
+        <button onClick={() => setAccommodationModalOpen(true)}
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, background: '#f5a623', padding: '14px', fontSize: 14, fontWeight: 600, color: '#080c14', cursor: 'pointer', border: 'none', pointerEvents: 'all' }}>
+          🏨 Hotel boeken
+        </button>
+        <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
+          target="_blank" rel="noopener noreferrer sponsored"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', padding: '14px', fontSize: 14, fontWeight: 600, color: 'white', textDecoration: 'none', pointerEvents: 'all' }}>
+          🚗 Huurauto
+        </a>
+      </div>
+
       {/* ── Main content (always visible below globe) ── */}
-      <div ref={contentRef} style={{ background: '#080c14', padding: '0 24px 80px', position: 'relative' }}>
+      <div ref={contentRef} style={{ background: '#080c14', padding: '0 24px 100px', position: 'relative' }}>
 
         {/* Route stops */}
         {(trip.stops?.length ?? 0) > 0 && (
@@ -332,6 +336,60 @@ export function TripResultsPage() {
             </div>
           </div>
         )}
+
+        {/* ── Booking panel ── */}
+        <div style={{ marginTop: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <p style={{ fontSize: 11, fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)' }}>Boek je trip</p>
+          </div>
+
+          {/* Hotel */}
+          <button onClick={() => setAccommodationModalOpen(true)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245,166,35,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🏨</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Overnachting boeken</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Hotels · Hostels · Airbnb in {currentStop?.location?.split(',')[0] ?? trip.destination}</p>
+            </div>
+            <div style={{ borderRadius: 10, background: '#f5a623', padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#080c14', flexShrink: 0 }}>Zoek</div>
+          </button>
+
+          {/* Car rental */}
+          <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
+            target="_blank" rel="noopener noreferrer sponsored"
+            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', textDecoration: 'none' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(175,80,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🚗</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Huurauto vergelijken</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{pickupLocation} · {trip.days} dagen · 100+ aanbieders</p>
+            </div>
+            <ExternalLink size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
+          </a>
+
+          {/* Activities */}
+          <a href={`https://www.viator.com/search?text=${encodeURIComponent(trip.destination)}`}
+            target="_blank" rel="noopener noreferrer sponsored"
+            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', textDecoration: 'none' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(96,165,250,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🎟️</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Activiteiten & tours</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Beste tours in {trip.destination} — Viator</p>
+            </div>
+            <ExternalLink size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
+          </a>
+
+          {/* Insurance */}
+          <a href="https://www.safetywing.com/nomad-insurance/?referenceId=routify"
+            target="_blank" rel="noopener noreferrer sponsored"
+            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', textDecoration: 'none' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(74,222,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🛡️</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Reisverzekering</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Reis veilig — SafetyWing vanaf €1.87/dag</p>
+            </div>
+            <ExternalLink size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
+          </a>
+        </div>
 
         {/* Day photo */}
         <div style={{ marginTop: 24, borderRadius: 16, overflow: 'hidden', height: 260, position: 'relative' }}>
@@ -417,62 +475,18 @@ export function TripResultsPage() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Overnight */}
-          <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 18 }}>🏨</span>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Overnachting</h3>
-            </div>
-            {selectedAccommodation ? (
-              <div>
-                <AccommodationCard accommodation={selectedAccommodation} selected />
-                <button onClick={() => setAccommodationModalOpen(true)}
-                  style={{ marginTop: 8, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', padding: '10px', fontSize: 13, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', background: 'transparent' }}>
-                  <BedDouble size={13} /> Andere optie kiezen
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setAccommodationModalOpen(true)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, border: '1px solid rgba(245,166,35,0.3)', background: 'rgba(245,166,35,0.06)', padding: '14px 16px', cursor: 'pointer' }}>
-                <div style={{ textAlign: 'left' }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Zoek een hotel of hostel</p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Booking.com · Airbnb · Hostelworld</p>
-                </div>
-                <BedDouble size={18} color="rgba(245,166,35,0.7)" />
-              </button>
-            )}
-          </div>
-
-          {/* Rental car */}
-          {startDateStr && endDateStr && (
+          {/* Overnachting — alleen tonen als de gebruiker er een heeft gekozen */}
+          {selectedAccommodation && (
             <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <span style={{ fontSize: 18 }}>🚗</span>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Huur een auto</h3>
+                <span style={{ fontSize: 18 }}>🏨</span>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Overnachting</h3>
               </div>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 12 }}>
-                {pickupLocation} → {trip.destination} · {startDateStr} – {endDateStr}
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
-                  target="_blank" rel="noopener noreferrer sponsored"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, border: '1px solid rgba(175,80,255,0.3)', background: 'rgba(175,80,255,0.08)', padding: '12px 16px', textDecoration: 'none' }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Rentalcars.com</p>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Vergelijk 100+ autoverhuurders</p>
-                  </div>
-                  <ExternalLink size={14} color="rgba(175,80,255,0.8)" />
-                </a>
-                <a href={buildAutoEuropeUrl(pickupLocation, startDateStr, endDateStr)}
-                  target="_blank" rel="noopener noreferrer sponsored"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, border: '1px solid rgba(175,80,255,0.3)', background: 'rgba(175,80,255,0.08)', padding: '12px 16px', textDecoration: 'none' }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>AutoEurope</p>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Beste prijs garantie Europa</p>
-                  </div>
-                  <ExternalLink size={14} color="rgba(175,80,255,0.8)" />
-                </a>
-              </div>
+              <AccommodationCard accommodation={selectedAccommodation} selected />
+              <button onClick={() => setAccommodationModalOpen(true)}
+                style={{ marginTop: 8, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', padding: '10px', fontSize: 13, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', background: 'transparent' }}>
+                <BedDouble size={13} /> Andere optie kiezen
+              </button>
             </div>
           )}
         </div>

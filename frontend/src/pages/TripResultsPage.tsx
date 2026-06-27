@@ -221,7 +221,7 @@ export function TripResultsPage() {
     setAccommodationModalOpen(false);
   }
 
-  const itinerary = trip.itinerary ?? [];
+  const itinerary = (trip.itinerary ?? []).slice(0, trip.days ?? undefined);
   const currentDay = itinerary.find((d: any) => d.day === activeDay) ?? itinerary[0];
   const slots: ('morning' | 'afternoon' | 'evening')[] = ['morning', 'afternoon', 'evening'];
   const dayWeather = trip.weather?.find((w: any) => w.day === activeDay);

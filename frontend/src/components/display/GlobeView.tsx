@@ -50,12 +50,13 @@ export function GlobeView({ stops = [], autoRotate = true }: GlobeViewProps) {
   const initGlobe = useCallback(async () => {
     if (!containerRef.current) return;
 
-    const GlobeGL = (await import('globe.gl')).default;
+    const GlobeGLModule = await import('globe.gl');
+    const GlobeGL = GlobeGLModule.default as any;
 
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
 
-    const globe = GlobeGL()(containerRef.current)
+    const globe = new GlobeGL(containerRef.current)
       .width(width)
       .height(height)
       .backgroundColor('rgba(0,0,0,0)')

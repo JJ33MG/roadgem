@@ -231,6 +231,13 @@ export function TripResultsPage() {
   }
 
   const currentDay = trip.itinerary.find(d => d.day === activeDay) ?? trip.itinerary[0];
+
+  // Hidden gems filtered to active stop's city
+  const currentCity = currentStop?.location?.split(',')[0]?.toLowerCase().trim() ?? trip.destination.toLowerCase();
+  const dayGems = (trip.hiddenGems ?? []).filter((g: any) =>
+    g.address?.toLowerCase().includes(currentCity) || g.name?.toLowerCase().includes(currentCity)
+  );
+  const gemsToShow: typeof trip.hiddenGems = dayGems.length > 0 ? dayGems : (trip.hiddenGems ?? []);
   const slots: ('morning' | 'afternoon' | 'evening')[] = ['morning', 'afternoon', 'evening'];
   const dayWeather = trip.weather?.find(w => w.day === activeDay);
   const selectedAccommodation = selectedAccommodations[activeDay];
@@ -422,15 +429,8 @@ export function TripResultsPage() {
           </aside>
         </div>
 
-        {/* Hidden gems — filtered to current stop's city */}
-        {(() => {
-          const currentCity = currentStop?.location?.split(',')[0]?.toLowerCase().trim() ?? trip.destination.toLowerCase();
-          const dayGems = (trip.hiddenGems ?? []).filter((g: any) =>
-            g.address?.toLowerCase().includes(currentCity) ||
-            g.name?.toLowerCase().includes(currentCity)
-          );
-          const gemsToShow = dayGems.length > 0 ? dayGems : trip.hiddenGems ?? [];
-          return gemsToShow?.length > 0 && (
+        {/* Hidden gems — filtered to active stop's city */}
+        {gemsToShow.length > 0 && (
           <div className="relative mt-24 rounded-2xl border border-white/8 bg-white/3 p-16 sm:p-24">
             <div className="flex items-center justify-between mb-16">
               <h3 className="text-body-sm font-w480 text-white">
@@ -498,8 +498,7 @@ export function TripResultsPage() {
               </div>
             )}
           </div>
-          );
-        })()}
+        )}
 
         {/* Highlights & tips */}
         <div className="mt-20 grid gap-12 sm:gap-20 lg:grid-cols-2">

@@ -189,23 +189,23 @@ export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeVie
     globe
       .arcsData(arcs)
       .arcColor('color')
-      .arcDashLength(0.5)
-      .arcDashGap(0.15)
-      .arcDashAnimateTime(1200)
-      .arcStroke(0.6)
+      .arcDashLength(0.6)
+      .arcDashGap(0.1)
+      .arcDashAnimateTime(1000)
+      .arcStroke(1.4)
       .pointsData(allPoints)
       .pointColor('color')
       .pointAltitude('size')
-      .pointRadius((d: any) => d.type === 'stop' ? 0.35 : 0.18)
+      .pointRadius((d: any) => d.type === 'stop' ? 0.55 : 0.28)
       .pointLabel('label');
 
     // Pulse gem points by oscillating altitude
     let t = 0;
     const pulse = () => {
-      t += 0.05;
+      t += 0.04;
       const pulsed = allPoints.map(p =>
         p.type === 'gem'
-          ? { ...p, size: 0.18 + Math.sin(t + p.lat) * 0.08 }
+          ? { ...p, size: 0.22 + Math.sin(t + p.lat) * 0.1 }
           : p
       );
       globe.pointsData(pulsed);
@@ -213,11 +213,15 @@ export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeVie
     };
     pulseRef.current = requestAnimationFrame(pulse);
 
-    // Fly to center of stops
+    // Zoom in tightly to the route
     if (stops.length > 0) {
-      const centerLat = stops.reduce((s, p) => s + p.lat, 0) / stops.length;
-      const centerLng = stops.reduce((s, p) => s + p.lng, 0) / stops.length;
-      globe.pointOfView({ lat: centerLat, lng: centerLng, altitude: 1.6 }, 1200);
+      const lats = stops.map(p => p.lat);
+      const lngs = stops.map(p => p.lng);
+      const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+      const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+      const spread = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
+      const altitude = Math.max(0.6, Math.min(1.4, spread / 30));
+      globe.pointOfView({ lat: centerLat, lng: centerLng, altitude }, 1200);
     }
   }, [stops, gems]);
 

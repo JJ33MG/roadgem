@@ -21,6 +21,13 @@ import type { AccommodationOption, AccommodationType, GeneratedItineraryDay, Gen
 
 // ─── URL builders ─────────────────────────────────────────────────────────────
 
+function buildGemMapsUrl(gem: { latitude?: number; longitude?: number; address?: string; name: string }) {
+  if (gem.latitude && gem.longitude) {
+    return `https://www.google.com/maps/search/?api=1&query=${gem.latitude},${gem.longitude}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gem.name + (gem.address ? ' ' + gem.address : ''))}`;
+}
+
 function buildViatorUrl(a: string, l: string) {
   return `https://www.viator.com/search?text=${encodeURIComponent(`${a} ${l}`)}`;
 }
@@ -33,9 +40,6 @@ function buildRentalcarsUrl(pickup: string, dropoff: string, from: string, to: s
 function buildAutoEuropeUrl(pickup: string, from: string, to: string) {
   const toEu = (iso: string) => { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; };
   return `https://www.autoeurope.eu/car-hire/?locationA=${encodeURIComponent(pickup)}&dateFrom=${toEu(from)}&dateTo=${toEu(to)}`;
-}
-function buildMapsUrl(address: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 function buildTheForkUrl(a: string, l: string) {
   return `https://www.thefork.com/search#cityName=${encodeURIComponent(l)}&searchPhrase=${encodeURIComponent(a)}`;
@@ -418,11 +422,20 @@ export function TripResultsPage() {
           </aside>
         </div>
 
-        {/* Hidden gems */}
-        {trip.hiddenGems?.length > 0 && (
+        {/* Hidden gems — filtered to current stop's city */}
+        {(() => {
+          const currentCity = currentStop?.location?.split(',')[0]?.toLowerCase().trim() ?? trip.destination.toLowerCase();
+          const dayGems = (trip.hiddenGems ?? []).filter((g: any) =>
+            g.address?.toLowerCase().includes(currentCity) ||
+            g.name?.toLowerCase().includes(currentCity)
+          );
+          const gemsToShow = dayGems.length > 0 ? dayGems : trip.hiddenGems ?? [];
+          return gemsToShow?.length > 0 && (
           <div className="relative mt-24 rounded-2xl border border-white/8 bg-white/3 p-16 sm:p-24">
             <div className="flex items-center justify-between mb-16">
-              <h3 className="text-body-sm font-w480 text-white">Local favourites & hidden spots</h3>
+              <h3 className="text-body-sm font-w480 text-white">
+                Hidden spots — {currentStop?.location?.split(',')[0] ?? trip.destination}
+              </h3>
               {!isPremium && (
                 <Link to="/pricing" className="flex items-center gap-6 text-caption text-[#f5a623]/70 hover:text-[#f5a623]">
                   <Lock size={12} /> Premium
@@ -432,7 +445,7 @@ export function TripResultsPage() {
 
             {isPremium ? (
               <div className="grid gap-12 grid-cols-2 sm:gap-14 lg:grid-cols-3">
-                {trip.hiddenGems.map((gem, i) => {
+                {gemsToShow.map((gem: any, i: number) => {
                   const badgeColor =
                     gem.category === 'restaurant' || gem.category === 'café' || gem.category === 'bar' ? '#f5a623'
                     : gem.category === 'viewpoint' || gem.category === 'nature' ? '#4ade80'
@@ -453,12 +466,10 @@ export function TripResultsPage() {
                         </div>
                         {gem.address && <p className="mt-2 text-caption text-white/40 truncate">{gem.address}</p>}
                         <p className="mt-6 text-caption text-white/50">{gem.description}</p>
-                        {gem.address && (
-                          <a href={buildMapsUrl(gem.address)} target="_blank" rel="noopener noreferrer"
-                            className="mt-6 inline-flex items-center gap-4 text-caption text-[#f5a623]/60 hover:text-[#f5a623]">
-                            <MapPin size={10} /> Maps
-                          </a>
-                        )}
+                        <a href={buildGemMapsUrl(gem)} target="_blank" rel="noopener noreferrer"
+                          className="mt-6 inline-flex items-center gap-4 text-caption text-[#f5a623]/60 hover:text-[#f5a623]">
+                          <MapPin size={10} /> Open in Maps
+                        </a>
                       </div>
                     </motion.div>
                   );
@@ -467,7 +478,7 @@ export function TripResultsPage() {
             ) : (
               <div className="relative">
                 <div className="grid gap-12 select-none sm:grid-cols-2" style={{ filter: 'blur(6px)', pointerEvents: 'none' }}>
-                  {trip.hiddenGems.slice(0, 2).map(gem => (
+                  {gemsToShow.slice(0, 2).map((gem: any) => (
                     <div key={gem.name} className="overflow-hidden rounded-xl border border-white/8">
                       <div className="h-[120px] w-full bg-gradient-to-br from-[#f5a623]/10 via-white/5 to-[#080c14]" />
                       <div className="p-12">
@@ -487,7 +498,8 @@ export function TripResultsPage() {
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* Highlights & tips */}
         <div className="mt-20 grid gap-12 sm:gap-20 lg:grid-cols-2">

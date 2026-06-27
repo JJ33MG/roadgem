@@ -84,7 +84,7 @@ jobs:
   send-briefing:
     runs-on: ubuntu-latest
     needs: run-agents
-    if: always() && (github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1 * * *')
+    if: always()
     steps:
       - uses: actions/checkout@v4
 

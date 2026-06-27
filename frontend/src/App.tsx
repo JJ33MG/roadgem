@@ -68,7 +68,7 @@ function AppShell() {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#080c14] text-white">
       {!isHome && <Header />}
       <main className="flex-1">
         <AnimatedRoutes />

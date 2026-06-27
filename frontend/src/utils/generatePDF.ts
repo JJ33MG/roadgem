@@ -24,5 +24,5 @@ export async function generateTripPDF(element: HTMLElement, destination: string,
 
   const datePart = sanitize(startDate.slice(0, 10));
   const destinationPart = sanitize(destination);
-  pdf.save(`ROADGEM_${destinationPart}_${datePart}.pdf`);
+  pdf.save(`Routify_${destinationPart}_${datePart}.pdf`);
 }

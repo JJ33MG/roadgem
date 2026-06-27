@@ -122,7 +122,7 @@ export function LandingPage() {
             className="mb-24 inline-flex items-center gap-8 rounded-full border border-white/10 bg-white/5 px-16 py-8 backdrop-blur-sm"
           >
             <span className="h-6 w-6 rounded-full bg-[#4ade80] animate-pulse" />
-            <span className="font-mono text-caption text-white/70">AI agents · 3× a day</span>
+            <span className="font-mono text-caption text-white/70">AI agents · 6× a day</span>
           </motion.div>
 
           {/* Headline */}

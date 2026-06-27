@@ -35,7 +35,7 @@ export function LoginPage() {
       >
         <div className="mb-32 text-center">
           <Link to="/" className="font-display text-heading-sm font-w480 text-starlight">
-            ROADGEM
+            Routify
           </Link>
           <h1 className="mt-16 text-heading font-display font-w360 text-starlight">Welcome back</h1>
           <p className="mt-8 text-body-sm text-silver">Log in to your account to continue</p>

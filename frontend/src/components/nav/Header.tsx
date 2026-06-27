@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { MobileMenu } from './MobileMenu';
 
 const NAV_LINKS = [
-  { to: '/', label: 'Home' },
   { to: '/plan', label: 'Plan a trip' },
   { to: '/destinations', label: 'Destinations' },
   { to: '/pricing', label: 'Pricing' },
@@ -28,18 +27,8 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isHome]);
 
-  // On home page: transparent → white on scroll. On other pages: dark glass always.
-  const transparent = isHome && !scrolled;
-
-  const headerStyle = transparent
-    ? 'bg-transparent border-transparent'
-    : isHome
-    ? 'bg-white/95 backdrop-blur-md border-[#ece8f5] shadow-sm'
-    : 'bg-deep-space/70 backdrop-blur border-starlight/10';
-
-  const logoColor = transparent || !isHome ? 'text-white' : 'text-[#0d0d14]';
-  const navLinkColor = transparent || !isHome ? 'text-white/85 hover:text-white' : 'text-[#6b6878] hover:text-mercury-blue';
-  const actionColor = transparent || !isHome ? 'text-white/85 hover:text-white' : 'text-[#6b6878] hover:text-mercury-blue';
+  // Always dark on non-home pages
+  const headerStyle = 'bg-[#080c14]/80 backdrop-blur border-white/10';
 
   return (
     <header
@@ -48,9 +37,10 @@ export function Header() {
       <div className="section flex items-center justify-between py-16">
         <Link
           to="/"
-          className={`font-display text-heading-sm font-w480 transition-colors ${logoColor}`}
+          className="flex items-center gap-10 font-display text-heading-sm font-w480 text-white"
         >
-          ROADGEM
+          <div className="h-8 w-8 rounded-full bg-[#f5a623]" />
+          Routify
         </Link>
 
         <nav className="hidden items-center gap-32 md:flex">
@@ -58,7 +48,7 @@ export function Header() {
             <NavLink
               key={link.to}
               to={link.to}
-              className={`text-body-sm transition-colors ${navLinkColor}`}
+              className="text-body-sm text-white/70 transition-colors hover:text-white"
             >
               {link.label}
             </NavLink>
@@ -67,26 +57,17 @@ export function Header() {
 
         <div className="hidden items-center gap-12 md:flex">
           {user ? (
-            <button
-              onClick={logout}
-              className={`text-body-sm transition-colors ${actionColor}`}
-            >
+            <button onClick={logout} className="text-body-sm text-white/70 transition-colors hover:text-white">
               Log out
             </button>
           ) : (
             <>
-              <Link to="/login" className={`text-body-sm transition-colors ${actionColor}`}>
+              <Link to="/login" className="text-body-sm text-white/70 transition-colors hover:text-white">
                 Log in
               </Link>
               <Link
                 to="/signup"
-                className={
-                  transparent
-                    ? 'rounded-full border border-white/40 px-20 py-8 text-body-sm text-white transition-all hover:bg-white/15'
-                    : isHome
-                    ? 'rounded-full border-2 border-mercury-blue px-20 py-8 text-body-sm font-w480 text-mercury-blue transition-all hover:bg-mercury-blue hover:text-white'
-                    : 'btn-header text-body-sm'
-                }
+                className="rounded-full bg-[#f5a623] px-20 py-8 text-body-sm font-w480 text-[#080c14] transition-all hover:bg-[#f5a623]/90"
               >
                 Sign up
               </Link>
@@ -95,7 +76,7 @@ export function Header() {
         </div>
 
         <button
-          className={`transition-colors md:hidden ${transparent || !isHome ? 'text-white' : 'text-[#0d0d14]'}`}
+          className="text-white transition-colors md:hidden"
           aria-label="Toggle menu"
           onClick={() => setIsMobileMenuOpen((open) => !open)}
         >

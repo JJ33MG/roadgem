@@ -1,5 +1,5 @@
-import { Link, NavLink, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Link, NavLink } from 'react-router-dom';
+import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { MobileMenu } from './MobileMenu';
@@ -13,19 +13,7 @@ const NAV_LINKS = [
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
-  const { pathname } = useLocation();
-
-  const isHome = pathname === '/';
-
-  useEffect(() => {
-    if (!isHome) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [isHome]);
 
   // Always dark on non-home pages
   const headerStyle = 'bg-[#080c14]/80 backdrop-blur border-white/10';

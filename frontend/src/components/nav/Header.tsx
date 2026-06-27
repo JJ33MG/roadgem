@@ -7,6 +7,7 @@ import { SubmitGemModal } from '@/components/community/SubmitGemModal';
 
 const NAV_LINKS = [
   { to: '/destinations', label: 'Destinations' },
+  { to: '/templates', label: 'Trips' },
   { to: '/community', label: 'Community' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/dashboard', label: 'Dashboard' },

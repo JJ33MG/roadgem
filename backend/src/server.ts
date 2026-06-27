@@ -11,6 +11,7 @@ import destinationsRouter from './routes/destinations';
 import stripeRouter from './routes/stripe';
 import agentsRouter from './routes/agents';
 import communityRouter from './routes/community';
+import templatesRouter from './routes/templates';
 import { startScheduler } from './queue/scheduler';
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/destinations', destinationsRouter);
 app.use('/api/stripe', stripeRouter);
 app.use('/api/agents', agentsRouter);
 app.use('/api/community', communityRouter);
+app.use('/api/templates', templatesRouter);
 
 // Error handling middleware (must be registered after routes)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

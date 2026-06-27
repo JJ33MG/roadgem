@@ -42,6 +42,7 @@ model Trip {
   tips          String
   weather       String
   hiddenGems    String?
+  fromTemplate  String?
   createdAt     DateTime @default(now())
 
   itineraryDays TripDay[]
@@ -125,6 +126,31 @@ model CommunityGem {
 
   @@index([userId])
   @@index([status])
+}
+
+model TripTemplate {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String
+  emoji         String   @default("🗺️")
+  startLocation String
+  destination   String
+  days          Int
+  budget        Float
+  travelStyle   String
+  highlights    String
+  stops         String
+  itinerary     String
+  tips          String
+  totalCost     Float
+  totalDistance Float    @default(0)
+  priceEur      Float    @default(4.99)
+  featured      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([slug])
+  @@index([featured])
 }
 
 model DestinationQueue {

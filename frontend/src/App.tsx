@@ -20,6 +20,7 @@ import AgentsDashboardPage from '@/pages/AgentsDashboardPage';
 import { DestinationsPage } from '@/pages/DestinationsPage';
 import { DestinationDetailPage } from '@/pages/DestinationDetailPage';
 import { CommunityPage } from '@/pages/CommunityPage';
+import { TemplatesPage } from '@/pages/TemplatesPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -45,6 +46,7 @@ function AnimatedRoutes() {
           <Route path="/destinations/:slug" element={<DestinationDetailPage />} />
 
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
 
           <Route path="/trips/:tripId" element={<TripResultsPage />} />
           <Route path="/trips/:tripId/days/:dayNumber" element={<DayDetailPage />} />

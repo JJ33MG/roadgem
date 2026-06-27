@@ -3,7 +3,7 @@ dotenv.config();
 
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
-import { readMessages } from '../utils/agentBus';
+import { readMessages, sendMessage } from '../utils/agentBus';
 import { traceAgentRun, createGeneration, endGeneration } from '../utils/langfuse';
 import { DESTINATIONS } from '../utils/destinations';
 import Anthropic from '@anthropic-ai/sdk';
@@ -240,6 +240,13 @@ export async function main() {
         const count = await researchGemsForDestination(item.destination, item.gemDepth, runner);
         totalGems += count;
         destinationsProcessed++;
+        // Notify seoAgent to generate content for this destination now that gems exist
+        if (count > 0) {
+          await sendMessage('gems-agent', 'seo-agent', 'GEMS_READY', {
+            destinations: [item.destination],
+            reason: `${count} gems just added — prioritise SEO content`,
+          });
+        }
         await new Promise((r) => setTimeout(r, 1500));
       } catch (err) {
         await runner.log('error', `Failed for ${item.destination}: ${err}`);

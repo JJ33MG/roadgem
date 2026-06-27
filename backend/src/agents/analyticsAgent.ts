@@ -3,7 +3,7 @@ dotenv.config();
 
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
-import { sendMessage } from '../utils/agentBus';
+import { sendMessage, readMessages } from '../utils/agentBus';
 import { traceAgentRun, createGeneration, endGeneration } from '../utils/langfuse';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -112,6 +112,15 @@ Be concise. Respond as JSON:
         reason: 'Popular destinations need better SEO coverage',
       });
       await runner.log('info', `Told seo-agent to focus on: ${recommendations.seoAgentTopics.join(', ')}`);
+    }
+
+    // Share top searched destinations with trend agent for deeper research
+    if (topDestinations.length > 0) {
+      await sendMessage('analytics-agent', 'trend-agent', 'USER_DEMAND_SIGNAL', {
+        destinations: topDestinations.map((d) => d.split(' (')[0]),
+        reason: 'These destinations have the most user trip requests this week',
+      });
+      await runner.log('info', `Shared demand signals with trend-agent: ${topDestinations.slice(0, 3).join(', ')}`);
     }
 
     await runner.finish(

@@ -3,7 +3,7 @@ dotenv.config();
 
 import { prisma } from '../utils/prisma';
 import { AgentRunner } from '../utils/agentRunner';
-import { sendMessage } from '../utils/agentBus';
+import { sendMessage, readMessages } from '../utils/agentBus';
 import { traceAgentRun, createGeneration, endGeneration } from '../utils/langfuse';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -12,6 +12,7 @@ const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
 const TRAVEL_SUBREDDITS = [
   'solotravel', 'travel', 'roadtrip', 'europe', 'backpacking',
+  'digitalnomad', 'EuropeTravel', 'vandwellers', 'campervans',
 ];
 
 async function searchTavily(query: string): Promise<string> {
@@ -43,41 +44,62 @@ export async function main() {
   try {
     await runner.log('info', 'Searching for trending travel destinations');
 
+    // Read any hints from analyticsAgent about what users are searching
+    const analyticsHints = await readMessages<{ destinations: string[] }>('trend-agent');
+    const hintedDestinations = analyticsHints.flatMap((m) => m.destinations ?? []);
+
     // Search for trending destinations on Reddit and travel sites
     const redditQuery = `site:reddit.com (${TRAVEL_SUBREDDITS.map(s => `r/${s}`).join(' OR ')}) trending hidden gems Europe road trip 2026`;
     const trendQuery = 'most searched European road trip destinations 2026 trending';
+    const viralQuery = 'viral European travel destinations TikTok Instagram 2026 underrated';
+    const seasonalQuery = `best European road trip destinations ${new Date().toLocaleString('en', { month: 'long' })} 2026`;
 
-    const [redditData, trendData] = await Promise.all([
+    const [redditData, trendData, viralData, seasonalData] = await Promise.all([
       searchTavily(redditQuery),
       searchTavily(trendQuery),
+      searchTavily(viralQuery),
+      searchTavily(seasonalQuery),
     ]);
 
-    if (!redditData && !trendData) {
+    if (!redditData && !trendData && !viralData && !seasonalData) {
       await runner.finish('No trend data available — Tavily key missing or no results.');
       return;
     }
 
     // Ask Claude to extract trending destinations from the raw search data
-    const prompt = `You are a trend analyst for RoadGem, an AI road trip planner focused on Europe.
+    const prompt = `You are a trend analyst for Routify, an AI European road trip planner.
 
-Here is raw data from Reddit and travel trend searches:
+Here is raw data from multiple sources:
 
 REDDIT DATA:
 ${redditData || 'No data'}
 
-TREND DATA:
+GENERAL TREND DATA:
 ${trendData || 'No data'}
+
+VIRAL/SOCIAL DATA:
+${viralData || 'No data'}
+
+SEASONAL DATA:
+${seasonalData || 'No data'}
+
+${hintedDestinations.length > 0 ? `USER SEARCH HINTS (from our analytics — users are searching these):
+${hintedDestinations.join(', ')}` : ''}
 
 Extract:
 1. Which European destinations are trending right now for road trips?
 2. Any hidden gems or off-the-beaten-path places people are talking about?
 3. Any travel trends (travel styles, types of trips) worth noting?
+4. Any seasonal opportunities for this month?
+
+Be specific — name actual cities/regions, not generic advice.
 
 Respond as JSON:
 {
-  "trendingDestinations": [{"name": "string", "reason": "string", "urgency": "high|medium|low"}],
+  "trendingDestinations": [{"name": "City, Country", "reason": "string", "urgency": "high|medium|low"}],
   "hiddenGemMentions": ["string"],
-  "travelTrends": ["string"]
+  "travelTrends": ["string"],
+  "seasonalOpportunities": ["string"]
 }`;
 
     const generation = createGeneration(_trace, 'trend-interpret', process.env.CLAUDE_MODEL || 'claude-sonnet-4-6', prompt);
@@ -105,7 +127,10 @@ Respond as JSON:
 
     await runner.log('success', `Found ${trends.trendingDestinations?.length ?? 0} trending destinations`, {
       type: 'trends',
-      trends,
+      trendingDestinations: trends.trendingDestinations,
+      hiddenGemMentions: trends.hiddenGemMentions,
+      travelTrends: trends.travelTrends,
+      seasonalOpportunities: trends.seasonalOpportunities,
     });
 
     // Send trending destinations to Gems and SEO agents
@@ -133,8 +158,13 @@ Respond as JSON:
       await runner.log('warning', `${highUrgency.length} high-urgency destinations flagged: ${highUrgency.map((d: any) => d.name).join(', ')}`);
     }
 
+    // Share seasonal opportunities with gems agent
+    if (trends.seasonalOpportunities?.length > 0) {
+      await runner.log('info', `Seasonal opportunities: ${trends.seasonalOpportunities.join(' | ')}`);
+    }
+
     await runner.finish(
-      `Trend analysis complete. ${trends.trendingDestinations?.length ?? 0} trending destinations found. ${highUrgency.length} flagged as high priority.`
+      `Trend analysis complete. ${trends.trendingDestinations?.length ?? 0} trending destinations found. ${highUrgency.length} high-priority. Seasonal: ${trends.seasonalOpportunities?.length ?? 0} opportunities.`
     );
   } catch (err) {
     await runner.fail(`Trend agent crashed: ${err}`);

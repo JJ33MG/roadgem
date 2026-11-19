@@ -1,6 +1,6 @@
 # Routify: redesign and gems along the route
 
-Date: 2026-11-19 · Status: waiting for Jarne's approval
+Date: 2026-11-19 · Status: approved by Jarne, 2026-11-19
 
 ## Intent and why
 
@@ -38,6 +38,9 @@ community game the reason people come back between trips, so it can go live and 
    - A **feed** of posts others can like, and an **explorers board** ranking travellers by points.
 7. Works on laptop and phone from one website, installable on the phone's home screen (a PWA).
 8. A preview at a real web address that Jarne can test before anything goes public.
+9. **Connected to the AI Agency Brain** (repo `ai-workflow`, business `roadgem`): Routify exposes a protected
+   stats endpoint (new users, trips planned, Plus subscribers, affiliate clicks, community posts, gems turned
+   official); the Brain reads it daily and shows it on the business page and in the CEO briefing.
 
 ## Non-goals (for now)
 
@@ -77,7 +80,8 @@ Jarne picked A, with B once the site earns.
 
 1. **Look and planning** — new design system (Ribbon tokens, components), new homepage, trip planner panel with
    the new filters, trip results page (days, map, stays per night, rental car, gems), login and sign-up, pricing,
-   PWA install. Uses the current trip generation, with kilometres a day and the gems switch passed through.
+   PWA install, and the stats endpoint for the AI Agency Brain. Uses the current trip generation, with
+   kilometres a day and the gems switch passed through.
 2. **Gems along the route** — the real engine: take the driving route from Google Directions, sample points
    along it, search Google Places (and free OpenStreetMap and Wikipedia data) near those points, measure each
    candidate's detour, keep the best mix per stretch, plus start and end city gems. Overnight places chosen near

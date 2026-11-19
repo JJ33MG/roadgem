@@ -31,15 +31,15 @@ function buildMapsUrl(address: string) {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  restaurant: '#ffb648',
-  café: '#ffb648',
-  bar: '#ffb648',
-  viewpoint: '#4ade80',
-  nature: '#4ade80',
-  culture: '#af50ff',
-  historic: '#af50ff',
-  activity: '#60a5fa',
-  market: '#60a5fa',
+  restaurant: 'var(--color-accent)',
+  café: 'var(--color-accent)',
+  bar: 'var(--color-accent)',
+  viewpoint: 'var(--color-success)',
+  nature: 'var(--color-success)',
+  culture: 'var(--color-accent)',
+  historic: 'var(--color-accent)',
+  activity: 'var(--color-accent)',
+  market: 'var(--color-accent)',
 };
 
 export function DestinationDetailPage() {
@@ -145,7 +145,7 @@ export function DestinationDetailPage() {
                 </div>
                 <div className="grid gap-12 sm:grid-cols-2">
                   {data.gems.map((gem, i) => {
-                    const color = CATEGORY_COLORS[gem.category] ?? '#454545';
+                    const color = CATEGORY_COLORS[gem.category] ?? 'var(--color-rule)';
                     return (
                       <motion.div
                         key={gem.id}
@@ -159,7 +159,7 @@ export function DestinationDetailPage() {
                           <p className="text-body-sm font-w480 text-starlight">{gem.name}</p>
                           <span
                             className="flex-shrink-0 rounded-full px-8 py-2 text-[10px] font-w480 capitalize"
-                            style={{ backgroundColor: color, color: ['viewpoint','nature','activity','market'].includes(gem.category) ? '#090909' : '#f7f9fa' }}
+                            style={{ backgroundColor: color, color: ['viewpoint','nature','activity','market'].includes(gem.category) ? 'var(--color-paper)' : 'var(--color-ink)' }}
                           >
                             {gem.category}
                           </span>

@@ -28,7 +28,7 @@ export function TravelStyleSelector({ value, onChange }: TravelStyleSelectorProp
             className={clsx(
               'rounded-btn border px-20 py-8 text-body-sm transition-colors',
               value === style.value
-                ? 'border-mercury-blue bg-mercury-blue text-white'
+                ? 'border-mercury-blue bg-mercury-blue text-ink'
                 : 'border-lead text-starlight hover:border-mercury-blue',
             )}
           >

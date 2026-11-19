@@ -37,7 +37,7 @@ export function AccommodationTypeSelector({ value, onChange }: AccommodationType
               className={clsx(
                 'flex items-center gap-8 rounded-btn border px-20 py-8 text-body-sm transition-colors',
                 isSelected
-                  ? 'border-mercury-blue bg-mercury-blue text-white'
+                  ? 'border-mercury-blue bg-mercury-blue text-ink'
                   : 'border-lead text-starlight hover:border-mercury-blue'
               )}
             >

@@ -30,7 +30,7 @@ export function DestinationImage({ query, alt, className, objectPosition = 'cent
       {/* Gradient fallback — always present, photo fades over it */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-br from-[#2a1245] via-[#1a0a35] to-[#090909]"
+        className="absolute inset-0 bg-gradient-to-br from-paper-2 via-paper-2 to-paper-2"
       />
       {/* Subtle noise texture for depth */}
       <div

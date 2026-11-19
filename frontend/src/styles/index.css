@@ -86,3 +86,7 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 .pac-item:hover { background: var(--color-accent-soft); }
 .pac-item-query { color: var(--color-ink); }
 .pac-matched { color: var(--color-accent); }
+
+/* The one ambient loop (Ribbon § Motion): the road lines drift slowly; still under reduced motion (base.css). */
+@keyframes road-drift { from { transform: translateX(0); } to { transform: translateX(-120px); } }
+.road-lines { animation: road-drift 18s var(--ease-in-out) infinite alternate; }

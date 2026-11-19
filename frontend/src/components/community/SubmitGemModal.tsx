@@ -80,22 +80,22 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
         onClick={e => e.stopPropagation()}
         style={{
           position: 'relative', width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto',
-          background: '#0e1525', borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--color-paper-2)', borderRadius: 20, border: '1px solid var(--color-rule)',
           boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
         }}
       >
         {/* Header */}
         <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Gem size={16} style={{ color: '#f5a623' }} />
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Gem size={16} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 480, color: 'white', margin: 0 }}>Share your secret spot</h2>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Tell us the story of how you found it</p>
+              <h2 style={{ fontSize: 16, fontWeight: 480, color: 'var(--color-ink)', margin: 0 }}>Share your secret spot</h2>
+              <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: 0 }}>Tell us the story of how you found it</p>
             </div>
           </div>
-          <button onClick={handleClose} style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer', background: 'none', border: 'none', padding: 4 }}>
+          <button onClick={handleClose} style={{ color: 'var(--color-muted)', cursor: 'pointer', background: 'none', border: 'none', padding: 4 }}>
             <X size={20} />
           </button>
         </div>
@@ -104,16 +104,16 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
           {/* Not logged in */}
           {!user && (
             <div style={{ textAlign: 'center', padding: '32px 0' }}>
-              <Gem size={32} style={{ color: '#f5a623', margin: '0 auto 12px' }} />
-              <p style={{ color: 'white', fontSize: 14, marginBottom: 8 }}>You need an account to share gems</p>
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 20 }}>Join the community — it's free</p>
+              <Gem size={32} style={{ color: 'var(--color-accent)', margin: '0 auto 12px' }} />
+              <p style={{ color: 'var(--color-ink)', fontSize: 14, marginBottom: 8 }}>You need an account to share gems</p>
+              <p style={{ color: 'var(--color-muted)', fontSize: 12, marginBottom: 20 }}>Join the community — it's free</p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                 <Link to="/login" onClick={handleClose}
-                  style={{ borderRadius: 9999, border: '1px solid rgba(255,255,255,0.2)', padding: '8px 20px', fontSize: 14, color: 'white', textDecoration: 'none' }}>
+                  style={{ borderRadius: 9999, border: '1px solid var(--color-rule)', padding: '8px 20px', fontSize: 14, color: 'var(--color-ink)', textDecoration: 'none' }}>
                   Log in
                 </Link>
                 <Link to="/signup" onClick={handleClose}
-                  style={{ borderRadius: 9999, background: '#f5a623', padding: '8px 20px', fontSize: 14, fontWeight: 480, color: '#080c14', textDecoration: 'none' }}>
+                  style={{ borderRadius: 9999, background: 'var(--color-accent)', padding: '8px 20px', fontSize: 14, fontWeight: 480, color: 'var(--color-paper)', textDecoration: 'none' }}>
                   Sign up free
                 </Link>
               </div>
@@ -125,15 +125,15 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
             <AnimatePresence>
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 style={{ textAlign: 'center', padding: '32px 0' }}>
-                <CheckCircle size={40} style={{ color: '#4ade80', margin: '0 auto 16px' }} />
-                <h3 style={{ fontSize: 18, fontWeight: 480, color: 'white', marginBottom: 8 }}>You're a gem hunter now 💛</h3>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>{feedback}</p>
-                <div style={{ display: 'inline-block', borderRadius: 9999, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', padding: '4px 14px', fontSize: 12, color: '#4ade80', marginBottom: 24 }}>
+                <CheckCircle size={40} style={{ color: 'var(--color-success)', margin: '0 auto 16px' }} />
+                <h3 style={{ fontSize: 18, fontWeight: 480, color: 'var(--color-ink)', marginBottom: 8 }}>You're a gem hunter now 💛</h3>
+                <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 12 }}>{feedback}</p>
+                <div style={{ display: 'inline-block', borderRadius: 9999, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', padding: '4px 14px', fontSize: 12, color: 'var(--color-success)', marginBottom: 24 }}>
                   Quality score: {score}/100
                 </div>
                 <br />
                 <button onClick={handleClose}
-                  style={{ borderRadius: 9999, background: '#f5a623', padding: '10px 28px', fontSize: 14, fontWeight: 480, color: '#080c14', cursor: 'pointer', border: 'none' }}>
+                  style={{ borderRadius: 9999, background: 'var(--color-accent)', padding: '10px 28px', fontSize: 14, fontWeight: 480, color: 'var(--color-paper)', cursor: 'pointer', border: 'none' }}>
                   Done
                 </button>
               </motion.div>
@@ -145,11 +145,11 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
             <AnimatePresence>
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 style={{ textAlign: 'center', padding: '24px 0' }}>
-                <XCircle size={36} style={{ color: '#f87171', margin: '0 auto 16px' }} />
-                <h3 style={{ fontSize: 16, fontWeight: 480, color: 'white', marginBottom: 8 }}>Not quite there yet</h3>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 24, maxWidth: 360, margin: '0 auto 24px' }}>{feedback}</p>
+                <XCircle size={36} style={{ color: 'var(--color-error)', margin: '0 auto 16px' }} />
+                <h3 style={{ fontSize: 16, fontWeight: 480, color: 'var(--color-ink)', marginBottom: 8 }}>Not quite there yet</h3>
+                <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 24, maxWidth: 360, margin: '0 auto 24px' }}>{feedback}</p>
                 <button onClick={() => setStatus('idle')}
-                  style={{ borderRadius: 9999, border: '1px solid rgba(255,255,255,0.2)', padding: '10px 24px', fontSize: 14, color: 'white', cursor: 'pointer', background: 'none' }}>
+                  style={{ borderRadius: 9999, border: '1px solid var(--color-rule)', padding: '10px 24px', fontSize: 14, color: 'var(--color-ink)', cursor: 'pointer', background: 'none' }}>
                   Edit and resubmit
                 </button>
               </motion.div>
@@ -161,19 +161,19 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Name */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-muted)', marginBottom: 6 }}>
                   Name of the spot
                 </label>
                 <input
                   value={name} onChange={e => setName(e.target.value)}
                   placeholder="e.g. De Gouden Carolus brewery tap room"
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', background: 'var(--color-paper-2)', border: '1px solid var(--color-rule)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-muted)', marginBottom: 6 }}>
                   Category
                 </label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -181,9 +181,9 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
                     <button key={c.value} type="button" onClick={() => setCategory(c.value)}
                       style={{
                         borderRadius: 9999, padding: '6px 12px', fontSize: 12, cursor: 'pointer',
-                        background: category === c.value ? 'rgba(245,166,35,0.15)' : 'rgba(255,255,255,0.05)',
-                        border: category === c.value ? '1px solid #f5a623' : '1px solid rgba(255,255,255,0.1)',
-                        color: category === c.value ? '#f5a623' : 'rgba(255,255,255,0.6)',
+                        background: category === c.value ? 'var(--color-accent-soft)' : 'var(--color-paper-2)',
+                        border: category === c.value ? '1px solid var(--color-accent)' : '1px solid var(--color-rule)',
+                        color: category === c.value ? 'var(--color-accent)' : 'var(--color-muted)',
                       }}>
                       {c.emoji} {c.label}
                     </button>
@@ -193,37 +193,37 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
 
               {/* Location */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-muted)', marginBottom: 6 }}>
                   City / Location
                 </label>
                 <input
                   value={location} onChange={e => setLocation(e.target.value)}
                   placeholder="e.g. Mechelen, Belgium"
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', background: 'var(--color-paper-2)', border: '1px solid var(--color-rule)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-muted)', marginBottom: 6 }}>
                   Your story
                 </label>
                 <textarea
                   value={description} onChange={e => setDescription(e.target.value)}
                   placeholder="How did you find it? Why does it feel special? What makes it local and not touristy?"
                   rows={4}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5 }}
+                  style={{ width: '100%', background: 'var(--color-paper-2)', border: '1px solid var(--color-rule)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5 }}
                 />
-                <p style={{ fontSize: 11, color: description.length >= 30 ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.3)', marginTop: 4 }}>
+                <p style={{ fontSize: 11, color: description.length >= 30 ? 'rgba(74,222,128,0.6)' : 'var(--color-muted)', marginTop: 4 }}>
                   {description.length}/30 min characters
                 </p>
               </div>
 
               <button type="submit" disabled={!isValid || status === 'loading'}
                 style={{
-                  borderRadius: 9999, background: isValid ? '#f5a623' : 'rgba(245,166,35,0.3)',
+                  borderRadius: 9999, background: isValid ? 'var(--color-accent)' : 'var(--color-accent-soft)',
                   padding: '14px 24px', fontSize: 14, fontWeight: 480,
-                  color: isValid ? '#080c14' : 'rgba(255,255,255,0.3)',
+                  color: isValid ? 'var(--color-paper)' : 'var(--color-muted)',
                   cursor: isValid ? 'pointer' : 'not-allowed', border: 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}>
@@ -234,7 +234,7 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
                 )}
               </button>
 
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
+              <p style={{ fontSize: 11, color: 'var(--color-muted)', textAlign: 'center' }}>
                 Our AI reviews every submission for authenticity before it goes live
               </p>
             </form>

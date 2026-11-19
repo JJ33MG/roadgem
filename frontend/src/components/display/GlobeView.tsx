@@ -136,7 +136,7 @@ export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeVie
       .height(height)
       .backgroundColor('rgba(0,0,0,0)')
       .showAtmosphere(true)
-      .atmosphereColor('#f5a623')
+      .atmosphereColor('var(--color-accent)')
       .atmosphereAltitude(0.12)
       .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
       .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png');
@@ -185,7 +185,7 @@ export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeVie
       startLng: s.lng,
       endLat: stops[i + 1].lat,
       endLng: stops[i + 1].lng,
-      color: '#f5a623',
+      color: 'var(--color-accent)',
     }));
 
     // Stop points (gold, larger)
@@ -194,7 +194,7 @@ export function GlobeView({ stops = [], gems = [], autoRotate = true }: GlobeVie
       lng: s.lng,
       label: s.label,
       size: i === 0 || i === stops.length - 1 ? 0.55 : 0.4,
-      color: '#f5a623',
+      color: 'var(--color-accent)',
       type: 'stop',
     }));
 

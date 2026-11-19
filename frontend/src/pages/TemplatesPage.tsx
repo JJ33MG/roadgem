@@ -80,7 +80,7 @@ export function TemplatesPage() {
   const rest = templates.filter((t) => !t.featured);
 
   return (
-    <div className="min-h-screen bg-[#080c14] pt-[80px]">
+    <div className="min-h-screen bg-paper pt-[80px]">
       {/* Success banner after purchase */}
       {justPurchased && (
         <div className="bg-green-500/10 border-b border-green-500/20 py-12 text-center">
@@ -92,17 +92,17 @@ export function TemplatesPage() {
 
       {/* Hero */}
       <div className="section py-64 text-center">
-        <div className="mb-16 inline-flex items-center gap-8 rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-16 py-6 text-body-sm text-[#f5a623]">
+        <div className="mb-16 inline-flex items-center gap-8 rounded-full border border-accent bg-accent-soft px-16 py-6 text-body-sm text-accent">
           <Zap size={12} /> Kant-en-klare trips
         </div>
-        <h1 className="mt-16 font-display text-heading-xl font-w480 text-white">
+        <h1 className="mt-16 font-display text-heading-xl font-w480 text-ink">
           Klaar om te vertrekken
         </h1>
-        <p className="mt-16 text-body text-white/60 max-w-[540px] mx-auto">
+        <p className="mt-16 text-body text-ink-2 max-w-[540px] mx-auto">
           Onze best beoordeelde routes — door AI samengesteld, door reizigers getest. Eén klik en je trip staat klaar in je dashboard.
         </p>
         {!user && (
-          <p className="mt-12 text-body-sm text-white/40">
+          <p className="mt-12 text-body-sm text-muted">
             <Link to="/login" className="text-mercury-blue hover:underline">Log in</Link> om trips te kopen of gebruik een Premium account voor onbeperkte toegang.
           </p>
         )}
@@ -112,7 +112,7 @@ export function TemplatesPage() {
         {loading ? (
           <div className="grid grid-cols-1 gap-24 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[320px] animate-pulse rounded-2xl bg-white/5" />
+              <div key={i} className="h-[320px] animate-pulse rounded-2xl bg-paper-2" />
             ))}
           </div>
         ) : (
@@ -120,8 +120,8 @@ export function TemplatesPage() {
             {featured.length > 0 && (
               <div className="mb-48">
                 <div className="mb-24 flex items-center gap-10">
-                  <Star size={14} className="text-[#f5a623]" />
-                  <span className="font-mono text-label text-[#f5a623] uppercase tracking-wider">Aanbevolen</span>
+                  <Star size={14} className="text-accent" />
+                  <span className="font-mono text-label text-accent uppercase tracking-wider">Aanbevolen</span>
                 </div>
                 <div className="grid grid-cols-1 gap-24 sm:grid-cols-2 lg:grid-cols-3">
                   {featured.map((t) => (
@@ -134,8 +134,8 @@ export function TemplatesPage() {
             {rest.length > 0 && (
               <div>
                 <div className="mb-24 flex items-center gap-10">
-                  <MapPin size={14} className="text-white/40" />
-                  <span className="font-mono text-label text-white/40 uppercase tracking-wider">Alle routes</span>
+                  <MapPin size={14} className="text-muted" />
+                  <span className="font-mono text-label text-muted uppercase tracking-wider">Alle routes</span>
                 </div>
                 <div className="grid grid-cols-1 gap-24 sm:grid-cols-2 lg:grid-cols-3">
                   {rest.map((t) => (
@@ -146,7 +146,7 @@ export function TemplatesPage() {
             )}
 
             {templates.length === 0 && (
-              <p className="text-center text-body text-white/40 py-64">Nog geen templates beschikbaar.</p>
+              <p className="text-center text-body text-muted py-64">Nog geen templates beschikbaar.</p>
             )}
           </>
         )}
@@ -165,41 +165,41 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
   const isLoading = actionId === t.id;
 
   return (
-    <div className="card group flex flex-col gap-20 p-24 transition-all hover:border-white/20 hover:-translate-y-1">
+    <div className="card group flex flex-col gap-20 p-24 transition-all hover:border-rule hover:-translate-y-1">
       {/* Header */}
       <div className="flex items-start justify-between gap-12">
         <div className="flex items-center gap-12">
           <span className="text-3xl">{t.emoji}</span>
           <div>
-            <h3 className="font-display text-heading-sm font-w480 text-white leading-tight">{t.title}</h3>
-            <p className="mt-2 text-body-sm text-white/40">{t.startLocation} → {t.destination}</p>
+            <h3 className="font-display text-heading-sm font-w480 text-ink leading-tight">{t.title}</h3>
+            <p className="mt-2 text-body-sm text-muted">{t.startLocation} → {t.destination}</p>
           </div>
         </div>
         {t.featured && (
-          <span className="shrink-0 rounded-full bg-[#f5a623]/15 px-10 py-4 font-mono text-[10px] text-[#f5a623] uppercase tracking-wider">
+          <span className="shrink-0 rounded-full bg-accent-soft px-10 py-4 font-mono text-[10px] text-accent uppercase tracking-wider">
             Top
           </span>
         )}
       </div>
 
       {/* Description */}
-      <p className="text-body-sm text-white/60 leading-relaxed">{t.description}</p>
+      <p className="text-body-sm text-ink-2 leading-relaxed">{t.description}</p>
 
       {/* Meta pills */}
       <div className="flex flex-wrap gap-8">
-        <span className="flex items-center gap-4 rounded-full border border-white/10 px-10 py-4 text-body-sm text-white/50">
+        <span className="flex items-center gap-4 rounded-full border border-rule px-10 py-4 text-body-sm text-ink-2">
           <Clock size={11} /> {t.days} dagen
         </span>
-        <span className="flex items-center gap-4 rounded-full border border-white/10 px-10 py-4 text-body-sm text-white/50">
+        <span className="flex items-center gap-4 rounded-full border border-rule px-10 py-4 text-body-sm text-ink-2">
           <Euro size={11} /> ~€{t.totalCost}
         </span>
-        <span className="rounded-full border border-white/10 px-10 py-4 text-body-sm text-white/50 capitalize">
+        <span className="rounded-full border border-rule px-10 py-4 text-body-sm text-ink-2 capitalize">
           {STYLE_LABELS[t.travelStyle] ?? t.travelStyle}
         </span>
       </div>
 
       {/* Highlights */}
-      <p className="text-body-sm text-white/40 truncate">📍 {t.highlights}</p>
+      <p className="text-body-sm text-muted truncate">📍 {t.highlights}</p>
 
       {/* CTA */}
       {t.owned ? (
@@ -214,14 +214,14 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
         <button
           onClick={() => onBuy(t)}
           disabled={!!actionId}
-          className="mt-auto w-full rounded-xl bg-[#f5a623]/15 border border-[#f5a623]/30 py-12 text-body-sm font-w480 text-[#f5a623] transition-all hover:bg-[#f5a623]/25 disabled:opacity-50 flex items-center justify-center gap-8"
+          className="mt-auto w-full rounded-xl bg-accent-soft border border-accent py-12 text-body-sm font-w480 text-accent transition-all hover:bg-accent-soft disabled:opacity-50 flex items-center justify-center gap-8"
         >
           {isLoading ? 'Laden...' : <><Lock size={12} /> Kopen voor €{t.priceEur.toFixed(2)}</>}
         </button>
       ) : (
         <Link
           to="/login"
-          className="mt-auto w-full rounded-xl bg-white/5 border border-white/10 py-12 text-body-sm font-w480 text-white/50 transition-all hover:bg-white/10 text-center flex items-center justify-center gap-8"
+          className="mt-auto w-full rounded-xl bg-paper-2 border border-rule py-12 text-body-sm font-w480 text-ink-2 transition-all hover:bg-paper-2 text-center flex items-center justify-center gap-8"
         >
           <Lock size={12} /> Log in om te kopen
         </Link>
@@ -229,7 +229,7 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
 
       {/* Premium upsell hint */}
       {!t.owned && (
-        <p className="text-center text-[11px] text-white/25">
+        <p className="text-center text-[11px] text-muted">
           Of <Link to="/pricing" className="text-mercury-blue hover:underline">Premium</Link> voor alle trips onbeperkt
         </p>
       )}

@@ -59,13 +59,13 @@ function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; it
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div className="flex items-baseline justify-between gap-6">
-          <p className="text-caption font-w480 text-white" style={{ lineHeight: 1.4 }}>{item.activity}</p>
+          <p className="text-caption font-w480 text-ink" style={{ lineHeight: 1.4 }}>{item.activity}</p>
           <span className="flex-shrink-0 text-caption" style={{ color: '#f5a623' }}>&euro;{item.estimatedCost}</span>
         </div>
-        <p className="text-white/50" style={{ fontSize: 11, marginTop: 2 }}>
+        <p className="text-ink-2" style={{ fontSize: 11, marginTop: 2 }}>
           {label} &middot; {item.time} &middot; {item.location}
         </p>
-        <p className="text-white/40" style={{ fontSize: 11, marginTop: 4 }}>{item.description}</p>
+        <p className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>{item.description}</p>
         <div style={{ marginTop: 10 }}>
           {isFoodActivity(slot, item.activity) ? (
             <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
@@ -180,7 +180,7 @@ export function TripResultsPage() {
   if (!trip) {
     return (
       <div style={{ minHeight: '100vh', background: '#080c14', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
-        <h2 className="text-heading font-display font-w360 text-white">Trip not found</h2>
+        <h2 className="text-heading font-display font-w360 text-ink">Trip not found</h2>
         <p className="mt-12 text-body-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>This trip isn't available. Generate a new one.</p>
         <button onClick={() => navigate('/')} className="mt-24 rounded-full px-24 py-12 text-body-sm font-w480" style={{ background: '#f5a623', color: '#080c14' }}>
           Plan a trip
@@ -244,7 +244,7 @@ export function TripResultsPage() {
           <p style={{ fontFamily: 'monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f5a623', marginBottom: 6 }}>
             {safeStartDate ? format(safeStartDate, 'MMM d') : ''} – {safeEndDate ? format(safeEndDate, 'MMM d, yyyy') : ''}
           </p>
-          <h1 className="font-display font-w360 text-white" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', lineHeight: 1.2 }}>
+          <h1 className="font-display font-w360 text-ink" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', lineHeight: 1.2 }}>
             {trip.destination}
           </h1>
           <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: '0 16px', fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>
@@ -623,7 +623,7 @@ export function TripResultsPage() {
         {accommodationsLoading ? (
           <div className="flex justify-center py-40"><LoadingSpinner size={28} /></div>
         ) : filteredAccommodations.length === 0 ? (
-          <p className="py-24 text-center text-body-sm text-white/40">No accommodation options found nearby.</p>
+          <p className="py-24 text-center text-body-sm text-muted">No accommodation options found nearby.</p>
         ) : (
           <div className="mt-12 grid max-h-[60vh] gap-12 overflow-y-auto sm:grid-cols-2">
             {filteredAccommodations.map(acc => (

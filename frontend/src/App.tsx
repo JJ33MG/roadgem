@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from '@/context/AuthContext';
 import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
 import { ProtectedRoute } from '@/components/utility/ProtectedRoute';
@@ -22,19 +21,10 @@ import { DestinationDetailPage } from '@/pages/DestinationDetailPage';
 import { CommunityPage } from '@/pages/CommunityPage';
 import { TemplatesPage } from '@/pages/TemplatesPage';
 
+// Pages change without a transition: Ribbon keeps motion for state, not navigation.
 function AnimatedRoutes() {
   const location = useLocation();
-  const isHome = location.pathname === '/';
-
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: isHome ? 0 : 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: isHome ? 0 : -12 }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-      >
         <Routes location={location}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/plan" element={<SearchFormPage />} />
@@ -63,22 +53,17 @@ function AnimatedRoutes() {
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </motion.div>
-    </AnimatePresence>
   );
 }
 
 function AppShell() {
-  const location = useLocation();
-  const isHome = location.pathname === '/';
-
   return (
-    <div className="flex min-h-screen flex-col bg-[#080c14] text-white">
-      {!isHome && <Header />}
-      <main className="flex-1">
+    <div className="flex min-h-screen flex-col bg-paper text-ink-2">
+      <Header />
+      <main id="main" className="flex-1">
         <AnimatedRoutes />
       </main>
-      {!isHome && <Footer />}
+      <Footer />
     </div>
   );
 }

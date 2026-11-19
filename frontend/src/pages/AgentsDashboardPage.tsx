@@ -256,7 +256,7 @@ export default function AgentsDashboardPage() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === tab
-                  ? 'bg-mercury-blue text-white'
+                  ? 'bg-mercury-blue text-ink'
                   : 'bg-graphite/50 text-silver hover:text-starlight'
               }`}
             >

@@ -57,7 +57,7 @@ export function DestinationInput({
       </div>
 
       {invalidSelection && (
-        <p className="mt-8 text-caption text-[#ffb648]">
+        <p className="mt-8 text-caption text-accent">
           We currently only support destinations in Europe. Please pick another place.
         </p>
       )}

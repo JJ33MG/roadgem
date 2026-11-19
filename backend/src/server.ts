@@ -14,7 +14,7 @@ import communityRouter from './routes/community';
 import templatesRouter from './routes/templates';
 import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
-import { startScheduler } from './queue/scheduler';
+import path from 'path';
 
 dotenv.config();
 
@@ -61,6 +61,13 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/stats', statsRouter());
 app.use('/api/track', trackRouter);
 
+// Preview and single-service deploys: the built website is served from here (Dockerfile copies it to public/).
+if (process.env.SERVE_FRONTEND === 'true') {
+  const site = path.resolve(__dirname, '../public');
+  app.use(express.static(site, { index: false, maxAge: '1h' }));
+  app.get(/^\/(?!api\/).*/, (_req: Request, res: Response) => res.sendFile(path.join(site, 'index.html')));
+}
+
 // Error handling middleware (must be registered after routes)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);
@@ -75,7 +82,8 @@ app.listen(PORT, () => {
 
   // Start agent scheduler (only when Redis is available)
   if (process.env.REDIS_URL) {
-    startScheduler();
+    // Loaded lazily: importing the queues opens Redis connections.
+    import('./queue/scheduler').then((m) => m.startScheduler());
   } else {
     console.log('[scheduler] REDIS_URL not set — skipping scheduler (set in Railway to enable)');
   }

@@ -1,634 +1,273 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { tripsApi } from '@/lib/api';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
-import {
-  Download, Share2, Sunrise, Sun, Sunset, Cloud,
-  BedDouble, Lock, ExternalLink, MapPin, ChevronRight,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { DestinationImage } from '@/components/display/DestinationImage';
-import { AccommodationCard, ACCOMMODATION_TYPE_LABELS } from '@/components/display/AccommodationCard';
+import { tripsApi } from '@/lib/api';
+import { AccommodationCard } from '@/components/display/AccommodationCard';
 import { Modal } from '@/components/utility/Modal';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
+import { RouteSketch } from '@/components/map/RouteSketch';
+import { Button, Panel } from '@/components/ui';
 import { useAccommodations } from '@/hooks/useAccommodations';
 import { useSubscription } from '@/hooks/useSubscription';
 import { generateTripPDF } from '@/utils/generatePDF';
-import { GlobeView, lookupCoords, buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
-import type { AccommodationOption, AccommodationType, GeneratedItineraryDay, GeneratedTrip } from '@/types';
+import { buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
+import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
+import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 
-// ─── URL builders ─────────────────────────────────────────────────────────────
+const town = (location?: string) => (location ?? '').split(',')[0].trim();
 
-function buildGemMapsUrl(gem: { latitude?: number; longitude?: number; address?: string; name: string }) {
-  if (gem.latitude && gem.longitude) {
-    return `https://www.google.com/maps/search/?api=1&query=${gem.latitude},${gem.longitude}`;
+/** Booking links per stay type: Booking.com lists hotels and campsites, Airbnb the holiday homes. */
+export function stayUrl(type: StayType, place: string, checkin?: string, checkout?: string): string {
+  if (type === 'holiday_home') {
+    const p = new URLSearchParams({ ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
+    return `https://www.airbnb.com/s/${encodeURIComponent(place)}/homes?${p}`;
   }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gem.name + (gem.address ? ' ' + gem.address : ''))}`;
+  const p = new URLSearchParams({ ss: place, ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
+  if (type === 'campsite') p.set('nflt', 'ht_id=214');
+  return `https://www.booking.com/searchresults.html?${p}`;
 }
 
-function buildViatorUrl(a: string, l: string) {
-  return `https://www.viator.com/search?text=${encodeURIComponent(`${a} ${l}`)}`;
-}
-function buildRentalcarsUrl(pickup: string, dropoff: string, from: string, to: string) {
+function rentalUrl(pickup: string, dropoff: string, from: string, to: string) {
   return `https://www.rentalcars.com/en/?pickup-location=${encodeURIComponent(pickup)}&dropoff-location=${encodeURIComponent(dropoff)}&pickup-date=${from}&dropoff-date=${to}`;
 }
-function buildTheForkUrl(a: string, l: string) {
-  return `https://www.thefork.com/search#cityName=${encodeURIComponent(l)}&searchPhrase=${encodeURIComponent(a)}`;
+
+/** Gems near one day's leg: inside the leg's box (with a little margin), else none. */
+function gemsForLeg(gems: HiddenGem[], a?: { latitude: number; longitude: number }, b?: { latitude: number; longitude: number }) {
+  if (!a || !b) return [];
+  const m = 0.35;
+  const [lo, hi] = [Math.min(a.latitude, b.latitude) - m, Math.max(a.latitude, b.latitude) + m];
+  const [lw, le] = [Math.min(a.longitude, b.longitude) - m, Math.max(a.longitude, b.longitude) + m];
+  return gems.filter((g) => g.latitude && g.longitude && g.latitude >= lo && g.latitude <= hi && g.longitude >= lw && g.longitude <= le);
 }
 
-const FOOD_KEYWORDS = ['dinner', 'restaurant', 'dining', 'lunch', 'food', 'eat', 'cuisine', 'cafe', 'café', 'bistro', 'brasserie', 'tavern', 'eatery'];
-function isFoodActivity(slot: 'morning' | 'afternoon' | 'evening', activity: string) {
-  if (slot === 'evening') return true;
-  return FOOD_KEYWORDS.some(kw => activity.toLowerCase().includes(kw));
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-const SLOT_CONFIG: Record<'morning' | 'afternoon' | 'evening', { label: string; icon: typeof Sunrise }> = {
-  morning: { label: 'Morning', icon: Sunrise },
-  afternoon: { label: 'Afternoon', icon: Sun },
-  evening: { label: 'Evening', icon: Sunset },
-};
-
-function SlotRow({ slot, item }: { slot: 'morning' | 'afternoon' | 'evening'; item: GeneratedItineraryDay['morning'] }) {
-  const { label, icon: Icon } = SLOT_CONFIG[slot];
-  return (
-    <div className="flex gap-10 rounded-xl p-10 transition-colors" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-      <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full" style={{ background: 'rgba(245,166,35,0.1)', color: '#f5a623' }}>
-        <Icon size={14} />
-      </div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div className="flex items-baseline justify-between gap-6">
-          <p className="text-caption font-w480 text-ink" style={{ lineHeight: 1.4 }}>{item.activity}</p>
-          <span className="flex-shrink-0 text-caption" style={{ color: '#f5a623' }}>&euro;{item.estimatedCost}</span>
-        </div>
-        <p className="text-ink-2" style={{ fontSize: 11, marginTop: 2 }}>
-          {label} &middot; {item.time} &middot; {item.location}
-        </p>
-        <p className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>{item.description}</p>
-        <div style={{ marginTop: 10 }}>
-          {isFoodActivity(slot, item.activity) ? (
-            <a href={buildTheForkUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(245,166,35,0.4)', background: 'rgba(245,166,35,0.1)', padding: '6px 12px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 500 }}>
-              🍽️ Reserveer tafel — TheFork <ExternalLink size={10} />
-            </a>
-          ) : (
-            <a href={buildViatorUrl(item.activity, item.location)} target="_blank" rel="noopener noreferrer sponsored"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(245,166,35,0.4)', background: 'rgba(245,166,35,0.1)', padding: '6px 12px', fontSize: 12, color: '#f5a623', textDecoration: 'none', fontWeight: 500 }}>
-              🎟️ Boek activiteit — Viator <ExternalLink size={10} />
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DayTabs({ days, activeDay, onSelect }: { days: GeneratedItineraryDay[]; activeDay: number; onSelect: (d: number) => void }) {
-  return (
-    <div className="flex gap-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-      {(days ?? []).map(day => (
-        <button key={day.day} onClick={() => onSelect(day.day)}
-          className="flex-shrink-0 rounded-full px-12 py-6 text-caption font-w480 transition-all"
-          style={{
-            background: activeDay === day.day ? '#f5a623' : 'rgba(255,255,255,0.08)',
-            color: activeDay === day.day ? '#080c14' : 'rgba(255,255,255,0.6)',
-            border: activeDay === day.day ? 'none' : '1px solid rgba(255,255,255,0.1)',
-          }}>
-          Day {day.day}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+const STAY_TO_ACCOMMODATION: Record<StayType, AccommodationType> = { campsite: 'campsite', hotel: 'hotel', holiday_home: 'airbnb' };
+const head = { fontWeight: 400, letterSpacing: '-0.03em' } as const;
 
 export function TripResultsPage() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { tripId } = useParams<{ tripId: string }>();
-  const locationState = location.state as { trip?: GeneratedTrip; accommodationTypes?: AccommodationType[] } | null;
-
-  const [trip, setTrip] = useState<GeneratedTrip | null>(locationState?.trip ?? null);
-  const [tripLoading, setTripLoading] = useState(!locationState?.trip);
-  const accommodationTypes: AccommodationType[] =
-    locationState?.accommodationTypes?.length ? locationState.accommodationTypes : ['hotel', 'hostel', 'campsite', 'airbnb'];
-
-  const { isPremium } = useSubscription();
+  const fromState = (location.state as { trip?: GeneratedTrip } | null)?.trip ?? null;
+  const [trip, setTrip] = useState<GeneratedTrip | null>(fromState);
+  const [loading, setLoading] = useState(!fromState);
   const [activeDay, setActiveDay] = useState(1);
-  const [shareCopied, setShareCopied] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [accommodationModalOpen, setAccommodationModalOpen] = useState(false);
-  const [accommodationFilter, setAccommodationFilter] = useState<AccommodationType | 'all'>('all');
-  const [selectedAccommodations, setSelectedAccommodations] = useState<Record<number, AccommodationOption>>({});
-
+  const [copied, setCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [staysOpen, setStaysOpen] = useState(false);
+  const [picked, setPicked] = useState<Record<number, AccommodationOption>>({});
+  const { isPremium } = useSubscription();
   const contentRef = useRef<HTMLDivElement>(null);
-
-  const globeStops = (trip?.stops ?? [])
-    .map((s: any) => {
-      if (s.latitude && s.longitude) return { lat: s.latitude, lng: s.longitude, label: s.location };
-      const c = lookupCoords(s.location?.split(',')[0] ?? '');
-      return c ? { ...c, label: s.location } : null;
-    })
-    .filter(Boolean) as { lat: number; lng: number; label: string }[];
-
-  const globeGems = (trip?.hiddenGems ?? [])
-    .filter((g: any) => g.latitude && g.longitude)
-    .map((g: any) => ({ lat: g.latitude, lng: g.longitude, label: g.name, category: g.category }));
-
-  const mapsUrl = buildGoogleMapsRouteUrl(globeStops);
-
-  const currentStop = trip?.stops?.length
-    ? trip.stops[Math.min(activeDay - 1, trip.stops.length - 1)]
-    : undefined;
-
-  const safeStartDate = trip?.startDate ? new Date(trip.startDate) : null;
-  const safeEndDate = trip?.endDate ? new Date(trip.endDate) : null;
-  const checkinDate = safeStartDate ? addDays(safeStartDate, activeDay - 1) : null;
-  const checkin = checkinDate ? format(checkinDate, 'yyyy-MM-dd') : undefined;
-  const checkout = checkinDate ? format(addDays(checkinDate, 1), 'yyyy-MM-dd') : undefined;
 
   useEffect(() => {
     if (!trip && tripId) {
-      setTripLoading(true);
-      tripsApi.getById(tripId)
-        .then(res => setTrip(res.data as unknown as GeneratedTrip))
+      tripsApi
+        .getById(tripId)
+        .then((res) => setTrip(res.data as unknown as GeneratedTrip))
         .catch(() => setTrip(null))
-        .finally(() => setTripLoading(false));
+        .finally(() => setLoading(false));
     }
   }, [tripId]);
 
-  const { accommodations, isLoading: accommodationsLoading } = useAccommodations({
-    lat: currentStop?.latitude,
-    lng: currentStop?.longitude,
-    location: currentStop?.location ?? trip?.destination ?? '',
-    types: accommodationTypes,
+  const stops = trip?.stops ?? [];
+  const legFrom = stops[Math.min(activeDay - 1, Math.max(0, stops.length - 2))];
+  const legTo = stops[Math.min(activeDay, stops.length - 1)];
+  const start = trip?.startDate ? new Date(trip.startDate) : null;
+  const checkin = start ? format(addDays(start, activeDay - 1), 'yyyy-MM-dd') : undefined;
+  const checkout = start ? format(addDays(start, activeDay), 'yyyy-MM-dd') : undefined;
+  const planner = trip?.planner;
+  const gemsOn = planner?.gemsEnabled ?? true;
+  const stayTypes = (planner?.stayTypes ?? ['campsite', 'hotel']) as StayType[];
+
+  const { accommodations, isLoading: staysLoading } = useAccommodations({
+    lat: legTo?.latitude,
+    lng: legTo?.longitude,
+    location: legTo?.location ?? trip?.destination ?? '',
+    types: stayTypes.map((s) => STAY_TO_ACCOMMODATION[s]),
     checkin,
     checkout,
-    enabled: accommodationModalOpen,
+    enabled: staysOpen,
   });
 
-  if (tripLoading) {
+  if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Loading the trip">
         <LoadingSpinner size={32} />
       </div>
     );
   }
-
   if (!trip) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c14', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
-        <h2 className="text-heading font-display font-w360 text-ink">Trip not found</h2>
-        <p className="mt-12 text-body-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>This trip isn't available. Generate a new one.</p>
-        <button onClick={() => navigate('/')} className="mt-24 rounded-full px-24 py-12 text-body-sm font-w480" style={{ background: '#f5a623', color: '#080c14' }}>
-          Plan a trip
-        </button>
-      </div>
+      <section className="mx-auto max-w-[640px] px-16 py-80 text-center">
+        <h1 className="font-display text-[40px] text-ink" style={head}>Trip not found</h1>
+        <p className="mt-12">This trip is no longer here. Plan a new one in half a minute.</p>
+        <Link to="/plan" className="btn-primary mt-24 no-underline">Plan a trip</Link>
+      </section>
     );
   }
 
-  function handleShare() {
-    navigator.clipboard.writeText(window.location.href);
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2000);
+  const days = (trip.itinerary ?? []).slice(0, trip.days ?? undefined);
+  const day = days.find((d) => d.day === activeDay) ?? days[0];
+  const from = town(stops[0]?.location) || 'Start';
+  const to = town(stops[stops.length - 1]?.location) || trip.destination;
+  const legGems = gemsOn ? gemsForLeg(trip.hiddenGems ?? [], legFrom, legTo) : [];
+  const showGems = gemsOn ? (legGems.length ? legGems : (trip.hiddenGems ?? []).slice(0, planner?.gemsPerDay ?? 3)) : [];
+  const sleepTown = town(legTo?.location) || trip.destination;
+  const weather = trip.weather?.find((w) => w.day === activeDay);
+  const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
+  const sketchGems = gemsOn ? (trip.hiddenGems ?? []).filter((g) => g.latitude && g.longitude).map((g) => ({ lat: g.latitude, lng: g.longitude, label: g.name })) : [];
+  const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
+  const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
+  const startStr = start ? format(start, 'yyyy-MM-dd') : '';
+
+  async function exportPdf() {
+    if (!contentRef.current) return;
+    setExporting(true);
+    try {
+      await generateTripPDF(contentRef.current, trip!.destination, trip!.startDate);
+    } finally {
+      setExporting(false);
+    }
   }
-
-  async function handleDownloadPdf() {
-    if (!contentRef.current || !trip) return;
-    setIsExporting(true);
-    try { await generateTripPDF(contentRef.current, trip.destination, trip.startDate); }
-    finally { setIsExporting(false); }
-  }
-
-  function handleSelectAccommodation(acc: AccommodationOption) {
-    setSelectedAccommodations(prev => ({ ...prev, [activeDay]: acc }));
-    setAccommodationModalOpen(false);
-  }
-
-  const itinerary = (trip.itinerary ?? []).slice(0, trip.days ?? undefined);
-  const currentDay = itinerary.find((d: any) => d.day === activeDay) ?? itinerary[0];
-  const slots: ('morning' | 'afternoon' | 'evening')[] = ['morning', 'afternoon', 'evening'];
-  const dayWeather = trip.weather?.find((w: any) => w.day === activeDay);
-  const selectedAccommodation = selectedAccommodations[activeDay];
-  const accommodationFilterOptions: (AccommodationType | 'all')[] = ['all', ...accommodationTypes];
-  const filteredAccommodations = accommodationFilter === 'all' ? accommodations : accommodations.filter(a => a.type === accommodationFilter);
-
-  const hiddenGems = trip.hiddenGems ?? [];
-  const currentCity = currentStop?.location?.split(',')[0]?.toLowerCase().trim() ?? trip.destination.toLowerCase();
-  const dayGems = hiddenGems.filter((g: any) =>
-    g.address?.toLowerCase().includes(currentCity) || g.name?.toLowerCase().includes(currentCity)
-  );
-  const gemsToShow: typeof hiddenGems = dayGems.length > 0 ? dayGems : hiddenGems;
-
-  const pickupLocation = trip.stops?.[0]?.location ?? trip.destination;
-  const startDateStr = safeStartDate ? format(safeStartDate, 'yyyy-MM-dd') : '';
-  const endDateStr = safeEndDate ? format(safeEndDate, 'yyyy-MM-dd') : '';
 
   return (
-    <div style={{ background: '#080c14', color: 'white', minHeight: '100vh' }}>
-
-      {/* ── Globe hero (fixed height, not sticky) ── */}
-      <div style={{ height: '100vh', position: 'relative', overflow: 'hidden', background: '#080c14' }}>
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <GlobeView stops={globeStops} gems={globeGems} autoRotate={false} />
+    <div ref={contentRef} className="mx-auto max-w-[1240px] px-16 py-40 md:px-40">
+      <div className="flex flex-wrap items-end justify-between gap-24">
+        <div>
+          <h1 className="font-display text-[40px] leading-[1.04] text-ink md:text-[60px]" style={head}>{`${from} to ${to}`}</h1>
+          <ul className="mt-12 flex flex-wrap gap-x-24 gap-y-4 p-0 text-[18px]" style={{ listStyle: 'none' }}>
+            <li>{trip.days} days</li>
+            {trip.totalDistance > 0 && <li className="num">{Math.round(trip.totalDistance).toLocaleString('en')} km</li>}
+            {planner && <li>About {planner.kmPerDay} km a day</li>}
+          </ul>
         </div>
-
-        {/* Gradient vignette */}
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse at center, transparent 30%, rgba(8,12,20,0.6) 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 160, pointerEvents: 'none', background: 'linear-gradient(transparent, #080c14)' }} />
-
-        {/* Trip title overlay */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 32px 48px', zIndex: 10 }}>
-          <p style={{ fontFamily: 'monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f5a623', marginBottom: 6 }}>
-            {safeStartDate ? format(safeStartDate, 'MMM d') : ''} – {safeEndDate ? format(safeEndDate, 'MMM d, yyyy') : ''}
-          </p>
-          <h1 className="font-display font-w360 text-ink" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', lineHeight: 1.2 }}>
-            {trip.destination}
-          </h1>
-          <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: '0 16px', fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>
-            <span>{trip.days} days</span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
-            <span style={{ color: '#f5a623', fontWeight: 480 }}>&euro;{trip.totalCost?.toLocaleString()}</span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
-            <span>{trip.totalDistance?.toLocaleString()} km</span>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <button onClick={handleShare}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, borderRadius: 9999, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', padding: '8px 16px', fontSize: 12, color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
-              <Share2 size={12} /> {shareCopied ? 'Copied!' : 'Share'}
-            </button>
-            <button onClick={handleDownloadPdf} disabled={isExporting}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, borderRadius: 9999, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', padding: '8px 16px', fontSize: 12, color: 'rgba(255,255,255,0.7)', cursor: 'pointer', opacity: isExporting ? 0.4 : 1 }}>
-              <Download size={12} /> {isExporting ? '...' : 'Export PDF'}
-            </button>
-            {isPremium ? (
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: '#f5a623', padding: '8px 16px', fontSize: 12, fontWeight: 480, color: '#080c14' }}>
-                <MapPin size={12} /> Navigate in Google Maps
-              </a>
-            ) : (
-              <Link to="/pricing"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, borderRadius: 9999, border: '1px solid rgba(245,166,35,0.4)', padding: '8px 16px', fontSize: 12, color: 'rgba(245,166,35,0.7)' }}>
-                <Lock size={12} /> Maps route — Premium
-              </Link>
-            )}
-          </div>
+        <div className="flex flex-wrap gap-12">
+          <Button
+            onClick={() => {
+              navigator.clipboard?.writeText(window.location.href);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+          >
+            {copied ? 'Link copied' : 'Share'}
+          </Button>
+          <Button onClick={exportPdf} disabled={exporting}>{exporting ? 'Making the PDF' : 'Download PDF'}</Button>
         </div>
       </div>
 
-      {/* ── Sticky mobile booking bar ── */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100, padding: '12px 16px 20px', background: 'linear-gradient(transparent, rgba(8,12,20,0.98) 30%)', display: 'flex', gap: 8, pointerEvents: 'none' }}
-        className="md:hidden">
-        <button onClick={() => setAccommodationModalOpen(true)}
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, background: '#f5a623', padding: '14px', fontSize: 14, fontWeight: 600, color: '#080c14', cursor: 'pointer', border: 'none', pointerEvents: 'all' }}>
-          🏨 Hotel boeken
-        </button>
-        <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
-          target="_blank" rel="noopener noreferrer sponsored"
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', padding: '14px', fontSize: 14, fontWeight: 600, color: 'white', textDecoration: 'none', pointerEvents: 'all' }}>
-          🚗 Huurauto
-        </a>
-      </div>
-
-      {/* ── Main content (always visible below globe) ── */}
-      <div ref={contentRef} style={{ background: '#080c14', padding: '0 24px 100px', position: 'relative' }}>
-
-        {/* Route stops */}
-        {(trip.stops?.length ?? 0) > 0 && (
-          <div style={{ overflowX: 'auto', paddingTop: 32, paddingBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 0, minWidth: 'max-content' }}>
-              {trip.stops.map((stop: any, i: number) => (
-                <div key={stop.location ?? i} style={{ display: 'flex', alignItems: 'center' }}>
-                  <button onClick={() => setActiveDay(i + 1)}
-                    style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                      borderRadius: 12, padding: '8px 12px', cursor: 'pointer', textAlign: 'center',
-                      background: activeDay === i + 1 ? 'rgba(245,166,35,0.1)' : 'transparent',
-                      border: activeDay === i + 1 ? '1px solid rgba(245,166,35,0.4)' : '1px solid transparent',
-                    }}>
-                    <div style={{
-                      width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, fontFamily: 'monospace',
-                      background: activeDay === i + 1 ? '#f5a623' : 'rgba(255,255,255,0.1)',
-                      color: activeDay === i + 1 ? '#080c14' : 'rgba(255,255,255,0.5)',
-                    }}>
-                      {i + 1}
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 480, whiteSpace: 'nowrap', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', color: activeDay === i + 1 ? 'white' : 'rgba(255,255,255,0.5)' }}>
-                      {stop.location?.split(',')[0] ?? `Stop ${i + 1}`}
-                    </span>
-                    {stop.distanceFromPrev > 0 && !stop.transit && (
-                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{stop.distanceFromPrev} km</span>
-                    )}
-                    {stop.transit && (
-                      <span style={{ fontSize: 10, color: 'rgba(96,165,250,0.7)' }}>🚆 {stop.transit.duration}</span>
-                    )}
-                  </button>
-                  {i < trip.stops.length - 1 && (
-                    <ChevronRight size={12} style={{ margin: '0 4px', flexShrink: 0, color: 'rgba(255,255,255,0.2)' }} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Booking panel ── */}
-        <div style={{ marginTop: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <p style={{ fontSize: 11, fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)' }}>Boek je trip</p>
-          </div>
-
-          {/* Hotel */}
-          <button onClick={() => setAccommodationModalOpen(true)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245,166,35,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🏨</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Overnachting boeken</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Hotels · Hostels · Airbnb in {currentStop?.location?.split(',')[0] ?? trip.destination}</p>
-            </div>
-            <div style={{ borderRadius: 10, background: '#f5a623', padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#080c14', flexShrink: 0 }}>Zoek</div>
+      <nav aria-label="Days" className="mt-32 flex gap-8 overflow-x-auto pb-4">
+        {days.map((d) => (
+          <button
+            key={d.day}
+            type="button"
+            aria-current={d.day === activeDay ? 'step' : undefined}
+            onClick={() => setActiveDay(d.day)}
+            className={`min-h-[48px] shrink-0 rounded-btn border px-20 text-[17px] ${d.day === activeDay ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`}
+            style={{ fontWeight: 500 }}
+          >
+            Day {d.day}
           </button>
+        ))}
+      </nav>
 
-          {/* Car rental */}
-          <a href={buildRentalcarsUrl(pickupLocation, trip.destination, startDateStr, endDateStr)}
-            target="_blank" rel="noopener noreferrer sponsored"
-            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', textDecoration: 'none' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(175,80,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🚗</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Huurauto vergelijken</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{pickupLocation} · {trip.days} dagen · 100+ aanbieders</p>
-            </div>
-            <ExternalLink size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
-          </a>
+      <div className="trip-results-grid mt-32 grid gap-32">
+        <div className="min-w-0">
+          <section aria-labelledby="day-head" className="border-t border-rule pt-24">
+            <p className="text-[16px] text-muted" style={{ fontWeight: 500 }}>
+              Day {activeDay}
+              {checkin ? `, ${format(new Date(checkin), 'EEEE d MMMM')}` : ''}
+            </p>
+            <h2 id="day-head" className="mt-4 font-display text-[32px] text-ink md:text-[40px]" style={head}>
+              {`${town(legFrom?.location)} to ${sleepTown}`}
+            </h2>
+            {weather && <p className="mt-8 text-[17px]">{`${weather.condition}, ${Math.round(weather.temp)}°`}</p>}
 
-          {/* Activities */}
-          <a href={`https://www.viator.com/search?text=${encodeURIComponent(trip.destination)}`}
-            target="_blank" rel="noopener noreferrer sponsored"
-            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', textDecoration: 'none' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(96,165,250,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🎟️</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Activiteiten & tours</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Beste tours in {trip.destination} — Viator</p>
-            </div>
-            <ExternalLink size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
-          </a>
-
-          {/* Insurance */}
-          <a href="https://www.safetywing.com/nomad-insurance/?referenceId=routify"
-            target="_blank" rel="noopener noreferrer sponsored"
-            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', textDecoration: 'none' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(74,222,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🛡️</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Reisverzekering</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Reis veilig — SafetyWing vanaf €1.87/dag</p>
-            </div>
-            <ExternalLink size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
-          </a>
-        </div>
-
-        {/* Day photo */}
-        <div style={{ marginTop: 24, borderRadius: 16, overflow: 'hidden', height: 260, position: 'relative' }}>
-          <DestinationImage
-            query={currentStop?.location ?? trip.destination}
-            alt={currentStop?.location ?? trip.destination}
-            className="h-full w-full"
-            objectPosition="center 40%"
-          />
-        </div>
-
-        {/* Transit info banner */}
-        {currentStop?.transit && activeDay > 1 && (
-          <div style={{ marginTop: 16, borderRadius: 12, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', padding: '14px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-              <span style={{ fontSize: 20, lineHeight: 1 }}>🚆</span>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 12, fontWeight: 480, color: 'rgba(147,197,253,0.9)', marginBottom: 2 }}>
-                  Getting there · {currentStop.transit.duration} by {currentStop.transit.mode}
-                </p>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-                  {currentStop.transit.from} → {currentStop.transit.to}
-                  {currentStop.transit.operator ? ` · ${currentStop.transit.operator}` : ''}
-                </p>
-                {currentStop.transit.notes && (
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{currentStop.transit.notes}</p>
-                )}
-              </div>
-            </div>
-            {/* Booking buttons */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a
-                href={`https://www.trainline.eu/search/${encodeURIComponent(currentStop.transit.from ?? '')}/${encodeURIComponent(currentStop.transit.to ?? '')}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.35)', padding: '6px 14px', fontSize: 12, fontWeight: 480, color: 'rgba(147,197,253,0.9)', textDecoration: 'none', cursor: 'pointer' }}>
-                🎫 Book on Trainline
-              </a>
-              <a
-                href={`https://www.omio.com/results?origin=${encodeURIComponent(currentStop.transit.from ?? '')}&destination=${encodeURIComponent(currentStop.transit.to ?? '')}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '6px 14px', fontSize: 12, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', cursor: 'pointer' }}>
-                Compare on Omio
-              </a>
-              {currentStop.transit.mode === 'bus' && (
-                <a
-                  href={`https://shop.flixbus.com/search?departureCity=${encodeURIComponent(currentStop.transit.from ?? '')}&arrivalCity=${encodeURIComponent(currentStop.transit.to ?? '')}`}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '6px 14px', fontSize: 12, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', cursor: 'pointer' }}>
-                  🚌 FlixBus
-                </a>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Itinerary */}
-        <div style={{ marginTop: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', padding: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 480, color: 'white', marginBottom: 12 }}>Day-by-day</h3>
-
-          <DayTabs days={itinerary as GeneratedItineraryDay[]} activeDay={activeDay} onSelect={setActiveDay} />
-
-          {dayWeather && (
-            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
-              <Cloud size={13} style={{ color: '#f5a623' }} />
-              {dayWeather.temp}&deg;C &middot; {dayWeather.condition}
-            </div>
-          )}
-
-          <AnimatePresence mode="wait">
-            <motion.div key={activeDay} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}
-              style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {currentDay && slots.map((slot, i) => {
-                const item = (currentDay as any)[slot];
-                if (!item) return null;
-                return (
-                  <motion.div key={slot} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.08, duration: 0.25 }}>
-                    <SlotRow slot={slot} item={item} />
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Overnachting — alleen tonen als de gebruiker er een heeft gekozen */}
-          {selectedAccommodation && (
-            <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <span style={{ fontSize: 18 }}>🏨</span>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Overnachting</h3>
-              </div>
-              <AccommodationCard accommodation={selectedAccommodation} selected />
-              <button onClick={() => setAccommodationModalOpen(true)}
-                style={{ marginTop: 8, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', padding: '10px', fontSize: 13, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', background: 'transparent' }}>
-                <BedDouble size={13} /> Andere optie kiezen
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Hidden gems */}
-        {gemsToShow.length > 0 && (
-          <div style={{ marginTop: 24, position: 'relative', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 480, color: 'white' }}>
-                Hidden spots — {currentStop?.location?.split(',')[0] ?? trip.destination}
-              </h3>
-              {!isPremium && (
-                <Link to="/pricing" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(245,166,35,0.7)' }}>
-                  <Lock size={12} /> Premium
-                </Link>
-              )}
-            </div>
-
-            {isPremium ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-                {gemsToShow.map((gem: any, i: number) => {
-                  const badgeColor =
-                    gem.category === 'restaurant' || gem.category === 'café' || gem.category === 'bar' ? '#f5a623'
-                    : gem.category === 'viewpoint' || gem.category === 'nature' ? '#4ade80'
-                    : gem.category === 'culture' || gem.category === 'historic' ? '#a78bfa'
-                    : '#60a5fa';
-                  return (
-                    <motion.div key={gem.name ?? i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.3 }}
-                      style={{ overflow: 'hidden', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ height: 140 }}>
-                        <DestinationImage query={`${gem.name}, ${trip.destination}`} alt={gem.name} className="h-full w-full" />
-                      </div>
-                      <div style={{ padding: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                          <p style={{ fontSize: 14, fontWeight: 480, color: 'white', lineHeight: 1.3 }}>{gem.name}</p>
-                          <span style={{ flexShrink: 0, borderRadius: 9999, padding: '2px 8px', fontSize: 10, fontWeight: 480, textTransform: 'capitalize', color: '#080c14', background: badgeColor }}>
-                            {gem.category}
-                          </span>
-                        </div>
-                        {gem.address && <p style={{ marginTop: 2, fontSize: 12, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gem.address}</p>}
-                        <p style={{ marginTop: 6, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{gem.description}</p>
-                        <a href={buildGemMapsUrl(gem)} target="_blank" rel="noopener noreferrer"
-                          style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(245,166,35,0.6)' }}>
-                          <MapPin size={10} /> Open in Maps
-                        </a>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
-                  {gemsToShow.slice(0, 2).map((gem: any) => (
-                    <div key={gem.name} style={{ overflow: 'hidden', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ height: 120, background: 'linear-gradient(135deg, rgba(245,166,35,0.1), rgba(255,255,255,0.05), #080c14)' }} />
-                      <div style={{ padding: 12 }}>
-                        <p style={{ fontSize: 14, fontWeight: 480, color: 'white' }}>{gem.name}</p>
-                        <p style={{ marginTop: 4, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{gem.description}</p>
-                      </div>
-                    </div>
+            {showGems.length > 0 && (
+              <div className="mt-24">
+                <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>Gems on the way</h3>
+                <ul className="mt-12 grid gap-12 p-0" style={{ listStyle: 'none' }}>
+                  {showGems.map((g) => (
+                    <li key={g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
+                      <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
+                      <span>{g.description}</span>
+                      <a className="text-[17px] text-ink" href={`https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
+                        Open in Google Maps
+                      </a>
+                    </li>
                   ))}
-                </div>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, borderRadius: 16, background: 'rgba(8,12,20,0.7)', backdropFilter: 'blur(4px)' }}>
-                  <Lock size={20} style={{ color: '#f5a623' }} />
-                  <p style={{ fontSize: 14, fontWeight: 480, color: 'white' }}>Hidden gems are a Premium feature</p>
-                  <Link to="/pricing" style={{ borderRadius: 9999, background: '#f5a623', padding: '10px 24px', fontSize: 14, fontWeight: 480, color: '#080c14' }}>
-                    Unlock with Premium
-                  </Link>
-                </div>
+                </ul>
               </div>
             )}
-          </div>
-        )}
 
-        {/* Highlights & tips */}
-        <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-          {(trip.highlights?.length ?? 0) > 0 && (
-            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.4 }}
-              style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', padding: 24 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 480, color: 'white', marginBottom: 16 }}>Trip highlights</h3>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
-                {trip.highlights.map((h: string, i: number) => (
-                  <motion.li key={i} initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
-                    <span style={{ marginTop: 4, width: 6, height: 6, borderRadius: '50%', background: '#f5a623', flexShrink: 0 }} />
-                    {h}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
+            {day && (
+              <div className="mt-24">
+                <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>The day</h3>
+                <ol className="mt-8 p-0" style={{ listStyle: 'none' }}>
+                  {(['morning', 'afternoon', 'evening'] as const).filter((s) => day[s]).map((s) => (
+                    <li key={s} className="grid grid-cols-[96px_minmax(0,1fr)] gap-16 border-t border-rule py-16">
+                      <span className="text-[16px] text-muted">{day[s].time || s}</span>
+                      <span>
+                        <span className="block text-ink" style={{ fontWeight: 500 }}>{day[s].activity}</span>
+                        <span className="block">{day[s].description}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
-          {(trip.tips?.length ?? 0) > 0 && (
-            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.4 }}
-              style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', padding: 24 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 480, color: 'white', marginBottom: 16 }}>Local tips</h3>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
-                {trip.tips.map((tip: string, i: number) => (
-                  <motion.li key={i} initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
-                    <span style={{ marginTop: 4, width: 6, height: 6, borderRadius: '50%', background: 'rgba(245,166,35,0.6)', flexShrink: 0 }} />
-                    {tip}
-                  </motion.li>
+            <Panel className="mt-24">
+              <h3 className="font-display text-[26px] text-ink" style={head}>Sleep in {sleepTown}</h3>
+              {picked[activeDay] && <p className="mt-6">Your choice: {picked[activeDay].name}</p>}
+              <div className="mt-16 flex flex-wrap gap-12">
+                {stayTypes.map((s) => (
+                  <a key={s} href={stayUrl(s, sleepTown, checkin, checkout)} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
+                    {STAY_LABELS[s]}
+                  </a>
                 ))}
-              </ul>
-            </motion.div>
-          )}
+                <Button variant="primary" onClick={() => setStaysOpen(true)}>Stays nearby</Button>
+              </div>
+            </Panel>
+          </section>
         </div>
+
+        <aside className="grid content-start gap-24">
+          <div className="overflow-hidden rounded-card border border-rule">
+            <RouteSketch stops={sketchStops} gems={sketchGems} activeLeg={Math.min(activeDay - 1, Math.max(0, sketchStops.length - 2))} />
+          </div>
+          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Open the route in Google Maps</a>
+          <Panel>
+            <h3 className="font-display text-[24px] text-ink" style={head}>Rental car</h3>
+            <p className="mt-6">{`Pick up in ${from}, drop off in ${to}.`}</p>
+            <a href={rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr)} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary mt-16 w-full no-underline">
+              Find a car
+            </a>
+          </Panel>
+          {gemsOn && !isPremium && (
+            <Panel>
+              <h3 className="font-display text-[24px] text-ink" style={head}>Every gem with Plus</h3>
+              <p className="mt-6">Unlimited trips, every gem on the route and a printable trip.</p>
+              <Link to="/pricing" className="btn-header mt-16 no-underline">See Plus</Link>
+            </Panel>
+          )}
+        </aside>
       </div>
 
-      {/* Accommodation modal */}
-      <Modal isOpen={accommodationModalOpen} title={`Overnight stay — Day ${activeDay}`}
-        onClose={() => setAccommodationModalOpen(false)}>
-        <div className="flex gap-8 overflow-x-auto pb-8">
-          {accommodationFilterOptions.map(type => (
-            <button key={type} onClick={() => setAccommodationFilter(type)}
-              style={{
-                flexShrink: 0, borderRadius: 9999, padding: '6px 12px', fontSize: 12, fontWeight: 480, cursor: 'pointer',
-                background: accommodationFilter === type ? '#f5a623' : 'rgba(255,255,255,0.08)',
-                color: accommodationFilter === type ? '#080c14' : 'rgba(255,255,255,0.6)',
-                border: accommodationFilter === type ? 'none' : '1px solid rgba(255,255,255,0.1)',
-              }}>
-              {type === 'all' ? 'All' : ACCOMMODATION_TYPE_LABELS[type]}
-            </button>
-          ))}
-        </div>
-
-        {accommodationsLoading ? (
+      <Modal isOpen={staysOpen} title={`Stays in ${sleepTown}`} onClose={() => setStaysOpen(false)}>
+        {staysLoading ? (
           <div className="flex justify-center py-40"><LoadingSpinner size={28} /></div>
-        ) : filteredAccommodations.length === 0 ? (
-          <p className="py-24 text-center text-body-sm text-muted">No accommodation options found nearby.</p>
+        ) : accommodations.length === 0 ? (
+          <p className="py-24 text-center">No stays found nearby. Try the booking buttons for more choice.</p>
         ) : (
           <div className="mt-12 grid max-h-[60vh] gap-12 overflow-y-auto sm:grid-cols-2">
-            {filteredAccommodations.map(acc => (
-              <AccommodationCard key={acc.id} accommodation={acc}
-                selected={selectedAccommodation?.id === acc.id} onSelect={handleSelectAccommodation} />
+            {accommodations.map((a) => (
+              <AccommodationCard
+                key={a.id}
+                accommodation={a}
+                selected={picked[activeDay]?.id === a.id}
+                onSelect={(acc) => {
+                  setPicked((p) => ({ ...p, [activeDay]: acc }));
+                  setStaysOpen(false);
+                }}
+              />
             ))}
           </div>
         )}

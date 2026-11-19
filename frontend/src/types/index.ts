@@ -290,4 +290,12 @@ export interface GeneratedTrip {
   tips: string[];
   weather: GeneratedWeatherDay[];
   hiddenGems: HiddenGem[];
+  /** The planner choices the trip was made with (absent on trips made before Routify). */
+  planner?: {
+    kmPerDay: number;
+    gemsPerDay: number;
+    gemsEnabled: boolean;
+    stayTypes: readonly ('campsite' | 'hotel' | 'holiday_home')[];
+    filters: string[];
+  };
 }

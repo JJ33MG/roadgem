@@ -27,7 +27,7 @@ export function SavedTripCard({ trip }: SavedTripCardProps) {
         </div>
 
         <p className="mt-8 text-body-sm text-silver">
-          {format(new Date(trip.startDate), 'MMM d')} – {format(new Date(trip.endDate), 'MMM d, yyyy')}
+          {format(new Date(trip.startDate), 'MMM d')} to {format(new Date(trip.endDate), 'MMM d, yyyy')}
         </p>
 
         <p className="mt-12 text-body-sm font-w480 text-starlight">

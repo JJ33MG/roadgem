@@ -6,16 +6,16 @@ import { useAuth } from '@/context/AuthContext';
 import { Link } from 'react-router-dom';
 
 const CATEGORIES = [
-  { value: 'restaurant', label: 'Restaurant', emoji: '🍽' },
-  { value: 'café', label: 'Café', emoji: '☕' },
-  { value: 'bar', label: 'Bar', emoji: '🍷' },
-  { value: 'viewpoint', label: 'Viewpoint', emoji: '🌅' },
-  { value: 'nature', label: 'Nature', emoji: '🌿' },
-  { value: 'culture', label: 'Culture', emoji: '🏛' },
-  { value: 'historic', label: 'Historic', emoji: '🏰' },
-  { value: 'market', label: 'Market', emoji: '🛒' },
-  { value: 'activity', label: 'Activity', emoji: '🎯' },
-  { value: 'other', label: 'Other', emoji: '✨' },
+  { value: 'restaurant', label: 'Restaurant' },
+  { value: 'café', label: 'Café' },
+  { value: 'bar', label: 'Bar' },
+  { value: 'viewpoint', label: 'Viewpoint' },
+  { value: 'nature', label: 'Nature' },
+  { value: 'culture', label: 'Culture' },
+  { value: 'historic', label: 'Historic' },
+  { value: 'market', label: 'Market' },
+  { value: 'activity', label: 'Activity' },
+  { value: 'other', label: 'Other' },
 ];
 
 interface Props {
@@ -106,7 +106,7 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
             <div style={{ textAlign: 'center', padding: '32px 0' }}>
               <Gem size={32} style={{ color: 'var(--color-accent)', margin: '0 auto 12px' }} />
               <p style={{ color: 'var(--color-ink)', fontSize: 14, marginBottom: 8 }}>You need an account to share gems</p>
-              <p style={{ color: 'var(--color-muted)', fontSize: 12, marginBottom: 20 }}>Join the community — it's free</p>
+              <p style={{ color: 'var(--color-muted)', fontSize: 12, marginBottom: 20 }}>Join the community. It's free.</p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                 <Link to="/login" onClick={handleClose}
                   style={{ borderRadius: 9999, border: '1px solid var(--color-rule)', padding: '8px 20px', fontSize: 14, color: 'var(--color-ink)', textDecoration: 'none' }}>
@@ -126,7 +126,7 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 style={{ textAlign: 'center', padding: '32px 0' }}>
                 <CheckCircle size={40} style={{ color: 'var(--color-success)', margin: '0 auto 16px' }} />
-                <h3 style={{ fontSize: 18, fontWeight: 480, color: 'var(--color-ink)', marginBottom: 8 }}>You're a gem hunter now 💛</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 480, color: 'var(--color-ink)', marginBottom: 8 }}>You're a gem hunter now</h3>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 12 }}>{feedback}</p>
                 <div style={{ display: 'inline-block', borderRadius: 9999, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', padding: '4px 14px', fontSize: 12, color: 'var(--color-success)', marginBottom: 24 }}>
                   Quality score: {score}/100
@@ -185,7 +185,7 @@ export function SubmitGemModal({ isOpen, onClose }: Props) {
                         border: category === c.value ? '1px solid var(--color-accent)' : '1px solid var(--color-rule)',
                         color: category === c.value ? 'var(--color-accent)' : 'var(--color-muted)',
                       }}>
-                      {c.emoji} {c.label}
+                      {c.label}
                     </button>
                   ))}
                 </div>

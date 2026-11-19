@@ -115,7 +115,7 @@ export function CommunityPage() {
         {!loading && tab === 'gems' && (
           gems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 48 }}>
-              <p style={{ color: 'var(--color-muted)', fontSize: 14, marginBottom: 16 }}>No gems yet — be the first to share one</p>
+              <p style={{ color: 'var(--color-muted)', fontSize: 14, marginBottom: 16 }}>No gems yet. Be the first to share one</p>
               <button onClick={() => setModalOpen(true)}
                 style={{ borderRadius: 9999, background: 'var(--color-accent)', padding: '10px 24px', fontSize: 13, fontWeight: 480, color: 'var(--color-paper)', cursor: 'pointer', border: 'none' }}>
                 Share a gem
@@ -153,13 +153,13 @@ export function CommunityPage() {
         {!loading && tab === 'leaderboard' && (
           <div style={{ maxWidth: 540 }}>
             {leaderboard.length === 0 ? (
-              <p style={{ color: 'var(--color-muted)', fontSize: 14, padding: '32px 0' }}>No contributors yet — be the first!</p>
+              <p style={{ color: 'var(--color-muted)', fontSize: 14, padding: '32px 0' }}>No contributors yet. Be the first.</p>
             ) : leaderboard.map((entry, i) => (
               <motion.div key={entry.userId} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--color-rule)' }}>
                 <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 480, background: i === 0 ? 'var(--color-accent)' : i === 1 ? 'var(--color-rule)' : 'var(--color-rule)', color: i === 0 ? 'var(--color-paper)' : 'white' }}>
-                  {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
+                  {i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 14, fontWeight: 480, color: 'var(--color-ink)', marginBottom: 2 }}>{entry.name}</p>

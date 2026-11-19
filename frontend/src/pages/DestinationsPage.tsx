@@ -38,13 +38,13 @@ export function DestinationsPage() {
       >
         <div className="mb-12 flex items-center gap-8">
           <MapPin size={14} className="text-mercury-blue" />
-          <span className="font-mono text-caption uppercase tracking-widest text-mercury-blue">Destinations</span>
+          <span className="text-[16px] text-accent" style={{ fontWeight: 500 }}>Destinations</span>
         </div>
         <h1 className="text-heading font-display font-w360 text-starlight sm:text-heading-lg">
           European road trip <span className="text-gradient-accent">destinations</span>
         </h1>
         <p className="mt-16 max-w-xl text-body text-silver">
-          Our AI agents research every destination daily — hidden gems, local tips, and the best routes.
+          Our AI agents research every destination daily: hidden gems, local tips, and the best routes.
           Pick a destination to see what we've found.
         </p>
       </motion.div>
@@ -57,7 +57,7 @@ export function DestinationsPage() {
         </div>
       ) : destinations.length === 0 ? (
         <div className="rounded-container border border-lead/40 p-40 text-center">
-          <p className="text-body-sm text-silver">No destinations researched yet — agents are on it.</p>
+          <p className="text-body-sm text-silver">No destinations yet. New ones arrive every day.</p>
           <Link to="/plan" className="btn-primary mt-20 inline-flex items-center gap-8">
             Plan a trip anyway <ArrowRight size={14} />
           </Link>
@@ -73,7 +73,7 @@ export function DestinationsPage() {
             <motion.div key={dest.slug} variants={fadeUp} transition={{ duration: 0.4 }}>
               <Link
                 to={`/destinations/${dest.slug}`}
-                className="group block rounded-container border border-lead/40 p-20 transition-all hover:border-mercury-blue/40 hover:bg-starlight/[0.03]"
+                className="group block rounded-container border border-lead/40 p-20 transition-colors hover:border-mercury-blue/40 hover:bg-starlight/[0.03]"
               >
                 <div className="flex items-start justify-between gap-12">
                   <div className="min-w-0">
@@ -109,7 +109,7 @@ export function DestinationsPage() {
           Don't see your destination?
         </h2>
         <p className="mt-8 text-body-sm text-silver">
-          Generate a full AI itinerary for any European city — takes 30 seconds.
+          Generate a full AI itinerary for any European city in about 30 seconds.
         </p>
         <Link to="/plan" className="btn-primary mt-20 inline-flex items-center gap-8">
           Plan my trip <ArrowRight size={14} />

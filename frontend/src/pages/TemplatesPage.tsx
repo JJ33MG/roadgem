@@ -99,7 +99,7 @@ export function TemplatesPage() {
           Klaar om te vertrekken
         </h1>
         <p className="mt-16 text-body text-ink-2 max-w-[540px] mx-auto">
-          Onze best beoordeelde routes — door AI samengesteld, door reizigers getest. Eén klik en je trip staat klaar in je dashboard.
+          Onze best beoordeelde routes, door AI samengesteld, door reizigers getest. Eén klik en je trip staat klaar in je dashboard.
         </p>
         {!user && (
           <p className="mt-12 text-body-sm text-muted">
@@ -121,7 +121,7 @@ export function TemplatesPage() {
               <div className="mb-48">
                 <div className="mb-24 flex items-center gap-10">
                   <Star size={14} className="text-accent" />
-                  <span className="font-mono text-label text-accent uppercase tracking-wider">Aanbevolen</span>
+                  <span className="text-[16px] text-accent">Aanbevolen</span>
                 </div>
                 <div className="grid grid-cols-1 gap-24 sm:grid-cols-2 lg:grid-cols-3">
                   {featured.map((t) => (
@@ -135,7 +135,7 @@ export function TemplatesPage() {
               <div>
                 <div className="mb-24 flex items-center gap-10">
                   <MapPin size={14} className="text-muted" />
-                  <span className="font-mono text-label text-muted uppercase tracking-wider">Alle routes</span>
+                  <span className="text-[16px] text-muted">Alle routes</span>
                 </div>
                 <div className="grid grid-cols-1 gap-24 sm:grid-cols-2 lg:grid-cols-3">
                   {rest.map((t) => (
@@ -165,7 +165,7 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
   const isLoading = actionId === t.id;
 
   return (
-    <div className="card group flex flex-col gap-20 p-24 transition-all hover:border-rule hover:-translate-y-1">
+    <div className="card group flex flex-col gap-20 p-24 transition-colors hover:border-rule hover:-translate-y-1">
       {/* Header */}
       <div className="flex items-start justify-between gap-12">
         <div className="flex items-center gap-12">
@@ -176,7 +176,7 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
           </div>
         </div>
         {t.featured && (
-          <span className="shrink-0 rounded-full bg-accent-soft px-10 py-4 font-mono text-[10px] text-accent uppercase tracking-wider">
+          <span className="shrink-0 rounded-full bg-accent-soft px-10 py-4 text-[14px] text-accent">
             Top
           </span>
         )}
@@ -199,14 +199,14 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
       </div>
 
       {/* Highlights */}
-      <p className="text-body-sm text-muted truncate">📍 {t.highlights}</p>
+      <p className="text-body-sm text-muted truncate">{t.highlights}</p>
 
       {/* CTA */}
       {t.owned ? (
         <button
           onClick={() => onUse(t)}
           disabled={!!actionId}
-          className="mt-auto w-full rounded-xl bg-green-500/15 border border-green-500/30 py-12 text-body-sm font-w480 text-green-400 transition-all hover:bg-green-500/25 disabled:opacity-50"
+          className="mt-auto w-full rounded-xl bg-green-500/15 border border-green-500/30 py-12 text-body-sm font-w480 text-green-400 transition-colors hover:bg-green-500/25 disabled:opacity-50"
         >
           {isLoading ? 'Laden...' : '✓ Gebruik deze route'}
         </button>
@@ -214,14 +214,14 @@ function TemplateCard({ template: t, onUse, onBuy, actionId, isLoggedIn }: {
         <button
           onClick={() => onBuy(t)}
           disabled={!!actionId}
-          className="mt-auto w-full rounded-xl bg-accent-soft border border-accent py-12 text-body-sm font-w480 text-accent transition-all hover:bg-accent-soft disabled:opacity-50 flex items-center justify-center gap-8"
+          className="mt-auto w-full rounded-xl bg-accent-soft border border-accent py-12 text-body-sm font-w480 text-accent transition-colors hover:bg-accent-soft disabled:opacity-50 flex items-center justify-center gap-8"
         >
           {isLoading ? 'Laden...' : <><Lock size={12} /> Kopen voor €{t.priceEur.toFixed(2)}</>}
         </button>
       ) : (
         <Link
           to="/login"
-          className="mt-auto w-full rounded-xl bg-paper-2 border border-rule py-12 text-body-sm font-w480 text-ink-2 transition-all hover:bg-paper-2 text-center flex items-center justify-center gap-8"
+          className="mt-auto w-full rounded-xl bg-paper-2 border border-rule py-12 text-body-sm font-w480 text-ink-2 transition-colors hover:bg-paper-2 text-center flex items-center justify-center gap-8"
         >
           <Lock size={12} /> Log in om te kopen
         </Link>

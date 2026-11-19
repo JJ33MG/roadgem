@@ -3,35 +3,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { agentsApi } from '@/lib/api';
 import type { AgentRun, AgentLog, AgentStats, AgentMessage } from '@/types';
 
-const AGENT_META: Record<string, { label: string; description: string; icon: string; color: string }> = {
+const AGENT_META: Record<string, { label: string; description: string; color: string }> = {
   'gems-agent': {
     label: 'Hidden Gems Agent',
     description: 'Researches authentic local hidden gems across European destinations',
-    icon: '💎',
     color: 'mercury-blue',
   },
   'seo-agent': {
     label: 'SEO Content Agent',
     description: 'Generates SEO-optimized content and metadata for destination pages',
-    icon: '📈',
     color: 'plum',
   },
   'analytics-agent': {
     label: 'Analytics Agent',
     description: 'Analyses trip patterns and tells other agents what to prioritise',
-    icon: '📊',
     color: 'mercury-blue',
   },
   'trend-agent': {
     label: 'Trend Agent',
     description: 'Monitors Reddit and travel sites for trending destinations',
-    icon: '🔥',
     color: 'plum',
   },
   'briefing-agent': {
     label: 'Briefing Agent',
     description: 'Sends you a daily email summary of everything agents did overnight',
-    icon: '☀️',
     color: 'mercury-blue',
   },
 };
@@ -52,7 +47,7 @@ const LOG_COLOR: Record<string, string> = {
 const LOG_ICON: Record<string, string> = {
   info: '○',
   success: '✓',
-  warning: '⚠',
+  warning: '!',
   error: '✗',
 };
 
@@ -152,7 +147,7 @@ export default function AgentsDashboardPage() {
           className="mb-10"
         >
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">🤖</span>
+            
             <h1 className="text-3xl font-display font-bold text-starlight">Agent Ecosystem</h1>
           </div>
           <p className="text-silver">Live view of all autonomous AI agents running in the background</p>
@@ -196,7 +191,7 @@ export default function AgentsDashboardPage() {
               <div key={name} className="glass-panel rounded-xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{meta.icon}</span>
+                    
                     <div>
                       <h3 className="font-display font-semibold text-starlight">{meta.label}</h3>
                       <p className="text-silver text-sm mt-0.5">{meta.description}</p>
@@ -254,7 +249,7 @@ export default function AgentsDashboardPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? 'bg-mercury-blue text-ink'
                   : 'bg-graphite/50 text-silver hover:text-starlight'
@@ -270,7 +265,7 @@ export default function AgentsDashboardPage() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {messages.length === 0 ? (
               <div className="glass-panel rounded-xl p-12 text-center text-silver">
-                No messages yet — run the Analytics or Trend agent first.
+                No messages yet. Run the Analytics or Trend agent first.
               </div>
             ) : (
               <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
@@ -288,11 +283,11 @@ export default function AgentsDashboardPage() {
                     >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <span className="text-sm font-medium text-starlight">
-                          {from?.icon ?? '🤖'} {from?.label ?? msg.fromAgent}
+                          {from?.label ?? msg.fromAgent}
                         </span>
                         <span className="text-graphite text-xs">→</span>
                         <span className="text-sm font-medium text-mercury-blue">
-                          {to?.icon ?? '🤖'} {to?.label ?? msg.toAgent}
+                          {to?.label ?? msg.toAgent}
                         </span>
                         <span className="ml-auto text-xs text-graphite">{formatRelative(msg.createdAt)}</span>
                       </div>
@@ -346,7 +341,7 @@ export default function AgentsDashboardPage() {
                   <button
                     key={run.id}
                     onClick={() => { setSelectedRun(run); fetchLogs(run.id); }}
-                    className={`w-full text-left glass-panel rounded-xl p-4 transition-all border ${
+                    className={`w-full text-left glass-panel rounded-xl p-4 transition-colors border ${
                       isSelected
                         ? 'border-mercury-blue/50 bg-mercury-blue/5'
                         : 'border-transparent hover:border-graphite'
@@ -354,7 +349,7 @@ export default function AgentsDashboardPage() {
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="flex items-center gap-2 font-medium text-starlight text-sm">
-                        <span>{meta?.icon ?? '🤖'}</span>
+                        
                         {meta?.label ?? run.agentName}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${STATUS_STYLE[run.status]}`}>
@@ -363,7 +358,7 @@ export default function AgentsDashboardPage() {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-silver">
                       <span>{formatRelative(run.startedAt)}</span>
-                      <span>⏱ {duration(run.startedAt, run.finishedAt)}</span>
+                      <span>Took {duration(run.startedAt, run.finishedAt)}</span>
                       {run.logs?.[0] && (
                         <span className="truncate max-w-[200px]">{run.logs[0].message}</span>
                       )}

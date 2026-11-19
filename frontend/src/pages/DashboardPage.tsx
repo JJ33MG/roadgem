@@ -85,7 +85,7 @@ export function DashboardPage() {
             className="mt-24 flex items-center gap-12 rounded-container border border-green-500/30 bg-green-500/10 px-16 py-12"
           >
             <CheckCircle size={18} className="flex-shrink-0 text-green-400" />
-            <p className="text-body-sm text-green-400">You're now on Premium — enjoy unlimited trips and hidden gems!</p>
+            <p className="text-body-sm text-green-400">You're on Plus now: unlimited trips and every gem.</p>
           </motion.div>
         )}
 
@@ -118,7 +118,7 @@ export function DashboardPage() {
                 </button>
               ) : (
                 <button onClick={handleUpgrade} disabled={stripeLoading} className="btn-primary inline-flex items-center gap-8 text-body-sm">
-                  {stripeLoading ? 'Redirecting…' : <><Crown size={14} /> Upgrade — €9/mo <ArrowRight size={14} /></>}
+                  {stripeLoading ? 'Redirecting…' : <><Crown size={14} /> Get Plus, €9 a month <ArrowRight size={14} /></>}
                 </button>
               )}
               {stripeError && <p className="text-caption text-red-400">{stripeError}</p>}

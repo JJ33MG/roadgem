@@ -54,6 +54,12 @@ export interface TripSearchParams {
   priorities: Priority[];
   accommodationTypes?: AccommodationType[];
   transportType?: 'own_car' | 'rental_car' | 'public';
+  /** Routify planner (phase 1): see src/lib/tripPlan.ts. */
+  kmPerDay?: number;
+  gemsPerDay?: number;
+  gemsEnabled?: boolean;
+  stayTypes?: ('campsite' | 'hotel' | 'holiday_home')[];
+  filters?: string[];
 }
 
 export interface GeoPoint {

@@ -15,6 +15,7 @@ import templatesRouter from './routes/templates';
 import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
 import path from 'path';
+import { errorHandler } from './middleware/errors';
 
 dotenv.config();
 
@@ -69,12 +70,7 @@ if (process.env.SERVE_FRONTEND === 'true') {
 }
 
 // Error handling middleware (must be registered after routes)
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
-  });
-});
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {

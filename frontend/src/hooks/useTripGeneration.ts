@@ -42,7 +42,7 @@ export function useTripGeneration(): UseTripGenerationResult {
         (err instanceof Error && err.message === 'timeout')
       ) {
         setError(
-          'This is taking longer than usual — the server might be busy. Please try again.',
+          'This is taking longer than usual. The server might be busy, so please try again.',
         );
         return null;
       }
@@ -64,6 +64,10 @@ export function useTripGeneration(): UseTripGenerationResult {
           setError('Could not reach the server. Check your connection and try again.');
           return null;
         }
+
+        const message = (err.response.data as { error?: unknown } | undefined)?.error;
+        setError(typeof message === 'string' && message ? message : 'Your trip could not be planned. Please try again.');
+        return null;
       }
 
       setError(err instanceof Error ? err.message : 'Failed to generate trip');

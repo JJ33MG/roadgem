@@ -1,253 +1,88 @@
+/* Hallmark · shape: band hero with the planner as the instrument, rows of days · genre: atmospheric · theme: Ribbon (deal 1/3, seed routify-road-trip-planner-9f6e·51acb6c3·2026-11-19·r0) · job: try · draw: manual
+ * hero: stage, the planner panel beside the head · nav: edge-aligned wordmark, four links, one action · footer: a quiet row with photo credits · imagery: photographs of the route's places (Wikimedia Commons) · signature: the trip set like an instrument · ribbon: dawn
+ * axes: light/grotesk-sans/chromatic-teal · posture: committed · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P2 H2 E2 S2 R1 V2 · weakest: R, legacy pages keep their old layouts until phase 2; their colours already run through the tokens */
+@import url("./tokens.css");
+@import url("./base.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Trip results two-column layout — bypasses Tailwind arbitrary class generation issues */
 @media (min-width: 1024px) {
-  .trip-results-grid {
-    grid-template-columns: 1fr 380px;
-  }
+  .trip-results-grid { grid-template-columns: minmax(0, 1fr) 400px; }
 }
 
-:root {
-  --color-mercury-blue: #af50ff;
-  --color-ghost-blue: #e1bdff;
-  --color-deep-space: #090909;
-  --color-midnight-slate: #0c0c10;
-  --color-graphite: #454545;
-  --color-lead: #6b6b6b;
-  --color-starlight: #f7f9fa;
-  --color-silver: #828384;
-  --color-pure-white: #ffffff;
-  --color-plum: #7f56d9;
-}
-
+/* Body text stays large for every age (Global Constraints: 18px or more). */
+body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 @layer base {
-  html {
-    @apply scroll-smooth;
-  }
-
-  body {
-    @apply bg-midnight-slate text-starlight font-body text-body;
-  }
-
-  h1, h2, h3, h4 {
-    @apply font-display font-w360;
-  }
-
-  /* Consistent focus ring for accessibility across interactive elements */
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible {
-    outline: 2px solid var(--color-mercury-blue);
-    outline-offset: 2px;
-  }
-
-  /* Dark-theme scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--color-deep-space);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-graphite);
-    border-radius: 8px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-lead);
-  }
+  h1, h2, h3, h4 { color: var(--color-ink); }
 }
 
 @layer utilities {
-  .scrollbar-none {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
 }
 
 @layer components {
-  /* Filled Pill Button — Iris bg, white text, fully rounded */
+  /* Machined pill, the one primary style (Ribbon § Controls). */
   .btn-primary {
-    @apply bg-mercury-blue text-white font-body font-w480 text-body
-      rounded-btn px-24 py-16 transition-all hover:bg-mercury-blue/90
-      hover:shadow-[0_0_24px_rgba(175,80,255,0.35)]
-      disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none;
+    @apply inline-flex min-h-[48px] items-center justify-center gap-8 rounded-btn border border-accent bg-accent px-24 text-accent-ink font-body;
+    font-weight: 500;
+    box-shadow: inset 0 1px 0 color-mix(in oklab, white 25%, transparent), var(--shadow-part);
   }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* Ghost Pill Button — transparent bg, subtle border, hover -> iris glow */
-  .btn-header {
-    @apply bg-transparent text-starlight font-body rounded-btn-lg px-20 py-8
-      border border-starlight/15 transition-all hover:border-mercury-blue/60
-      hover:shadow-[0_0_16px_rgba(175,80,255,0.25)]
-      disabled:opacity-50 disabled:cursor-not-allowed;
+  .btn-header, .btn-light {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-8 rounded-btn border border-rule px-24 text-ink font-body;
+    font-weight: 500;
+    background: linear-gradient(to bottom, var(--metal-hi), var(--metal-lo));
+    box-shadow: var(--edge-light), var(--shadow-part);
   }
+  .btn-header:active, .btn-light:active { transform: translateY(1px); }
 
-  /* Ghost Nav Link */
-  .nav-link {
-    @apply text-starlight font-body transition-colors hover:text-mercury-blue;
-  }
+  .nav-link { @apply text-ink font-body; font-weight: 500; }
+  .nav-link:hover { text-decoration: underline; text-decoration-color: var(--color-accent); }
 
-  /* Hero email/search input — left side rounded, right side sharp */
-  .input-pill-left {
-    @apply bg-transparent text-starlight placeholder-silver border border-lead
-      rounded-l-input rounded-r-none px-24 py-16 focus:outline-none focus:border-mercury-blue;
+  .input-pill-left, .input-field {
+    @apply min-h-[52px] w-full rounded-input border border-rule bg-paper px-16 text-ink;
   }
+  .input-pill-left:focus, .input-field:focus { border-color: var(--color-ink); outline: none; }
 
-  .input-field {
-    @apply bg-graphite text-starlight placeholder-silver border border-lead
-      rounded-input px-24 py-16 focus:outline-none focus:border-mercury-blue;
-  }
+  .feature-link { @apply border-b border-rule py-24 text-ink; }
+  .footer-link { @apply text-muted font-body; }
+  .footer-link:hover { color: var(--color-ink); }
 
-  /* Interactive Feature List item */
-  .feature-link {
-    @apply border-b border-lead py-24 text-starlight transition-colors hover:text-mercury-blue;
-  }
+  .section { @apply mx-auto max-w-page px-16 md:px-32; }
+  .surface-1 { @apply bg-paper; }
+  .surface-2 { @apply bg-paper-2; }
 
-  /* Footer link */
-  .footer-link {
-    @apply text-silver font-body transition-colors hover:text-starlight;
+  /* Reading sections use hairlines, panels are machined (Ribbon § Surfaces). */
+  .card, .card-light, .glass-panel, .gradient-card {
+    @apply rounded-card border border-rule p-24;
+    background: linear-gradient(to bottom, var(--metal-hi), var(--color-paper-2));
+    box-shadow: var(--edge-light), var(--shadow-panel);
   }
+  .card-interactive { @apply card; }
+  .card-interactive:hover, .card-light:hover { border-color: var(--color-rule-2); }
 
-  .section {
-    @apply max-w-page mx-auto px-16 md:px-32;
-  }
+  .badge { @apply inline-flex items-center rounded-btn px-12 py-4 text-body-sm; font-weight: 500; }
+  .badge-free { @apply badge bg-paper-2 text-muted; }
+  .badge-premium { @apply badge bg-accent-soft text-ink; }
 
-  .surface-1 {
-    @apply bg-midnight-slate;
-  }
+  /* Legacy emphasis classes: one colour, no gradient, no italic inside a head. */
+  .text-gradient-accent { color: var(--color-ink); }
+  .text-serif-accent { color: var(--color-accent); }
 
-  .surface-2 {
-    @apply bg-graphite;
-  }
+  .feature-row { @apply flex items-center justify-between border-b border-rule py-16 text-body-sm text-muted; }
 
-  /* Standard content card — consistent border, radius and surface across the app, no box-shadow */
-  .card {
-    @apply rounded-container border border-starlight/10 bg-starlight/[0.03] p-24 transition-all;
-  }
-
-  /* Card variant for clickable / linked cards */
-  .card-interactive {
-    @apply card hover:border-mercury-blue/60 hover:bg-starlight/[0.05] hover:-translate-y-[2px];
-  }
-
-  /* Status / tier badges */
-  .badge {
-    @apply inline-flex items-center rounded-input px-12 py-4 text-caption font-w480;
-  }
-
-  .badge-free {
-    @apply badge bg-starlight/10 text-silver;
-  }
-
-  .badge-premium {
-    @apply badge bg-mercury-blue/15 text-mercury-blue;
-  }
-
-  /* Gradient accent text for hero/CTA headings */
-  .text-gradient-accent {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, var(--color-starlight) 35%, var(--color-mercury-blue) 100%);
-  }
-
-  /* Sparing editorial accent — GrandSlang substitute */
-  .text-serif-accent {
-    @apply font-serif-accent italic font-light text-mercury-blue;
-  }
-
-  /* Boarding Pass — glassmorphic panel */
-  .glass-panel {
-    @apply rounded-container border border-starlight/[0.12] p-24 backdrop-blur-xl;
-    background-color: rgba(255, 255, 255, 0.06);
-  }
-
-  /* Outlined feature row — airport departure-board styling */
-  .feature-row {
-    @apply flex items-center justify-between border-b border-starlight/10 py-16
-      font-mono text-body-sm uppercase tracking-wide text-silver transition-colors
-      hover:border-mercury-blue/40 hover:text-starlight;
-  }
-
-  /* Gradient comparison card */
-  .gradient-card {
-    @apply rounded-container border border-starlight/10 p-24;
-    background-image: linear-gradient(160deg, rgba(175,80,255,0.12) 0%, rgba(9,9,9,0) 60%);
-  }
+  .dest-card { @apply overflow-hidden rounded-card; }
 }
 
-/* Google Places Autocomplete dropdown — match Mercury dark theme */
-.pac-container {
-  background-color: var(--color-midnight-slate);
-  border: 1px solid rgba(247, 249, 250, 0.1);
-  border-radius: 8px;
-  margin-top: 8px;
-  font-family: inherit;
-  box-shadow: none;
-}
-
-.pac-item {
-  background-color: var(--color-midnight-slate);
-  border-color: rgba(247, 249, 250, 0.1);
-  color: var(--color-silver);
-  padding: 8px 16px;
-}
-
-.pac-item:hover {
-  background-color: rgba(175, 80, 255, 0.15);
-}
-
-.pac-item-query {
-  color: var(--color-starlight);
-}
-
-.pac-matched {
-  color: var(--color-mercury-blue);
-}
-
-.pac-icon {
-  filter: invert(1) brightness(1.5);
-}
-
-@keyframes hero-glow {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(1.15); }
-}
-
-/* Light-theme card — white bg, soft shadow, no border */
-.card-light {
-  @apply rounded-2xl bg-white p-24 transition-all;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
-}
-
-.card-light:hover {
-  box-shadow: 0 8px 32px rgba(175,80,255,0.12), 0 2px 8px rgba(0,0,0,0.06);
-  transform: translateY(-2px);
-}
-
-/* Light ghost button — for use on white/light backgrounds */
-.btn-light {
-  @apply bg-transparent font-body font-w480 text-body rounded-btn px-24 py-16
-    border-2 border-mercury-blue text-mercury-blue transition-all
-    hover:bg-mercury-blue hover:text-white
-    disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-/* Destination photo card — Airbnb style */
-.dest-card {
-  @apply rounded-2xl overflow-hidden cursor-pointer transition-all;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-}
-
-.dest-card:hover {
-  box-shadow: 0 12px 40px rgba(0,0,0,0.14);
-  transform: translateY(-4px);
-}
+/* Google Places autocomplete dropdown, on the light ground. */
+.pac-container { background: var(--color-paper); border: 1px solid var(--color-rule); border-radius: 12px; margin-top: 8px; font-family: inherit; box-shadow: var(--shadow-panel); }
+.pac-item { background: var(--color-paper); border-color: var(--color-rule); color: var(--color-muted); padding: 8px 16px; }
+.pac-item:hover { background: var(--color-accent-soft); }
+.pac-item-query { color: var(--color-ink); }
+.pac-matched { color: var(--color-accent); }

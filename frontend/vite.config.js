@@ -1,6 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
@@ -12,5 +12,10 @@ export default defineConfig({
     },
     server: {
         port: Number(process.env.PORT) || 5173,
+    },
+    test: {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: ['./src/test/setup.ts'],
     },
 });

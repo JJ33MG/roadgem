@@ -4,26 +4,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        'mercury-blue': '#af50ff',
-        'ghost-blue': '#e1bdff',
-        'deep-space': '#090909',
-        'midnight-slate': '#0c0c10',
-        graphite: '#454545',
-        lead: '#6b6b6b',
-        starlight: '#f7f9fa',
-        silver: '#828384',
-        plum: '#7f56d9',
-        ash: '#f0f0f0',
-        iron: '#333333',
-        cinder: '#423738',
-        'storm-gray': '#475467',
-        aubergine: '#271635',
+        // Ribbon tokens (src/styles/tokens.css): every colour goes through a token.
+        paper: 'var(--color-paper)', 'paper-2': 'var(--color-paper-2)', 'paper-3': 'var(--color-paper-3)',
+        ink: 'var(--color-ink)', 'ink-2': 'var(--color-ink-2)', muted: 'var(--color-muted)',
+        rule: 'var(--color-rule)', 'rule-2': 'var(--color-rule-2)',
+        accent: 'var(--color-accent)', 'accent-soft': 'var(--color-accent-soft)', 'accent-ink': 'var(--color-accent-ink)', focus: 'var(--color-focus)',
+        band: 'var(--color-band)', 'band-ink': 'var(--color-band-ink)', error: 'var(--color-error)', success: 'var(--color-success)',
+        // Old palette names, kept as aliases so pages not redesigned yet stay readable on the light ground.
+        'mercury-blue': 'var(--color-accent)', 'ghost-blue': 'var(--color-accent-soft)', 'deep-space': 'var(--color-paper)', 'midnight-slate': 'var(--color-paper)',
+        graphite: 'var(--color-rule)', lead: 'var(--color-muted)', starlight: 'var(--color-ink)', silver: 'var(--color-muted)', plum: 'var(--color-accent)', ash: 'var(--color-paper-2)',
+        iron: 'var(--color-rule-2)', cinder: 'var(--color-paper-3)', 'storm-gray': 'var(--color-muted)', aubergine: 'var(--color-paper-2)',
       },
       fontFamily: {
-        display: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        'serif-accent': ['"Playfair Display"', 'serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        display: ['var(--font-display)'],
+        body: ['var(--font-body)'],
+        'serif-accent': ['var(--font-display)'],
+        mono: ['var(--font-body)'],
       },
       fontSize: {
         caption: ['12px', { lineHeight: '1.5', letterSpacing: '0.24px' }],
@@ -57,11 +53,16 @@ export default {
         128: '128px',
       },
       borderRadius: {
-        card: '0px',
-        input: '8px',
-        btn: '9999px',
-        'btn-lg': '9999px',
-        container: '19.2px',
+        card: 'var(--radius-card)',
+        part: 'var(--radius-part)',
+        input: '12px',
+        btn: 'var(--radius-pill)',
+        'btn-lg': 'var(--radius-pill)',
+        container: 'var(--radius-card)',
+      },
+      boxShadow: {
+        part: 'var(--edge-light), var(--shadow-part)',
+        panel: 'var(--edge-light), var(--shadow-panel)',
       },
       maxWidth: {
         page: '1200px',

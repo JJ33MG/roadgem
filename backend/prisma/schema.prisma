@@ -216,3 +216,14 @@ model AgentLog {
   data      String?
   createdAt DateTime @default(now())
 }
+
+/// A click on a booking or rental link (affiliate partner), for the stats the AI Agency Brain reads.
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  partner   String
+  tripId    String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

@@ -12,6 +12,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { generateTripPDF } from '@/utils/generatePDF';
 import { buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
 import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
+import { partnerFor, trackClick } from '@/lib/track';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
@@ -118,6 +119,11 @@ export function TripResultsPage() {
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';
 
+  function countClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    const partner = partnerFor(e.currentTarget.href);
+    if (partner) trackClick(partner, trip!.tripId);
+  }
+
   async function exportPdf() {
     if (!contentRef.current) return;
     setExporting(true);
@@ -219,7 +225,7 @@ export function TripResultsPage() {
               {picked[activeDay] && <p className="mt-6">Your choice: {picked[activeDay].name}</p>}
               <div className="mt-16 flex flex-wrap gap-12">
                 {stayTypes.map((s) => (
-                  <a key={s} href={stayUrl(s, sleepTown, checkin, checkout)} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
+                  <a key={s} href={stayUrl(s, sleepTown, checkin, checkout)} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} className="btn-header no-underline">
                     {STAY_LABELS[s]}
                   </a>
                 ))}
@@ -237,7 +243,7 @@ export function TripResultsPage() {
           <Panel>
             <h3 className="font-display text-[24px] text-ink" style={head}>Rental car</h3>
             <p className="mt-6">{`Pick up in ${from}, drop off in ${to}.`}</p>
-            <a href={rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr)} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary mt-16 w-full no-underline">
+            <a href={rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr)} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} className="btn-primary mt-16 w-full no-underline">
               Find a car
             </a>
           </Panel>

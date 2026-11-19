@@ -57,3 +57,13 @@ describe('TripResultsPage', () => {
     expect(screen.queryByRole('link', { name: /^Campsites/ })).toBeNull();
   });
 });
+
+describe('TripResultsPage booking clicks', () => {
+  it('counts a click on a booking link', async () => {
+    const beacon = vi.fn(() => true);
+    Object.defineProperty(navigator, 'sendBeacon', { value: beacon, configurable: true });
+    renderTrip(trip({ ...base, stayTypes: ['hotel'] }));
+    screen.getByRole('link', { name: 'Hotels' }).click();
+    expect(beacon).toHaveBeenCalledTimes(1);
+  });
+});

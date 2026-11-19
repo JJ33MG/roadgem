@@ -7,6 +7,7 @@ import { findNearbyPlaces } from '../utils/places';
 import { buildBookingUrl } from '../utils/affiliates';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
+import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
 const RESTAURANT_PRICE_LEVEL_DEFAULT = 2;
@@ -33,13 +34,15 @@ const router = Router();
 
 router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { startLocation, destination, startDate, endDate, budget, travelStyle, priorities, transportType, days: reqDays } = req.body;
-
-    if (!startLocation || !destination || !startDate || !endDate || !budget) {
-      return res
-        .status(400)
-        .json({ error: 'startLocation, destination, startDate, endDate, and budget are required' });
+    const parsed = parseGenerateBody(req.body);
+    if (!parsed.ok) {
+      return res.status(400).json({ error: parsed.error });
     }
+    const {
+      startLocation, destination, startDate, endDate, budget, travelStyle, priorities, transportType, days: reqDays,
+      kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters,
+    } = parsed.value;
+    const planner = { kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters };
 
     if (req.userId) {
       const user = await prisma.user.findUnique({ where: { id: req.userId } });
@@ -66,7 +69,8 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       budget,
       travelStyle || 'balanced',
       priorities || [],
-      transportType || 'own_car'
+      transportType || 'own_car',
+      planner
     );
 
     let totalDistance = 0;
@@ -81,7 +85,8 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     const stopLocations = (tripData.stops || []).map((s: any) => s.location?.split(',')[0].trim()).filter(Boolean);
     const allStopKeys = [...new Set([...stopLocations, destination.split(',')[0].trim()])];
 
-    const preResearchedPerStop = await Promise.all(
+    // Gems switched off: no lookups at all.
+    const preResearchedPerStop = !gemsEnabled ? [] : await Promise.all(
       allStopKeys.map((key: string) =>
         prisma.destinationGem.findMany({
           where: { destination: { contains: key, mode: 'insensitive' } },
@@ -91,7 +96,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     );
     const preResearched = preResearchedPerStop.flat();
 
-    const hiddenGems = preResearched.length >= allStopKeys.length
+    const hiddenGems = !gemsEnabled ? [] : preResearched.length >= allStopKeys.length
       ? preResearched.map((g) => ({
           name: g.name,
           description: g.description,
@@ -122,6 +127,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
         tips: JSON.stringify(tripData.tips || []),
         weather: JSON.stringify(weather),
         hiddenGems: JSON.stringify(hiddenGems),
+        planner: JSON.stringify(planner),
         itineraryDays: {
           create: (tripData.itinerary || []).slice(0, days).map((day: any) => ({
             day: day.day,
@@ -157,6 +163,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       tips: tripData.tips,
       weather,
       hiddenGems,
+      planner,
     };
 
     res.json(trip);
@@ -205,6 +212,7 @@ router.get('/:tripId', async (req, res: Response, next: NextFunction) => {
       tips: JSON.parse(trip.tips),
       weather: JSON.parse(trip.weather),
       hiddenGems: trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [],
+      planner: JSON.parse(trip.planner || '{}'),
     });
   } catch (err) {
     next(err);

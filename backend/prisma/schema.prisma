@@ -43,6 +43,8 @@ model Trip {
   weather       String
   hiddenGems    String?
   fromTemplate  String?
+  /// Routify planner choices as JSON: { kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters }.
+  planner       String   @default("{}")
   createdAt     DateTime @default(now())
 
   itineraryDays TripDay[]

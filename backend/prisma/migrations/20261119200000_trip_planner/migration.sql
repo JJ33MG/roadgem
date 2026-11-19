@@ -1,0 +1,1 @@
+ALTER TABLE "Trip" ADD COLUMN "planner" TEXT NOT NULL DEFAULT '{}';

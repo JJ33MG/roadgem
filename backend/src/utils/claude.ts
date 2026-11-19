@@ -9,6 +9,39 @@ const client = new Anthropic({
 
 const MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6';
 
+export interface PlannerOptions {
+  kmPerDay: number;
+  gemsPerDay: number;
+  gemsEnabled: boolean;
+  stayTypes: ('campsite' | 'hotel' | 'holiday_home')[];
+  filters: string[];
+}
+
+const STAY_WORDS: Record<PlannerOptions['stayTypes'][number], string> = {
+  campsite: 'campsites',
+  hotel: 'hotels',
+  holiday_home: 'holiday homes (Airbnb)',
+};
+
+/** The Routify planner's rules for the itinerary: daily distance, overnight stops, gems on or off. */
+export function plannerPrompt(p: PlannerOptions, transportType: string): string {
+  const lines: string[] = [];
+  if (transportType !== 'public') {
+    lines.push(
+      `DAILY DISTANCE: each driving day ends near ${p.kmPerDay} km from where it started, and never more than ${Math.round(p.kmPerDay * 1.2)} km. ` +
+        `If the whole route is shorter than one day's distance, stay at the destination and do NOT add extra driving to fill the days.`,
+    );
+  }
+  lines.push(`OVERNIGHT STOPS: every night is in a town that has ${p.stayTypes.map((s) => STAY_WORDS[s]).join(' and ')} available.`);
+  lines.push(
+    p.gemsEnabled
+      ? `ROAD GEMS: on each travel day suggest about ${p.gemsPerDay} short stops (old towns, viewpoints, nature) spread along that day's road, each a short detour.`
+      : 'NO GEMS: the traveller switched gems off. Do not suggest detours, hidden gems or sightseeing stops on the road; plan only the route, the driving and the overnight stays.',
+  );
+  if (p.filters.length) lines.push(`TRAVELLER PREFERENCES: ${p.filters.join(', ')}.`);
+  return lines.join('\n');
+}
+
 export async function generateTripItinerary(
   startLocation: string,
   destination: string,
@@ -16,8 +49,10 @@ export async function generateTripItinerary(
   budget: number,
   travelStyle: string,
   priorities: string[],
-  transportType: string = 'own_car'
+  transportType: string = 'own_car',
+  planner: PlannerOptions = { kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'], filters: [] }
 ) {
+  const plannerRules = plannerPrompt(planner, transportType);
   const transportNote =
     transportType === 'rental_car'
       ? 'The traveler will RENT a car — include car rental pickup/dropoff considerations and mention rental-friendly stops. For each stop include "transit": null.'
@@ -38,7 +73,9 @@ Transport: ${transportNote}
 
 IMPORTANT: Every activity, location, and attraction in the itinerary MUST be physically located in or near "${destination}" and along the route from "${startLocation}" to "${destination}". Do NOT suggest activities from other cities or countries.
 
-The "stops" array MUST begin with "${startLocation}" as the first stop (the departure point), followed by the route stops leading to and through "${destination}", in the order the traveler will visit them. Limit to a maximum of 5 stops total.
+The "stops" array MUST begin with "${startLocation}" as the first stop (the departure point), followed by the route stops leading to and through "${destination}", in the order the traveler will visit them. Limit to a maximum of ${Math.min(15, days + 1)} stops total.
+
+${plannerRules}
 
 Keep all text fields SHORT and scannable:
 - "reason" and "description": max 1 short sentence (under 20 words)

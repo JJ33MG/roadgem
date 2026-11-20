@@ -46,6 +46,7 @@ export function TripMapView({ stops, gems, route, dayGems = [], className = '' }
   useEffect(() => {
     if (!el.current || map.current) return;
     const m = L.map(el.current, { scrollWheelZoom: false, zoomControl: true });
+    m.attributionControl.setPrefix(false);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       subdomains: 'abcd',

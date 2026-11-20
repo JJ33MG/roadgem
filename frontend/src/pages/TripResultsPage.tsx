@@ -5,7 +5,7 @@ import { tripsApi } from '@/lib/api';
 import { AccommodationCard } from '@/components/display/AccommodationCard';
 import { Modal } from '@/components/utility/Modal';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
-import { RouteSketch } from '@/components/map/RouteSketch';
+import { TripMapView } from '@/components/map/TripMapView';
 import { Button, Panel } from '@/components/ui';
 import { useAccommodations } from '@/hooks/useAccommodations';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -33,6 +33,21 @@ function rentalUrl(pickup: string, dropoff: string, from: string, to: string) {
 }
 
 /** Gems near one day's leg: inside the leg's box (with a little margin), else none. */
+/** True on screens wide enough for the side column (Tailwind lg). */
+function useWide(): boolean {
+  const query = '(min-width: 1024px)';
+  const get = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches;
+  const [wide, setWide] = useState(get);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const mq = window.matchMedia(query);
+    const on = () => setWide(mq.matches);
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
+  return wide;
+}
+
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(',')[0].trim();
 
 type Pt = { latitude: number; longitude: number };
@@ -69,6 +84,7 @@ export function TripResultsPage() {
   const [staysOpen, setStaysOpen] = useState(false);
   const [picked, setPicked] = useState<Record<number, AccommodationOption>>({});
   const { isPremium } = useSubscription();
+  const wide = useWide();
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -157,8 +173,16 @@ export function TripResultsPage() {
   const sleepTown = town(legTo?.location) || trip.destination;
   const weather = trip.weather?.find((w) => w.day === activeDay);
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
-  const sketchGems = gemsOn ? allGems.filter((g) => g.latitude && g.longitude).map((g) => ({ lat: g.latitude, lng: g.longitude, label: g.name })) : [];
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
+  const tripMap = (
+    <TripMapView
+      stops={stops}
+      gems={gemsOn ? allGems : []}
+      route={planner?.route}
+      dayGems={showGems.map((g) => g.name)}
+      className="border border-rule"
+    />
+  );
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';
 
@@ -216,6 +240,7 @@ export function TripResultsPage() {
           </button>
         ))}
       </nav>
+      {!wide && <div className="mt-16">{tripMap}</div>}
 
       <div className="trip-results-grid mt-32 grid gap-32">
         <div className="min-w-0">
@@ -283,9 +308,7 @@ export function TripResultsPage() {
         </div>
 
         <aside className="grid content-start gap-24">
-          <div className="overflow-hidden rounded-card border border-rule">
-            <RouteSketch stops={sketchStops} gems={sketchGems} activeLeg={onRoad && toIdx === fromIdx + 1 ? fromIdx : undefined} />
-          </div>
+          {wide && <div className="lg:sticky lg:top-[88px]">{tripMap}</div>}
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Open the route in Google Maps</a>
           <Panel>
             <h3 className="font-display text-[24px] text-ink" style={head}>Rental car</h3>

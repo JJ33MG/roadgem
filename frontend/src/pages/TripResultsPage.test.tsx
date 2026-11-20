@@ -5,6 +5,7 @@ import type { GeneratedTrip } from '@/types';
 import { TripResultsPage } from './TripResultsPage';
 
 vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: false }) }));
+vi.mock('@/components/map/TripMapView', () => ({ TripMapView: () => <div role="region" aria-label="Map of the route, the nights and the gems" /> }));
 vi.mock('@/hooks/useAccommodations', () => ({ useAccommodations: () => ({ accommodations: [], isLoading: false }) }));
 
 const slot = (activity: string, location: string) => ({ time: '10:00', activity, location, description: 'A short visit.', estimatedCost: 10, notes: '' });

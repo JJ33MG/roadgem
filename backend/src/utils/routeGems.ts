@@ -182,7 +182,21 @@ async function nearby(p: LatLng, key: string): Promise<PlaceCandidate[]> {
   return cands;
 }
 
-async function routeLine(stops: LatLng[], key: string): Promise<LatLng[]> {
+export interface RoadLine {
+  points: LatLng[];
+  /** Google's encoded polyline of the road; '' when only the stops are known. */
+  encoded: string;
+}
+
+/** The driving road through the stops (Google Directions), or straight lines between them. */
+export async function routeLine(stops: LatLng[]): Promise<RoadLine> {
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  const clean = stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
+  if (!key || clean.length < 2) return { points: clean, encoded: '' };
+  return directions(clean, key);
+}
+
+async function directions(stops: LatLng[], key: string): Promise<RoadLine> {
   try {
     const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
       params: {
@@ -194,19 +208,18 @@ async function routeLine(stops: LatLng[], key: string): Promise<LatLng[]> {
       timeout: 10000,
     });
     const poly = res.data?.routes?.[0]?.overview_polyline?.points;
-    if (poly) return decodePolyline(poly);
+    if (poly) return { points: decodePolyline(poly), encoded: poly };
   } catch {
     // Fall back to the stops themselves.
   }
-  return stops;
+  return { points: stops, encoded: '' };
 }
 
 /** Real gems for a route: about `perPoint` per sampled point, `total` at most. */
-export async function findRouteGems(stops: LatLng[], total: number, perPoint = 2): Promise<RouteGem[]> {
+export async function findRouteGems(road: RoadLine, total: number, perPoint = 2): Promise<RouteGem[]> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
-  const clean = stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
-  if (!key || clean.length === 0 || total <= 0) return [];
-  const line = clean.length > 1 ? await routeLine(clean, key) : clean;
+  const line = road.points;
+  if (!key || line.length === 0 || total <= 0) return [];
   const points = samplePoints(line, 75, 16);
   const perPointCands = await Promise.all(points.map((p) => nearby(p, key).catch(() => [] as PlaceCandidate[])));
   // Take the best few per point so gems spread over the whole road, then cap the total.

@@ -90,3 +90,15 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 /* The one ambient loop (Ribbon § Motion): the road lines drift slowly; still under reduced motion (base.css). */
 @keyframes road-drift { from { transform: translateX(0); } to { transform: translateX(-120px); } }
 .road-lines { animation: road-drift 18s var(--ease-in-out) infinite alternate; }
+
+/* Trip map (Leaflet): colours from the theme tokens. */
+.rt-map { height: 420px; width: 100%; border-radius: var(--radius-card, 16px); background: var(--color-paper-2); z-index: 0; }
+@media (max-width: 1023px) { .rt-map { height: 320px; } }
+.rt-map .leaflet-container, .rt-map { font-family: var(--font-body); }
+.rt-road-casing { stroke: var(--color-paper); }
+.rt-road { stroke: var(--color-accent); }
+.rt-night { stroke: var(--color-paper); fill: var(--color-ink); fill-opacity: 1; }
+.rt-gem { stroke: var(--color-accent); fill: var(--color-paper); fill-opacity: 1; }
+.rt-gem-today { fill: var(--color-accent); stroke: var(--color-paper); }
+.rt-map .leaflet-popup-content { font-size: 16px; line-height: 1.4; display: grid; gap: var(--space-2xs); }
+.rt-map .leaflet-popup-content a { color: var(--color-accent); }

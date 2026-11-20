@@ -307,5 +307,7 @@ export interface GeneratedTrip {
     filters: string[];
     /** Each day's overnight town as the plan names it (index 0 = day 1). */
     overnights?: string[];
+    /** The driving road as Google's encoded polyline. */
+    route?: string;
   };
 }

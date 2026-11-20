@@ -11,6 +11,7 @@ import {
   type StayType,
   type TripPlan,
 } from '@/lib/tripPlan';
+import { CityField } from './CityField';
 import { FiltersSheet } from './FiltersSheet';
 
 type Props = {
@@ -82,14 +83,8 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
         }}
       >
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_96px]">
-          <label htmlFor={ids.from} className={labelClass} style={{ fontWeight: 500 }}>
-            From
-            <input id={ids.from} className={inputClass} value={plan.from} placeholder="Madrid" autoComplete="off" onChange={(e) => set('from', e.target.value)} />
-          </label>
-          <label htmlFor={ids.to} className={labelClass} style={{ fontWeight: 500 }}>
-            To
-            <input id={ids.to} className={inputClass} value={plan.to} placeholder="Brussels" autoComplete="off" onChange={(e) => set('to', e.target.value)} />
-          </label>
+          <CityField id={ids.from} label="From" value={plan.from} placeholder="Madrid" onChange={(v) => set('from', v)} />
+          <CityField id={ids.to} label="To" value={plan.to} placeholder="Brussels" onChange={(v) => set('to', v)} />
           <label htmlFor={ids.days} className={labelClass} style={{ fontWeight: 500 }}>
             Days
             <input id={ids.days} className={inputClass} type="number" min={1} max={30} value={plan.days} onChange={(e) => set('days', Math.min(30, Math.max(1, Number(e.target.value) || 1)))} />

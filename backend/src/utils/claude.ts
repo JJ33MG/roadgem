@@ -34,6 +34,11 @@ export function plannerPrompt(p: PlannerOptions, transportType: string): string 
   }
   lines.push(`OVERNIGHT STOPS: every night is in a town that has ${p.stayTypes.map((s) => STAY_WORDS[s]).join(' and ')} available.`);
   lines.push(
+    'DAYS AND STOPS MATCH: stop 1 is the start. Day N drives from stop N to stop N+1, and the evening of day N is in stop N+1 (that is where the traveller sleeps). ' +
+      'Never mention sleeping or staying overnight anywhere else. Days after the last stop are spent at the destination without long drives.',
+  );
+  lines.push('Never call a place a "road gem" or "hidden gem" in the itinerary text: Routify adds its own checked gems next to the plan.');
+  lines.push(
     p.gemsEnabled
       ? `ROAD GEMS: on each travel day suggest about ${p.gemsPerDay} short stops (old towns, viewpoints, nature) spread along that day's road, each a short detour.`
       : 'NO GEMS: the traveller switched gems off. Do not suggest detours, hidden gems or sightseeing stops on the road; plan only the route, the driving and the overnight stays.',

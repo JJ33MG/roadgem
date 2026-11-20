@@ -35,6 +35,14 @@ describe('parseGenerateBody', () => {
 });
 
 describe('plannerPrompt', () => {
+  it('ties every day to its own overnight stop and keeps gem labels out of the day text', async () => {
+    const { plannerPrompt } = await import('./claude');
+    const t = plannerPrompt({ kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['hotel'], filters: [] }, 'own_car');
+    expect(t).toContain('Day N drives from stop N to stop N+1');
+    expect(t).toContain('the evening of day N is in stop N+1');
+    expect(t).toContain('Never call a place a "road gem" or "hidden gem"');
+  });
+
   it('asks for the daily distance and no padding on short routes', async () => {
     const { plannerPrompt } = await import('./claude');
     const t = plannerPrompt({ kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'], filters: [] }, 'own_car');

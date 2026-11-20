@@ -22,7 +22,8 @@ async function geocode(place: string): Promise<LatLng | null> {
   if (!apiKey) return null;
   // Places (already enabled for photos) instead of the Geocoding API, which this key does not have.
   const res = await axios.get('https://maps.googleapis.com/maps/api/place/findplacefromtext/json', {
-    params: { input: place, inputtype: 'textquery', fields: 'geometry', key: apiKey },
+    // Routify plans European road trips: prefer the European Toledo over the one in Ohio.
+    params: { input: place, inputtype: 'textquery', fields: 'geometry', locationbias: 'circle:2500000@48,10', key: apiKey },
     timeout: 8000,
   });
   const loc = res.data?.candidates?.[0]?.geometry?.location;

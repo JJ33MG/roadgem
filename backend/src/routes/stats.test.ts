@@ -14,7 +14,7 @@ function fakePrisma() {
       count: vi.fn(async () => 7),
       groupBy: vi.fn(async () => [{ partner: 'booking', _count: { _all: 5 } }, { partner: 'airbnb', _count: { _all: 2 } }]),
     },
-    communityGem: { count: vi.fn(async ({ where }: any = {}) => (where?.status === 'pending' ? 3 : 8)) },
+    post: { count: vi.fn(async ({ where }: any = {}) => (where?.status === 'pending' ? 3 : 8)) },
   };
 }
 

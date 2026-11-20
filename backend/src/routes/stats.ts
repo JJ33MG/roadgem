@@ -25,8 +25,8 @@ export async function buildStats(db: PrismaClient, now: Date): Promise<RoutifySt
     db.user.count({ where: { subscriptionTier: 'premium' } }),
     db.affiliateClick.count({ where: since }),
     db.affiliateClick.groupBy({ by: ['partner'], where: since, _count: { _all: true } }),
-    db.communityGem.count({ where: { status: 'pending' } }),
-    db.communityGem.count({ where: { status: 'approved' } }),
+    db.post.count({ where: { status: 'pending' } }),
+    db.post.count({ where: { status: 'public' } }),
   ]);
   return {
     generatedAt: now.toISOString(),

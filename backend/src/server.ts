@@ -16,6 +16,7 @@ import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
 import path from 'path';
 import { routeRouter } from './routes/route';
+import playRouter from './routes/play';
 import { errorHandler } from './middleware/errors';
 
 dotenv.config();
@@ -44,6 +45,8 @@ app.use('/api', cors({
 
 // Stripe webhook needs raw body — must be registered BEFORE express.json()
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+// Community photos arrive as data URLs (shrunk in the browser): a larger limit for those routes only.
+app.use(['/api/community/posts', '/api/community/suggest'], express.json({ limit: '8mb' }));
 app.use(express.json());
 
 // Routes
@@ -61,6 +64,7 @@ app.use('/api/accommodations', accommodationsRouter);
 app.use('/api/destinations', destinationsRouter);
 app.use('/api/stripe', stripeRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/community', playRouter);
 app.use('/api/community', communityRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/stats', statsRouter());

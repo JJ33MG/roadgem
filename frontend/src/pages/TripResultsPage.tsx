@@ -69,8 +69,10 @@ export function TripResultsPage() {
   }, [tripId]);
 
   const stops = trip?.stops ?? [];
-  const legFrom = stops[Math.min(activeDay - 1, Math.max(0, stops.length - 2))];
-  const legTo = stops[Math.min(activeDay, stops.length - 1)];
+  // Days past the last leg are spent at the destination: no driving, the same bed.
+  const onRoad = activeDay <= stops.length - 1;
+  const legFrom = onRoad ? stops[activeDay - 1] : stops[stops.length - 1];
+  const legTo = onRoad ? stops[activeDay] : stops[stops.length - 1];
   const start = trip?.startDate ? new Date(trip.startDate) : null;
   const checkin = start ? format(addDays(start, activeDay - 1), 'yyyy-MM-dd') : undefined;
   const checkout = start ? format(addDays(start, activeDay), 'yyyy-MM-dd') : undefined;
@@ -109,7 +111,7 @@ export function TripResultsPage() {
   const day = days.find((d) => d.day === activeDay) ?? days[0];
   const from = town(stops[0]?.location) || 'Start';
   const to = town(stops[stops.length - 1]?.location) || trip.destination;
-  const legGems = gemsOn ? gemsForLeg(trip.hiddenGems ?? [], legFrom, legTo) : [];
+  const legGems = gemsOn && onRoad ? gemsForLeg(trip.hiddenGems ?? [], legFrom, legTo) : [];
   const showGems = gemsOn ? (legGems.length ? legGems : (trip.hiddenGems ?? []).slice(0, planner?.gemsPerDay ?? 3)) : [];
   const sleepTown = town(legTo?.location) || trip.destination;
   const weather = trip.weather?.find((w) => w.day === activeDay);
@@ -182,7 +184,7 @@ export function TripResultsPage() {
               {checkin ? `, ${format(new Date(checkin), 'EEEE d MMMM')}` : ''}
             </p>
             <h2 id="day-head" className="mt-4 font-display text-[32px] text-ink md:text-[40px]" style={head}>
-              {`${town(legFrom?.location)} to ${sleepTown}`}
+              {onRoad ? `${town(legFrom?.location)} to ${sleepTown}` : `A day in ${sleepTown}`}
             </h2>
             {weather && <p className="mt-8 text-[17px]">{`${weather.condition}, ${Math.round(weather.temp)}°`}</p>}
 
@@ -237,7 +239,7 @@ export function TripResultsPage() {
 
         <aside className="grid content-start gap-24">
           <div className="overflow-hidden rounded-card border border-rule">
-            <RouteSketch stops={sketchStops} gems={sketchGems} activeLeg={Math.min(activeDay - 1, Math.max(0, sketchStops.length - 2))} />
+            <RouteSketch stops={sketchStops} gems={sketchGems} activeLeg={onRoad ? activeDay - 1 : undefined} />
           </div>
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Open the route in Google Maps</a>
           <Panel>

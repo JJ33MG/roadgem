@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { GeneratedTrip } from '@/types';
@@ -42,6 +42,19 @@ describe('TripResultsPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Madrid to Brussels' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Madrid to Burgos' })).toBeInTheDocument();
     expect(screen.getByText('Sleep in Burgos')).toBeInTheDocument();
+  });
+
+  it('keeps the nights in the last town when the trip has more days than legs', () => {
+    const t = trip({ ...base });
+    t.destination = 'Toledo';
+    t.days = 3;
+    t.stops = [stop('Madrid', 40.4, -3.7), stop('Toledo', 39.86, -4.02)];
+    t.itinerary = [1, 2, 3].map((day) => ({ day, morning: slot('Walk', 'Toledo'), afternoon: slot('Museum', 'Toledo'), evening: slot('Dinner', 'Toledo') }));
+    renderTrip(t);
+    expect(screen.getByRole('heading', { name: 'Madrid to Toledo', level: 2 })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect(screen.getByRole('heading', { name: 'A day in Toledo', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Sleep in Toledo')).toBeInTheDocument();
   });
 
   it('shows no gems and no Plus prompt when gems are switched off', () => {

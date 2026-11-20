@@ -196,10 +196,14 @@ export function TripResultsPage() {
                 <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>Gems on the way</h3>
                 <ul className="mt-12 grid gap-12 p-0" style={{ listStyle: 'none' }}>
                   {showGems.map((g) => (
-                    <li key={g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
+                    <li key={g.placeId ?? g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
+                      {g.photoUrl && (
+                        <img src={`${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" />
+                      )}
                       <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
                       <span>{g.description}</span>
-                      <a className="text-[17px] text-ink" href={`https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
+                      {g.address && <span className="text-[16px] text-muted">{g.address}</span>}
+                      <a className="text-[17px] text-ink" href={g.mapsUrl ?? `https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
                         Open in Google Maps
                       </a>
                     </li>

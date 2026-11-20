@@ -209,6 +209,12 @@ export interface HiddenGem {
   latitude: number;
   longitude: number;
   category: 'restaurant' | 'café' | 'viewpoint' | 'activity' | 'market' | 'bar' | 'nature' | 'culture' | 'historic' | 'other';
+  /** Set for real Google places: the place, its rating and a link to it. */
+  placeId?: string;
+  rating?: number;
+  reviews?: number;
+  mapsUrl?: string;
+  photoUrl?: string;
 }
 
 export interface RentalCarOption {

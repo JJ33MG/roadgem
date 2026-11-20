@@ -2,12 +2,12 @@ import { Router, Response, NextFunction } from 'express';
 import { generateTripItinerary } from '../utils/claude';
 import { calculateRoute } from '../utils/googleMaps';
 import { getWeather } from '../utils/weather';
-import { findHiddenGems } from '../utils/tavily';
 import { findNearbyPlaces } from '../utils/places';
 import { buildBookingUrl } from '../utils/affiliates';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { gemsFor } from '../utils/gems';
+import { findRouteGems } from '../utils/routeGems';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -84,33 +84,13 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
 
     const weather = await getWeather(destination, startDate, endDate);
 
-    // Fetch pre-researched gems for EACH stop, 2–3 per stop, so gems are distributed across the route
-    const stopLocations = (tripData.stops || []).map((s: any) => s.location?.split(',')[0].trim()).filter(Boolean);
-    const allStopKeys = [...new Set([...stopLocations, destination.split(',')[0].trim()])];
-
-    // Gems switched off: no lookups at all.
-    const preResearchedPerStop = !gemsEnabled ? [] : await Promise.all(
-      allStopKeys.map((key: string) =>
-        prisma.destinationGem.findMany({
-          where: { destination: { contains: key, mode: 'insensitive' } },
-          take: 3,
-        })
-      )
-    );
-    const preResearched = preResearchedPerStop.flat();
-
-    const hiddenGems = !gemsEnabled ? [] : preResearched.length >= allStopKeys.length
-      ? preResearched.map((g) => ({
-          name: g.name,
-          description: g.description,
-          address: g.address,
-          latitude: g.latitude ?? undefined,
-          longitude: g.longitude ?? undefined,
-          category: g.category,
-          whyHidden: g.whyHidden,
-          photoUrl: g.photoUrl ?? undefined,
-        }))
-      : await findHiddenGems(tripData.stops || []);
+    // Real gems only: Google places sampled along the driving route (every ~75 km, start and end).
+    const hiddenGems = !gemsEnabled
+      ? []
+      : await findRouteGems(
+          (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) })),
+          Math.max(3, gemsPerDay * days),
+        ).catch(() => []);
 
     const saved = await prisma.trip.create({
       data: {

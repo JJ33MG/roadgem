@@ -35,6 +35,33 @@ describe('PlannerPanel', () => {
     expect(screen.getByText('About 5 days at 350 km a day')).toBeInTheDocument();
   });
 
+  it('checks the distance before planning and offers more days when they are too few', async () => {
+    const onSubmit = vi.fn();
+    const estimateKm = vi.fn().mockResolvedValue(1580);
+    render(<PlannerPanel onSubmit={onSubmit} estimateKm={estimateKm} initial={{ ...DEFAULT_PLAN, days: 3, from: 'Madrid', to: 'Brussels' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
+    expect(await screen.findByText('About 5 days at 350 km a day')).toBeInTheDocument();
+    expect(estimateKm).toHaveBeenCalledWith('Madrid', 'Brussels');
+    expect(onSubmit).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Plan it in 5 days' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ days: 5 }));
+  });
+
+  it('can plan anyway with the days the traveller chose', async () => {
+    const onSubmit = vi.fn();
+    render(<PlannerPanel onSubmit={onSubmit} estimateKm={async () => 1580} initial={{ ...DEFAULT_PLAN, days: 3, from: 'Madrid', to: 'Brussels' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Keep 3 days' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ days: 3 }));
+  });
+
+  it('plans straight away when the distance fits or cannot be checked', async () => {
+    const onSubmit = vi.fn();
+    render(<PlannerPanel onSubmit={onSubmit} estimateKm={async () => null} initial={{ ...DEFAULT_PLAN, from: 'Madrid', to: 'Toledo' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+  });
+
   it('does not submit without a start and an end', () => {
     const onSubmit = vi.fn();
     render(<PlannerPanel onSubmit={onSubmit} />);

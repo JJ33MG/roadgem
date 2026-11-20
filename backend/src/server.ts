@@ -15,6 +15,7 @@ import templatesRouter from './routes/templates';
 import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
 import path from 'path';
+import { routeRouter } from './routes/route';
 import { errorHandler } from './middleware/errors';
 
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api/community', communityRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/stats', statsRouter());
 app.use('/api/track', trackRouter);
+app.use('/api/route', routeRouter);
 
 // Preview and single-service deploys: the built website is served from here (Dockerfile copies it to public/).
 if (process.env.SERVE_FRONTEND === 'true') {

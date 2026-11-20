@@ -19,20 +19,26 @@ type Props = {
   routeKm?: number;
   busy?: boolean;
   onSubmit: (plan: TripPlan) => void;
+  /** Rough driving distance for a route, checked before planning; null when unknown. */
+  estimateKm?: (from: string, to: string) => Promise<number | null>;
 };
 
 const LABEL_OF = new Map(FILTER_GROUPS.flatMap((g) => g.options.map((o) => [o.id, o.label] as const)));
 const STAYS: StayType[] = ['campsite', 'hotel', 'holiday_home'];
 
 /** The trip, set like an instrument: route, days, daily distance, gems and where to sleep. */
-export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit }: Props) {
+export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, estimateKm }: Props) {
   const [plan, setPlan] = useState<TripPlan>(initial);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [missing, setMissing] = useState(false);
+  const [estimated, setEstimated] = useState<number | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [checking, setChecking] = useState(false);
   const ids = { from: useId(), to: useId(), days: useId() };
   const set = <K extends keyof TripPlan>(key: K, value: TripPlan[K]) => setPlan((p) => ({ ...p, [key]: value }));
 
-  const needed = routeKm ? suggestedDays(routeKm, plan.kmPerDay) : 0;
+  const knownKm = routeKm ?? estimated;
+  const needed = knownKm ? suggestedDays(knownKm, plan.kmPerDay) : 0;
   const tooShort = needed > plan.days;
   const toggleStay = (s: StayType) => {
     const next = plan.stayTypes.includes(s) ? plan.stayTypes.filter((x) => x !== s) : [...plan.stayTypes, s];
@@ -40,6 +46,23 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit }
   };
   const toggleFilter = (id: string) => set('filters', plan.filters.includes(id) ? plan.filters.filter((f) => f !== id) : [...plan.filters, id]);
   const extraFilters = plan.filters.filter((f) => !QUICK_FILTERS.includes(f)).length;
+
+  async function check() {
+    if (!estimateKm) return onSubmit(plan);
+    setChecking(true);
+    const km = await estimateKm(plan.from.trim(), plan.to.trim()).catch(() => null);
+    setChecking(false);
+    if (km && suggestedDays(km, plan.kmPerDay) > plan.days) {
+      setEstimated(km);
+      setAsking(true);
+      return;
+    }
+    onSubmit(plan);
+  }
+  const finish = (days: number) => {
+    setAsking(false);
+    onSubmit({ ...plan, days });
+  };
 
   const inputClass = 'h-[56px] w-full rounded-input border border-rule bg-paper px-16 text-[19px] text-ink';
   const labelClass = 'flex flex-col gap-[6px] text-[16px] text-muted';
@@ -55,7 +78,7 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit }
             return;
           }
           setMissing(false);
-          onSubmit(plan);
+          void check();
         }}
       >
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_96px]">
@@ -108,9 +131,20 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit }
           </button>
         </div>
 
-        <Button type="submit" variant="primary" className="mt-20 w-full" disabled={busy}>
-          {busy ? 'Planning your trip' : 'Plan my trip'}
-        </Button>
+        {asking && tooShort ? (
+          <div className="mt-20 grid gap-8 sm:grid-cols-2">
+            <Button type="button" variant="primary" className="w-full" disabled={busy} onClick={() => finish(Math.min(30, needed))}>
+              {`Plan it in ${Math.min(30, needed)} days`}
+            </Button>
+            <Button type="button" className="w-full" disabled={busy} onClick={() => finish(plan.days)}>
+              {`Keep ${plan.days} days`}
+            </Button>
+          </div>
+        ) : (
+          <Button type="submit" variant="primary" className="mt-20 w-full" disabled={busy || checking}>
+            {busy ? 'Planning your trip' : checking ? 'Checking the distance' : 'Plan my trip'}
+          </Button>
+        )}
       </form>
       <FiltersSheet open={sheetOpen} selected={plan.filters} onChange={(f) => set('filters', f)} onClose={() => setSheetOpen(false)} />
     </Panel>

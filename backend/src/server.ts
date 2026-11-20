@@ -21,6 +21,8 @@ import { errorHandler } from './middleware/errors';
 dotenv.config();
 
 const app: Express = express();
+// Railway puts one proxy in front: req.ip is then the visitor's address.
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -31,7 +33,8 @@ const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
-app.use(cors({
+// Only the API is cross-origin; the site's own files must load from any address it is served on.
+app.use('/api', cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: ${origin} not allowed`));
@@ -63,6 +66,9 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/stats', statsRouter());
 app.use('/api/track', trackRouter);
 app.use('/api/route', routeRouter);
+
+// Unknown API paths answer in JSON, never with the website.
+app.use('/api', (_req: Request, res: Response) => res.status(404).json({ error: 'Not found' }));
 
 // Preview and single-service deploys: the built website is served from here (Dockerfile copies it to public/).
 if (process.env.SERVE_FRONTEND === 'true') {

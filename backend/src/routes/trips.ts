@@ -7,6 +7,7 @@ import { findNearbyPlaces } from '../utils/places';
 import { buildBookingUrl } from '../utils/affiliates';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
+import { gemsFor } from '../utils/gems';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -44,8 +45,10 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     } = parsed.value;
     const planner = { kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters };
 
+    let isPremium = false;
     if (req.userId) {
       const user = await prisma.user.findUnique({ where: { id: req.userId } });
+      isPremium = user?.subscriptionTier === 'premium';
       if (user && user.subscriptionTier !== 'premium') {
         const existingTrips = await prisma.trip.count({ where: { userId: req.userId } });
         if (existingTrips >= 1) {
@@ -162,7 +165,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       highlights: tripData.highlights,
       tips: tripData.tips,
       weather,
-      hiddenGems,
+      ...gemsFor<(typeof hiddenGems)[number]>(hiddenGems, isPremium),
       planner,
     };
 
@@ -172,7 +175,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
   }
 });
 
-router.get('/:tripId', async (req, res: Response, next: NextFunction) => {
+router.get('/:tripId', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id: req.params.tripId },
@@ -182,6 +185,9 @@ router.get('/:tripId', async (req, res: Response, next: NextFunction) => {
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found' });
     }
+
+    const viewer = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
+    const viewerIsPremium = viewer?.subscriptionTier === 'premium';
 
     const itinerary = trip.itineraryDays.map((d) => {
       const day: Record<string, unknown> = { day: d.day };
@@ -211,7 +217,7 @@ router.get('/:tripId', async (req, res: Response, next: NextFunction) => {
       highlights: JSON.parse(trip.highlights),
       tips: JSON.parse(trip.tips),
       weather: JSON.parse(trip.weather),
-      hiddenGems: trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [],
+      ...gemsFor(trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [], viewerIsPremium),
       planner: JSON.parse(trip.planner || '{}'),
     });
   } catch (err) {

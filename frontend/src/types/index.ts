@@ -290,6 +290,8 @@ export interface GeneratedTrip {
   tips: string[];
   weather: GeneratedWeatherDay[];
   hiddenGems: HiddenGem[];
+  /** Gems held back from the free plan (the server sends the first three). */
+  lockedGems?: number;
   /** The planner choices the trip was made with (absent on trips made before Routify). */
   planner?: {
     kmPerDay: number;

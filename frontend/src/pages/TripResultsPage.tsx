@@ -111,12 +111,15 @@ export function TripResultsPage() {
   const day = days.find((d) => d.day === activeDay) ?? days[0];
   const from = town(stops[0]?.location) || 'Start';
   const to = town(stops[stops.length - 1]?.location) || trip.destination;
-  const legGems = gemsOn && onRoad ? gemsForLeg(trip.hiddenGems ?? [], legFrom, legTo) : [];
-  const showGems = gemsOn ? (legGems.length ? legGems : (trip.hiddenGems ?? []).slice(0, planner?.gemsPerDay ?? 3)) : [];
+  // The free plan shows three gems per trip (the server already holds the rest back).
+  const allGems = isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3);
+  const lockedGems = isPremium ? 0 : (trip.lockedGems ?? Math.max(0, (trip.hiddenGems ?? []).length - 3));
+  const legGems = gemsOn && onRoad ? gemsForLeg(allGems, legFrom, legTo) : [];
+  const showGems = gemsOn ? (legGems.length ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];
   const sleepTown = town(legTo?.location) || trip.destination;
   const weather = trip.weather?.find((w) => w.day === activeDay);
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
-  const sketchGems = gemsOn ? (trip.hiddenGems ?? []).filter((g) => g.latitude && g.longitude).map((g) => ({ lat: g.latitude, lng: g.longitude, label: g.name })) : [];
+  const sketchGems = gemsOn ? allGems.filter((g) => g.latitude && g.longitude).map((g) => ({ lat: g.latitude, lng: g.longitude, label: g.name })) : [];
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';
@@ -252,6 +255,7 @@ export function TripResultsPage() {
           {gemsOn && !isPremium && (
             <Panel>
               <h3 className="font-display text-[24px] text-ink" style={head}>Every gem with Plus</h3>
+              {lockedGems > 0 && <p className="mt-6 text-ink" style={{ fontWeight: 500 }}>{`${lockedGems} more gems on this trip with Plus.`}</p>}
               <p className="mt-6">Unlimited trips, every gem on the route and a printable trip.</p>
               <Link to="/pricing" className="btn-header mt-16 no-underline">See Plus</Link>
             </Panel>

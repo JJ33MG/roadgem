@@ -57,6 +57,15 @@ describe('TripResultsPage', () => {
     expect(screen.getByText('Sleep in Toledo')).toBeInTheDocument();
   });
 
+  it('shows a free traveller three gems and says how many more Plus unlocks', () => {
+    const t = trip({ ...base, gemsPerDay: 6 });
+    t.hiddenGems = Array.from({ length: 6 }, (_, i) => ({ name: `Gem ${i}`, description: 'Nice.', address: 'Lerma', latitude: 42 + i / 100, longitude: -3.7, category: 'historic' }));
+    t.lockedGems = 4;
+    renderTrip(t);
+    expect(screen.getAllByText(/^Gem \d$/).length).toBeLessThanOrEqual(3);
+    expect(screen.getByText('4 more gems on this trip with Plus.')).toBeInTheDocument();
+  });
+
   it('shows no gems and no Plus prompt when gems are switched off', () => {
     renderTrip(trip({ ...base, gemsEnabled: false, stayTypes: ['hotel'] }));
     expect(screen.queryByText(/gem/i)).toBeNull();

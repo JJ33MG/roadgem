@@ -35,6 +35,17 @@ function rentalUrl(pickup: string, dropoff: string, from: string, to: string) {
 /** Gems near one day's leg: inside the leg's box (with a little margin), else none. */
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(',')[0].trim();
 
+type Pt = { latitude: number; longitude: number };
+/** Rough distance (km) from a point to the road between two stops. */
+function kmToLeg(p: Pt, a: Pt, b: Pt): number {
+  const kx = 111.32 * Math.cos((p.latitude * Math.PI) / 180);
+  const ky = 110.57;
+  const [ax, ay, bx, by, px, py] = [a.longitude * kx, a.latitude * ky, b.longitude * kx, b.latitude * ky, p.longitude * kx, p.latitude * ky];
+  const dx = bx - ax, dy = by - ay;
+  const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy))) : 0;
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
 function gemsForLeg(gems: HiddenGem[], a?: { latitude: number; longitude: number }, b?: { latitude: number; longitude: number }) {
   if (!a || !b) return [];
   const m = 0.35;
@@ -125,7 +136,21 @@ export function TripResultsPage() {
   // The free plan shows three gems per trip (the server already holds the rest back).
   const allGems = isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3);
   const lockedGems = isPremium ? 0 : (trip.lockedGems ?? Math.max(0, (trip.hiddenGems ?? []).length - 3));
-  const legGems = gemsOn && onRoad ? gemsForLeg(allGems, legFrom, legTo) : [];
+  // Each gem belongs to the one day whose road passes closest to it.
+  const dayCount = (trip.itinerary ?? []).length || trip.days || 1;
+  const legOf = (d: number) => [stops[d === 1 ? 0 : nightIndex(d - 1)], stops[nightIndex(d)]] as const;
+  const dayOfGem = (g: Pt) => {
+    let best = 0;
+    let bestKm = Infinity;
+    for (let d = 1; d <= dayCount; d++) {
+      const [a, b] = legOf(d);
+      if (!a || !b || a === b) continue;
+      const km = kmToLeg(g, a, b);
+      if (km < bestKm) [best, bestKm] = [d, km];
+    }
+    return best;
+  };
+  const legGems = gemsOn && onRoad ? gemsForLeg(allGems, legFrom, legTo).filter((g) => dayOfGem(g) === activeDay) : [];
   // Only gems on this day's road; older trips whose gems have no coordinates show the first few.
   const placed = allGems.some((g) => g.latitude && g.longitude);
   const showGems = gemsOn ? (placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];

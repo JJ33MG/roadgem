@@ -83,6 +83,16 @@ describe('TripResultsPage', () => {
     expect(screen.queryByText('Far gem')).toBeNull();
   });
 
+  it('shows a gem next to an overnight town on one day only', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = [{ name: 'Burgos gem', description: 'x', address: 'x', latitude: 42.4, longitude: -3.65, category: 'nature' }];
+    renderTrip(t);
+    const day1 = screen.queryAllByText('Burgos gem').length;
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    const day2 = screen.queryAllByText('Burgos gem').length;
+    expect(day1 + day2).toBe(1);
+  });
+
   it('shows no gems and no Plus prompt when gems are switched off', () => {
     renderTrip(trip({ ...base, gemsEnabled: false, stayTypes: ['hotel'] }));
     expect(screen.queryByText(/gem/i)).toBeNull();

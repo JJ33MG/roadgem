@@ -1,4 +1,4 @@
-// A quick distance check before planning: geocode both ends, straight line × 1.25 for the road.
+// A quick distance check before planning: locate both ends, straight line × 1.25 for the road.
 import axios from 'axios';
 import { Router, Request, Response } from 'express';
 
@@ -20,8 +20,12 @@ async function geocode(place: string): Promise<LatLng | null> {
   if (cache.has(key)) return cache.get(key)!;
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) return null;
-  const res = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', { params: { address: place, key: apiKey }, timeout: 8000 });
-  const loc = res.data?.results?.[0]?.geometry?.location;
+  // Places (already enabled for photos) instead of the Geocoding API, which this key does not have.
+  const res = await axios.get('https://maps.googleapis.com/maps/api/place/findplacefromtext/json', {
+    params: { input: place, inputtype: 'textquery', fields: 'geometry', key: apiKey },
+    timeout: 8000,
+  });
+  const loc = res.data?.candidates?.[0]?.geometry?.location;
   if (!loc) return null;
   const point = { lat: Number(loc.lat), lng: Number(loc.lng) };
   if (cache.size > 2000) cache.clear();

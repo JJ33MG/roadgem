@@ -13,6 +13,8 @@ export default defineConfig({
     // Installable on the phone's home screen: one site that opens like an app (design: approach A).
     VitePWA({
       registerType: 'autoUpdate',
+      // Registered in main.tsx so a new version replaces the cached one at once.
+      injectRegister: false,
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
         name: 'Routify',
@@ -30,6 +32,9 @@ export default defineConfig({
       },
       workbox: {
         navigateFallbackDenylist: [/^\/api\//],
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },

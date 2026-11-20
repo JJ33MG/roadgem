@@ -15,18 +15,21 @@ export function roadKm(a: LatLng, b: LatLng): number {
 
 const cache = new Map<string, LatLng>();
 
+export const inEurope = (p: LatLng) => p.lat >= 34 && p.lat <= 72 && p.lng >= -25 && p.lng <= 45;
+
 async function geocode(place: string): Promise<LatLng | null> {
   const key = place.toLowerCase().trim();
   if (cache.has(key)) return cache.get(key)!;
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) return null;
   // Places (already enabled for photos) instead of the Geocoding API, which this key does not have.
-  const res = await axios.get('https://maps.googleapis.com/maps/api/place/findplacefromtext/json', {
-    // Routify plans European road trips: prefer the European Toledo over the one in Ohio.
-    params: { input: place, inputtype: 'textquery', fields: 'geometry', locationbias: 'circle:2500000@48,10', key: apiKey },
+  // Text search returns several matches: Routify plans European trips, so the first one in Europe wins.
+  const res = await axios.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {
+    params: { query: place, key: apiKey },
     timeout: 8000,
   });
-  const loc = res.data?.candidates?.[0]?.geometry?.location;
+  const found: LatLng[] = (res.data?.results ?? []).map((r: any) => r?.geometry?.location).filter(Boolean);
+  const loc = found.find(inEurope) ?? found[0];
   if (!loc) return null;
   const point = { lat: Number(loc.lat), lng: Number(loc.lng) };
   if (cache.size > 2000) cache.clear();

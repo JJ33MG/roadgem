@@ -305,5 +305,7 @@ export interface GeneratedTrip {
     gemsEnabled: boolean;
     stayTypes: readonly ('campsite' | 'hotel' | 'holiday_home')[];
     filters: string[];
+    /** Each day's overnight town as the plan names it (index 0 = day 1). */
+    overnights?: string[];
   };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodePolyline, pickGems, samplePoints, type PlaceCandidate } from './routeGems';
+import { decodePolyline, nearLine, overnightsFrom, pickGems, samplePoints, type PlaceCandidate } from './routeGems';
 
 describe('decodePolyline', () => {
   it('decodes Google’s example polyline', () => {
@@ -52,5 +52,21 @@ describe('pickGems', () => {
       cand({ placeId: 'c', name: 'Fine', rating: 4.5, reviews: 100 }),
     ], 2);
     expect(picked.map((g) => g.name)).toEqual(['Great', 'Fine']);
+  });
+});
+
+describe('nearLine', () => {
+  it('drops places more than 20 km from the road', () => {
+    const line = Array.from({ length: 11 }, (_, i) => ({ lat: 40 + i * 0.1, lng: -3 }));
+    const near = cand({ placeId: 'n', lat: 40.5, lng: -3.1 }); // about 8 km
+    const far = cand({ placeId: 'f', lat: 40.5, lng: -3.5 }); // about 42 km
+    expect(nearLine([near, far], line, 20).map((c) => c.placeId)).toEqual(['n']);
+  });
+});
+
+describe('overnightsFrom', () => {
+  it('reads each day\'s overnight town, trimmed, one per day', () => {
+    expect(overnightsFrom([{ overnight: ' Burgos ' }, { overnight: 'San Sebastián' }, {}], 3)).toEqual(['Burgos', 'San Sebastián', '']);
+    expect(overnightsFrom(undefined, 2)).toEqual(['', '']);
   });
 });

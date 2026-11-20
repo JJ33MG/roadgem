@@ -7,7 +7,7 @@ import { buildBookingUrl } from '../utils/affiliates';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { gemsFor } from '../utils/gems';
-import { findRouteGems } from '../utils/routeGems';
+import { findRouteGems, overnightsFrom } from '../utils/routeGems';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -76,6 +76,9 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       planner
     );
 
+    // The page follows each day's overnight town as the plan names it.
+    const savedPlanner = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
+
     let totalDistance = 0;
     if (Array.isArray(tripData.stops) && tripData.stops.length > 1) {
       const route = await calculateRoute(tripData.stops);
@@ -110,7 +113,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
         tips: JSON.stringify(tripData.tips || []),
         weather: JSON.stringify(weather),
         hiddenGems: JSON.stringify(hiddenGems),
-        planner: JSON.stringify(planner),
+        planner: JSON.stringify(savedPlanner),
         itineraryDays: {
           create: (tripData.itinerary || []).slice(0, days).map((day: any) => ({
             day: day.day,
@@ -146,7 +149,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       tips: tripData.tips,
       weather,
       ...gemsFor<(typeof hiddenGems)[number]>(hiddenGems, isPremium),
-      planner,
+      planner: savedPlanner,
     };
 
     res.json(trip);

@@ -4,9 +4,9 @@ import { FREE_GEMS, gemsFor } from './gems';
 const gems = Array.from({ length: 7 }, (_, i) => ({ name: `Gem ${i}` }));
 
 describe('gemsFor', () => {
-  it('gives the free plan its first three gems and counts the rest as locked', () => {
+  it('gives the free plan three gems spread over the route (start, middle, end) and counts the rest as locked', () => {
     expect(FREE_GEMS).toBe(3);
-    expect(gemsFor(gems, false)).toEqual({ hiddenGems: gems.slice(0, 3), lockedGems: 4 });
+    expect(gemsFor(gems, false)).toEqual({ hiddenGems: [gems[0], gems[3], gems[6]], lockedGems: 4 });
   });
 
   it('gives Plus every gem', () => {

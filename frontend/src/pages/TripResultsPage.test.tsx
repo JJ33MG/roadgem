@@ -66,6 +66,23 @@ describe('TripResultsPage', () => {
     expect(screen.getByText('4 more gems on this trip with Plus.')).toBeInTheDocument();
   });
 
+  it('follows the overnight town of each day from the plan', () => {
+    const t = trip({ ...base, overnights: ['San Sebastián', 'Bordeaux'] });
+    t.stops = [stop('Madrid', 40.4, -3.7), stop('Burgos', 42.3, -3.7), stop('San Sebastián', 43.3, -1.98), stop('Bordeaux', 44.84, -0.58)];
+    renderTrip(t);
+    expect(screen.getByRole('heading', { level: 2, name: 'Madrid to San Sebastián' })).toBeInTheDocument();
+    expect(screen.getByText('Sleep in San Sebastián')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'San Sebastián to Bordeaux' })).toBeInTheDocument();
+  });
+
+  it('shows no gems on a day whose road has none, instead of repeating others', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = [{ name: 'Far gem', description: 'x', address: 'x', latitude: 60, longitude: 20, category: 'nature' }];
+    renderTrip(t);
+    expect(screen.queryByText('Far gem')).toBeNull();
+  });
+
   it('shows no gems and no Plus prompt when gems are switched off', () => {
     renderTrip(trip({ ...base, gemsEnabled: false, stayTypes: ['hotel'] }));
     expect(screen.queryByText(/gem/i)).toBeNull();

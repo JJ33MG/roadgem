@@ -47,6 +47,30 @@ export function kmBetween(a: LatLng, b: LatLng): number {
   return 2 * 6371 * Math.asin(Math.sqrt(h));
 }
 
+/** Distance from a point to the segment a–b, in km (flat projection; fine at these scales). */
+function kmToSegment(p: LatLng, a: LatLng, b: LatLng): number {
+  const kx = 111.32 * Math.cos(rad(p.lat));
+  const ky = 110.57;
+  const [ax, ay, bx, by, px, py] = [a.lng * kx, a.lat * ky, b.lng * kx, b.lat * ky, p.lng * kx, p.lat * ky];
+  const dx = bx - ax, dy = by - ay;
+  const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy))) : 0;
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+/** Only places within `maxKm` of the road itself. */
+export function nearLine<T extends { lat: number; lng: number }>(cands: T[], line: LatLng[], maxKm = 20): T[] {
+  if (line.length < 2) return cands.filter((c) => line.some((l) => kmBetween(l, c) <= maxKm));
+  return cands.filter((c) => line.some((a, i) => i > 0 && kmToSegment(c, line[i - 1], a) <= maxKm));
+}
+
+/** Each day's overnight town as the itinerary names it ('' when missing), one entry per day. */
+export function overnightsFrom(itinerary: { overnight?: unknown }[] | undefined, days: number): string[] {
+  return Array.from({ length: days }, (_, i) => {
+    const o = itinerary?.[i]?.overnight;
+    return typeof o === 'string' ? o.trim().slice(0, 80) : '';
+  });
+}
+
 /** Google's encoded polyline format (precision 5). */
 export function decodePolyline(encoded: string): LatLng[] {
   const out: LatLng[] = [];
@@ -189,7 +213,7 @@ export async function findRouteGems(stops: LatLng[], total: number, perPoint = 2
   const seen = new Set<string>();
   const spread: PlaceCandidate[] = [];
   for (const cands of perPointCands) {
-    for (const c of pickGems(cands.filter((x) => !seen.has(x.placeId)), perPoint)) {
+    for (const c of pickGems(nearLine(cands, line, 20).filter((x) => !seen.has(x.placeId)), perPoint)) {
       seen.add(c.placeId);
       spread.push(c);
     }

@@ -33,6 +33,8 @@ function rentalUrl(pickup: string, dropoff: string, from: string, to: string) {
 }
 
 /** Gems near one day's leg: inside the leg's box (with a little margin), else none. */
+const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(',')[0].trim();
+
 function gemsForLeg(gems: HiddenGem[], a?: { latitude: number; longitude: number }, b?: { latitude: number; longitude: number }) {
   if (!a || !b) return [];
   const m = 0.35;
@@ -69,10 +71,19 @@ export function TripResultsPage() {
   }, [tripId]);
 
   const stops = trip?.stops ?? [];
-  // Days past the last leg are spent at the destination: no driving, the same bed.
-  const onRoad = activeDay <= stops.length - 1;
-  const legFrom = onRoad ? stops[activeDay - 1] : stops[stops.length - 1];
-  const legTo = onRoad ? stops[activeDay] : stops[stops.length - 1];
+  // Where the traveller sleeps after each day: the plan's own overnight town when it names one,
+  // else the next stop; days past the last stop stay at the destination.
+  const overnights = trip?.planner?.overnights ?? [];
+  const nightIndex = (d: number): number => {
+    const named = fold(overnights[d - 1] ?? '');
+    const hit = named ? stops.findIndex((st) => { const f = fold(st.location); return !!f && (f.startsWith(named) || named.startsWith(f)); }) : -1;
+    return hit >= 0 ? hit : Math.min(d, stops.length - 1);
+  };
+  const toIdx = nightIndex(activeDay);
+  const fromIdx = activeDay === 1 ? 0 : nightIndex(activeDay - 1);
+  const onRoad = toIdx !== fromIdx;
+  const legFrom = stops[fromIdx];
+  const legTo = stops[toIdx];
   const start = trip?.startDate ? new Date(trip.startDate) : null;
   const checkin = start ? format(addDays(start, activeDay - 1), 'yyyy-MM-dd') : undefined;
   const checkout = start ? format(addDays(start, activeDay), 'yyyy-MM-dd') : undefined;
@@ -115,7 +126,9 @@ export function TripResultsPage() {
   const allGems = isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3);
   const lockedGems = isPremium ? 0 : (trip.lockedGems ?? Math.max(0, (trip.hiddenGems ?? []).length - 3));
   const legGems = gemsOn && onRoad ? gemsForLeg(allGems, legFrom, legTo) : [];
-  const showGems = gemsOn ? (legGems.length ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];
+  // Only gems on this day's road; older trips whose gems have no coordinates show the first few.
+  const placed = allGems.some((g) => g.latitude && g.longitude);
+  const showGems = gemsOn ? (placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];
   const sleepTown = town(legTo?.location) || trip.destination;
   const weather = trip.weather?.find((w) => w.day === activeDay);
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
@@ -246,7 +259,7 @@ export function TripResultsPage() {
 
         <aside className="grid content-start gap-24">
           <div className="overflow-hidden rounded-card border border-rule">
-            <RouteSketch stops={sketchStops} gems={sketchGems} activeLeg={onRoad ? activeDay - 1 : undefined} />
+            <RouteSketch stops={sketchStops} gems={sketchGems} activeLeg={onRoad && toIdx === fromIdx + 1 ? fromIdx : undefined} />
           </div>
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Open the route in Google Maps</a>
           <Panel>

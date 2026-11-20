@@ -110,6 +110,7 @@ Respond with ONLY a single JSON object (no markdown, no commentary) matching thi
   "itinerary": [
     {
       "day": number,
+      "overnight": "string (the stop where the traveller sleeps after this day, written exactly as in stops[].location)",
       "morning": { "time": "string", "activity": "string", "location": "string", "description": "string", "estimatedCost": number, "notes": "string" },
       "afternoon": { "time": "string", "activity": "string", "location": "string", "description": "string", "estimatedCost": number, "notes": "string" },
       "evening": { "time": "string", "activity": "string", "location": "string", "description": "string", "estimatedCost": number, "notes": "string" }

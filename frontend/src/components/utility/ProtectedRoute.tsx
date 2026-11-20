@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -6,6 +6,7 @@ const ADMIN_EMAIL = 'mignonjarne9@gmail.com';
 
 export function ProtectedRoute({ adminOnly = false }: { adminOnly?: boolean }) {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -16,7 +17,7 @@ export function ProtectedRoute({ adminOnly = false }: { adminOnly?: boolean }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
   if (adminOnly && user.email !== ADMIN_EMAIL) {

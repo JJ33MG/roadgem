@@ -18,7 +18,10 @@ import { PricingPage } from '@/pages/PricingPage';
 import AgentsDashboardPage from '@/pages/AgentsDashboardPage';
 import { DestinationsPage } from '@/pages/DestinationsPage';
 import { DestinationDetailPage } from '@/pages/DestinationDetailPage';
-import { CommunityPage } from '@/pages/CommunityPage';
+import { CommunityPage } from '@/pages/community/CommunityPage';
+import { PostPhotoPage } from '@/pages/community/PostPhotoPage';
+import { SuggestGemPage } from '@/pages/community/SuggestGemPage';
+import { ModeratePage } from '@/pages/community/ModeratePage';
 import { TemplatesPage } from '@/pages/TemplatesPage';
 
 // Pages change without a transition: Ribbon keeps motion for state, not navigation.
@@ -49,6 +52,9 @@ function AnimatedRoutes() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/community/post" element={<PostPhotoPage />} />
+            <Route path="/community/suggest" element={<SuggestGemPage />} />
+            <Route path="/community/moderate" element={<ModeratePage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

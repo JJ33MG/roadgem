@@ -80,7 +80,7 @@ export function LandingPage() {
               <h3 className="font-display text-[24px] text-ink" style={{ fontWeight: 400 }}>Found a new gem?</h3>
               <p className="mt-8">Pin it with a photo. When enough travellers visit, it turns official with your name on it.</p>
             </div>
-            <Link to="/community" className="btn-primary no-underline">Share a gem</Link>
+            <Link to="/community/suggest" className="btn-primary no-underline">Share a gem</Link>
           </article>
         </div>
       </section>

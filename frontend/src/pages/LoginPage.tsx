@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/utility/AuthLayout';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = params.get('next');
+  const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null;
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +19,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate(safeNext ?? '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Logging in did not work. Check your email and password.');
     } finally {
@@ -37,7 +40,7 @@ export function LoginPage() {
       busy={busy}
       error={error}
       onSubmit={submit}
-      footer={<>New to Routify? <Link to="/signup">Make an account</Link></>}
+      footer={<>New to Routify? <Link to={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : '/signup'}>Make an account</Link></>}
     />
   );
 }

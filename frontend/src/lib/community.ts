@@ -1,0 +1,49 @@
+import axios from 'axios';
+import { apiClient } from './apiClient';
+
+export type FeedItem = {
+  id: string; caption: string; challenge: boolean; points: number; createdAt: string; by: string;
+  gem: { id: string; name: string; status: string; address: string; lat: number; lng: number };
+  likes: number; likedByMe: boolean; photoUrl: string;
+};
+export type BoardRow = { rank: number; userId: string; name: string; points: number; photos: number; gems: number };
+export type GemChallenge = { gemId: string; name: string; status: string; lat: number; lng: number; challenge: string };
+export type GemRef = { gemId: string } | { placeId: string; name: string; lat: number; lng: number; address?: string };
+type At = { lat: number; lng: number };
+
+/** The server's own sentence when it gives one (it explains refusals), else a plain fallback. */
+function reason(err: unknown, fallback: string): Error {
+  const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: unknown } | undefined)?.error : null;
+  return new Error(typeof msg === 'string' && msg ? msg : fallback);
+}
+const call = async <T,>(p: Promise<{ data: T }>, fallback: string): Promise<T> => {
+  try {
+    return (await p).data;
+  } catch (e) {
+    throw reason(e, fallback);
+  }
+};
+
+/** Full address for a photo served by the API (same origin on the preview). */
+export const photoSrc = (path: string) => `${import.meta.env.VITE_BACKEND_URL ?? ''}${path}`;
+
+export const challenge = (gem: GemRef) => call<GemChallenge>(apiClient.post('/community/challenge', gem), 'This gem could not be loaded.');
+export const sendPost = (body: { gem: GemRef; at: At; photo: string; caption: string; challenge: boolean }) =>
+  call<{ id: string; status: string }>(apiClient.post('/community/posts', body, { timeout: 60_000 }), 'The photo could not be sent. Try again.');
+export const sendSuggestion = (body: { name: string; description: string; category: string; at: At; photo: string }) =>
+  call<{ gemId: string; postId: string }>(apiClient.post('/community/suggest', body, { timeout: 60_000 }), 'The gem could not be sent. Try again.');
+export const feed = (before?: string) => call<FeedItem[]>(apiClient.get('/community/feed', { params: before ? { before } : {} }), 'The feed could not be loaded.');
+export const board = () => call<BoardRow[]>(apiClient.get('/community/board'), 'The board could not be loaded.');
+export const like = (postId: string) => call<{ liked: boolean; likes: number }>(apiClient.post(`/community/posts/${postId}/like`), 'Liking did not work.');
+export type MyPosts = { posts: { id: string; status: string; points: number; challenge: boolean; createdAt: string; gem: { name: string }; photoUrl: string }[]; points: number; rank: number | null; moderator: boolean };
+export const mine = () => call<MyPosts>(apiClient.get('/community/me'), 'Your posts could not be loaded.');
+export type Pending = { id: string; caption: string; challenge: boolean; distanceM: number; aiNote: string; createdAt: string; user: { name: string }; gem: { name: string; status: string; description: string }; photoUrl: string };
+export const pending = () => call<Pending[]>(apiClient.get('/community/moderation'), 'The queue could not be loaded.');
+export const decide = (postId: string, decision: 'approve' | 'approve_photo' | 'reject') =>
+  call(apiClient.post(`/community/posts/${postId}/review`, { decision }), 'That did not work.');
+
+/** A photo that needs the login (pending ones, for their owner or a moderator): fetched, then shown from memory. */
+export async function privatePhoto(path: string): Promise<string> {
+  const res = await apiClient.get(path.replace(/^\/api/, ''), { responseType: 'blob' });
+  return URL.createObjectURL(res.data as Blob);
+}

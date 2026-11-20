@@ -269,6 +269,14 @@ export function TripResultsPage() {
                       <a className="text-[17px] text-ink" href={g.mapsUrl ?? `https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
                         Open in Google Maps
                       </a>
+                      {g.placeId && (
+                        <Link
+                          className="text-[17px] text-ink"
+                          to={`/community/post?${new URLSearchParams({ placeId: g.placeId, name: g.name, lat: String(g.latitude), lng: String(g.longitude), address: g.address ?? '' })}`}
+                        >
+                          Post a photo here
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

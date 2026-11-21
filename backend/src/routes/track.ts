@@ -2,11 +2,12 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
+import { PARTNERS as PARTNER_LINKS, partnerTarget } from '../utils/partners';
 
 const router = Router();
 
 /** The partners the site links to (see frontend/src/lib/track.ts). */
-const PARTNERS = new Set(['booking', 'airbnb', 'rentalcars', 'autoeurope', 'viator', 'getyourguide']);
+const PARTNERS = new Set(['autoeurope', ...Object.keys(PARTNER_LINKS)]);
 export const isKnownPartner = (p: unknown): p is string => typeof p === 'string' && PARTNERS.has(p);
 
 /** A fixed-window counter per key, kept in memory (one instance; a restart resets it). */
@@ -39,6 +40,20 @@ router.post('/click', optionalAuth, async (req: AuthRequest, res: Response) => {
     // A lost click count never breaks the visitor's way to the booking site.
   }
   res.status(204).end();
+});
+
+// A partner link: counted, credited to Routify (affiliate id or network deep link), then on to the partner.
+router.get('/go/:partner', optionalAuth, async (req: AuthRequest, res: Response) => {
+  const to = partnerTarget(req.params.partner, String(req.query.to ?? ''));
+  if (!to) return res.status(400).json({ error: 'Unknown partner link' });
+  const tripId = String(req.query.trip ?? '');
+  if (allowClick(req.ip ?? 'unknown')) {
+    prisma.affiliateClick
+      .create({ data: { partner: req.params.partner, tripId: CUID.test(tripId) ? tripId : null, userId: req.userId ?? null } })
+      .catch(() => undefined); // counting never blocks the way to the partner
+  }
+  res.set('Cache-Control', 'no-store');
+  res.redirect(302, to);
 });
 
 export default router;

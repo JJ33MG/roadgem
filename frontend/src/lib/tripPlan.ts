@@ -53,7 +53,7 @@ export const withVehicle = (plan: TripPlan, vehicle: Vehicle): TripPlan => ({
 export const STAY_LABELS: Record<StayType, string> = {
   campsite: 'Campsites',
   hotel: 'Hotels',
-  holiday_home: 'Airbnb and holiday homes',
+  holiday_home: 'Holiday homes',
 };
 
 export const FILTER_GROUPS: { id: string; label: string; options: { id: string; label: string }[] }[] = [

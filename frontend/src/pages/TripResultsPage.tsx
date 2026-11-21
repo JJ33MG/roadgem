@@ -16,7 +16,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { generateTripPDF } from '@/utils/generatePDF';
 import { buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
 import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
-import { partnerFor, trackClick } from '@/lib/track';
+import { goLink } from '@/lib/track';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
@@ -24,11 +24,12 @@ import { TripMapImage } from '@/components/map/TripMapImage';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
 
-/** Booking links per stay type: Booking.com lists hotels and campsites, Airbnb the holiday homes. */
+/** Booking links per stay type: Booking.com lists hotels and campsites, Vrbo the holiday homes. */
 export function stayUrl(type: StayType, place: string, checkin?: string, checkout?: string): string {
   if (type === 'holiday_home') {
-    const p = new URLSearchParams({ ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
-    return `https://www.airbnb.com/s/${encodeURIComponent(place)}/homes?${p}`;
+    // Vrbo: holiday homes with an affiliate program (Airbnb closed its own).
+    const p = new URLSearchParams({ destination: place, ...(checkin ? { startDate: checkin } : {}), ...(checkout ? { endDate: checkout } : {}) });
+    return `https://www.vrbo.com/search?${p}`;
   }
   const p = new URLSearchParams({ ss: place, ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
   if (type === 'campsite') p.set('nflt', 'ht_id=214');
@@ -75,6 +76,16 @@ function gemsForLeg(gems: HiddenGem[], a?: { latitude: number; longitude: number
   const [lw, le] = [Math.min(a.longitude, b.longitude) - m, Math.max(a.longitude, b.longitude) + m];
   return gems.filter((g) => g.latitude && g.longitude && g.latitude >= lo && g.latitude <= hi && g.longitude >= lw && g.longitude <= le);
 }
+
+/** Pitchup's country pages (pitchup.com/campsites/<slug>/). */
+const PITCHUP: Record<string, string> = {
+  ES: 'spain', FR: 'france', IT: 'italy', NL: 'netherlands', DE: 'germany', PT: 'portugal', HR: 'croatia', AT: 'austria',
+  CH: 'switzerland', BE: 'belgium', GR: 'greece', IE: 'ireland', SI: 'slovenia', DK: 'denmark', NO: 'norway', SE: 'sweden',
+};
+const COUNTRY_NAME: Record<string, string> = {
+  ES: 'Spain', FR: 'France', IT: 'Italy', NL: 'the Netherlands', DE: 'Germany', PT: 'Portugal', HR: 'Croatia', AT: 'Austria',
+  CH: 'Switzerland', BE: 'Belgium', GR: 'Greece', IE: 'Ireland', SI: 'Slovenia', DK: 'Denmark', NO: 'Norway', SE: 'Sweden',
+};
 
 const STAY_TO_ACCOMMODATION: Record<StayType, AccommodationType> = { campsite: 'campsite', hotel: 'hotel', holiday_home: 'airbnb' };
 const head = { fontWeight: 400, letterSpacing: '-0.03em' } as const;
@@ -196,6 +207,11 @@ export function TripResultsPage() {
   const placed = allGems.some((g) => g.latitude && g.longitude);
   const showGems = gemsOn ? (placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];
   const sleepTown = town(legTo?.location) || trip.destination;
+  // Tonight's country: where the road of the leg into tonight's stop ends.
+  const legIn = toIdx > 0 ? planner?.legs?.[toIdx - 1] : undefined;
+  const nightCountry = legIn?.countries[legIn.countries.length - 1]?.code;
+  const pitchupSlug = nightCountry ? PITCHUP[nightCountry] : undefined;
+  const renting = planner?.vehicle === 'campervan' || planner?.vehicle === 'caravan' ? 'campervan' : 'car';
   // The three best-rated real places to sleep tonight (searches like "Airbnb stays in" stay in the full list).
   const tonight = accommodations.filter((o) => o.type !== 'airbnb').sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 3);
   const weather = trip.weather?.find((w) => w.day === activeDay);
@@ -222,10 +238,7 @@ export function TripResultsPage() {
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';
 
-  function countClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    const partner = partnerFor(e.currentTarget.href);
-    if (partner) trackClick(partner, trip!.tripId);
-  }
+  const go = (href: string) => goLink(href, trip!.tripId);
 
   async function exportPdf() {
     if (!contentRef.current) return;
@@ -350,6 +363,10 @@ export function TripResultsPage() {
               </div>
             )}
 
+            <a href={go(`https://www.getyourguide.com/s/?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-16 inline-block text-[17px] text-ink">
+              {`Things to do in ${sleepTown}`}
+            </a>
+
             {trip.costs && (
               <DayCosts
                 day={activeDay}
@@ -372,7 +389,7 @@ export function TripResultsPage() {
                       <span className="text-[18px] text-ink" style={{ fontWeight: 500 }}>{o.name}</span>
                       <span className="num text-[18px] text-ink" style={{ fontWeight: 500 }}>{`About €${Math.round(o.pricePerNight)} a night`}</span>
                       <span className="text-[16px] text-muted">{o.rating ? `Rated ${o.rating.toFixed(1)} on Google` : STAY_LABELS[o.type === 'airbnb' ? 'holiday_home' : o.type === 'campsite' ? 'campsite' : 'hotel']}</span>
-                      <a href={o.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} aria-label={`Check prices for ${o.name}`} className="justify-self-end text-[17px] text-ink">
+                      <a href={go(o.affiliateUrl)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Check prices for ${o.name}`} className="justify-self-end text-[17px] text-ink">
                         Check prices
                       </a>
                     </li>
@@ -382,12 +399,17 @@ export function TripResultsPage() {
               {tonight.length > 0 && <p className="mt-8 text-[15px] text-muted">Prices are estimates from the place's price level. The booking site shows the real price for your dates.</p>}
               <div className="mt-16 flex flex-wrap gap-12">
                 {stayTypes.map((s) => (
-                  <a key={s} href={stayUrl(s, sleepTown, checkin, checkout)} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} className="btn-header no-underline">
+                  <a key={s} href={go(stayUrl(s, sleepTown, checkin, checkout))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
                     {STAY_LABELS[s]}
                   </a>
                 ))}
                 <Button variant="primary" onClick={() => setStaysOpen(true)}>{tonight.length ? 'More stays' : 'Stays nearby'}</Button>
               </div>
+              {stayTypes.includes('campsite') && pitchupSlug && (
+                <a href={go(`https://www.pitchup.com/campsites/${pitchupSlug}/`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-12 inline-block text-[17px] text-ink">
+                  {`Campsites in ${COUNTRY_NAME[nightCountry!]} on Pitchup`}
+                </a>
+              )}
               {canEdit && (
                 <div className="mt-20 grid gap-12 border-t border-rule pt-16 sm:grid-cols-2">
                   <label className="flex flex-col gap-[6px] text-[16px] text-muted" style={{ fontWeight: 500 }}>
@@ -415,13 +437,24 @@ export function TripResultsPage() {
         <aside className="grid content-start gap-24">
           {wide && <div className="lg:sticky lg:top-[88px]">{tripMap}</div>}
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Open the route in Google Maps</a>
+          {renting === 'campervan' ? (
+            <Panel>
+              <h3 className="font-display text-[24px] text-ink" style={head}>Rent a campervan</h3>
+              <p className="mt-6">{`No campervan of your own? Pick one up near ${from}.`}</p>
+              <div className="mt-16 grid gap-8">
+                <a href={go('https://roadsurfer.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Roadsurfer</a>
+                <a href={go('https://indiecampers.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">Indie Campers</a>
+              </div>
+            </Panel>
+          ) : (
           <Panel>
             <h3 className="font-display text-[24px] text-ink" style={head}>Rental car</h3>
             <p className="mt-6">{`Pick up in ${from}, drop off in ${to}.`}</p>
-            <a href={rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr)} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} className="btn-primary mt-16 w-full no-underline">
+            <a href={go(rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr))} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary mt-16 w-full no-underline">
               Find a car
             </a>
           </Panel>
+          )}
           {gemsOn && !isPremium && (
             <Panel>
               <h3 className="font-display text-[24px] text-ink" style={head}>Every gem with Plus</h3>

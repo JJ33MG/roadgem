@@ -12,7 +12,7 @@ describe('PlannerPanel', () => {
     expect(screen.getByRole('switch', { name: 'Road gems on the way' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('button', { name: 'Campsites' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Hotels' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Airbnb and holiday homes' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Holiday homes' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('submits the typed route with the planner values', () => {

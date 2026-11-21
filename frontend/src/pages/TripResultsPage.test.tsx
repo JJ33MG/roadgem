@@ -158,8 +158,27 @@ describe('TripResultsPage', () => {
     const first = within(tonight).getAllByRole('listitem')[0];
     expect(first).toHaveTextContent('Camping Burgos');
     expect(first).toHaveTextContent('About €32 a night');
-    expect(within(first).getByRole('link', { name: 'Check prices for Camping Burgos' })).toHaveAttribute('href', 'https://www.booking.com/y?aid=1');
+    // Through Routify's server, which adds the affiliate id and counts the click.
+    const href = within(first).getByRole('link', { name: 'Check prices for Camping Burgos' }).getAttribute('href')!;
+    expect(href).toMatch(/\/track\/go\/booking\?/);
+    expect(new URLSearchParams(href.split('?')[1]).get('to')).toBe('https://www.booking.com/y?aid=1');
     stays.list = [];
+  });
+
+  it('offers campsites on Pitchup in tonight\'s country, and a campervan to rent for a campervan trip', () => {
+    const t = trip({ ...base, vehicle: 'campervan', legs: [{ km: 245, hours: 2.5, countries: [{ code: 'ES', km: 245 }] }] } as never);
+    renderTrip(t);
+    const pitchup = screen.getByRole('link', { name: 'Campsites in Spain on Pitchup' }).getAttribute('href')!;
+    expect(new URLSearchParams(pitchup.split('?')[1]).get('to')).toBe('https://www.pitchup.com/campsites/spain/');
+    expect(screen.getByRole('heading', { name: 'Rent a campervan' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Roadsurfer' }).getAttribute('href')).toMatch(/\/track\/go\/roadsurfer\?/);
+    expect(screen.queryByRole('heading', { name: 'Rental car' })).toBeNull();
+  });
+
+  it('links things to do in tonight\'s town on GetYourGuide', () => {
+    renderTrip(trip({ ...base }));
+    const gyg = screen.getByRole('link', { name: 'Things to do in Burgos' }).getAttribute('href')!;
+    expect(new URLSearchParams(gyg.split('?')[1]).get('to')).toBe('https://www.getyourguide.com/s/?q=Burgos');
   });
 
   it('shows no change buttons to someone who did not plan the trip', () => {
@@ -176,18 +195,17 @@ describe('TripResultsPage', () => {
 
   it('offers one booking button per chosen stay type', () => {
     renderTrip(trip({ ...base, stayTypes: ['holiday_home'] }));
-    expect(screen.getByRole('link', { name: /Airbnb and holiday homes/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Holiday homes' }).getAttribute('href')).toMatch(/\/track\/go\/vrbo\?/);
     expect(screen.queryByRole('link', { name: /^Hotels/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /^Campsites/ })).toBeNull();
   });
 });
 
 describe('TripResultsPage booking clicks', () => {
-  it('counts a click on a booking link', async () => {
-    const beacon = vi.fn(() => true);
-    Object.defineProperty(navigator, 'sendBeacon', { value: beacon, configurable: true });
+  it('sends a booking click through the server, which counts it and adds the affiliate id', () => {
     renderTrip(trip({ ...base, stayTypes: ['hotel'] }));
-    screen.getByRole('link', { name: 'Hotels' }).click();
-    expect(beacon).toHaveBeenCalledTimes(1);
+    const href = screen.getByRole('link', { name: 'Hotels' }).getAttribute('href')!;
+    expect(href).toMatch(/\/track\/go\/booking\?/);
+    expect(new URLSearchParams(href.split('?')[1]).get('trip')).toBe('t1');
   });
 });

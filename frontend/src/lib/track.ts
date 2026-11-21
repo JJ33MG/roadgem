@@ -7,6 +7,10 @@ const PARTNERS: [RegExp, string][] = [
   [/autoeurope\./, 'autoeurope'],
   [/viator\.com/, 'viator'],
   [/getyourguide\./, 'getyourguide'],
+  [/pitchup\.com/, 'pitchup'],
+  [/vrbo\.com/, 'vrbo'],
+  [/roadsurfer\.com/, 'roadsurfer'],
+  [/indiecampers\.com/, 'indiecampers'],
 ];
 
 /** The affiliate partner behind a link, or null for other links. */
@@ -22,4 +26,12 @@ export function trackClick(partner: string, tripId?: string): void {
   } catch {
     // Counting is best effort.
   }
+}
+
+/** A partner link sent through the server, which adds Routify's affiliate id and counts the click; other links unchanged. */
+export function goLink(href: string, tripId?: string): string {
+  const partner = partnerFor(href);
+  if (!partner) return href;
+  const q = new URLSearchParams({ to: href, ...(tripId ? { trip: tripId } : {}) });
+  return `${baseURL ?? '/api'}/track/go/${partner}?${q}`;
 }

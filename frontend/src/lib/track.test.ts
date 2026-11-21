@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { partnerFor, trackClick } from './track';
+import { goLink, partnerFor, trackClick } from './track';
 
 describe('affiliate click tracking', () => {
   it('names the partner of a booking link', () => {
@@ -22,5 +22,14 @@ describe('affiliate click tracking', () => {
       r.readAsText(body);
     });
     expect(JSON.parse(text)).toEqual({ partner: 'booking', tripId: 't1' });
+  });
+
+  it('sends partner links through the server, which credits and counts them', () => {
+    const link = goLink('https://www.pitchup.com/campsites/spain/', 't1');
+    expect(link).toMatch(/\/track\/go\/pitchup\?/);
+    const q = new URLSearchParams(link.split('?')[1]);
+    expect(q.get('to')).toBe('https://www.pitchup.com/campsites/spain/');
+    expect(q.get('trip')).toBe('t1');
+    expect(goLink('https://example.com/x')).toBe('https://example.com/x');
   });
 });

@@ -134,6 +134,13 @@ describe('TripResultsPage', () => {
     edits.key = null;
   });
 
+  it('shows each real gem with its Google rating as proof', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = [{ name: 'Lerma', description: 'Ducal square.', address: 'Lerma', latitude: 42.02, longitude: -3.75, category: 'historic', placeId: 'pl1', rating: 4.7, reviews: 622 }];
+    renderTrip(t);
+    expect(screen.getByText('Real place, rated 4.7 by 622 Google reviewers')).toBeInTheDocument();
+  });
+
   it('shows no change buttons to someone who did not plan the trip', () => {
     edits.key = null;
     renderTrip(trip({ ...base }));

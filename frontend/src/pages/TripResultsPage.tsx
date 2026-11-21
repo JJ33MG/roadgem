@@ -7,6 +7,7 @@ import { Modal } from '@/components/utility/Modal';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
 // The globe engine is large: loaded only when a trip page opens.
 import { DayCosts } from '@/components/trip/DayCosts';
+import { GemProof } from '@/components/trip/GemProof';
 import { euros, tripTotal } from '@/lib/costs';
 const GlobeMap = lazy(() => import('@/components/map/GlobeMap').then((m) => ({ default: m.GlobeMap })));
 import { Button, Panel } from '@/components/ui';
@@ -288,7 +289,9 @@ export function TripResultsPage() {
                         <img src={`${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" />
                       )}
                       <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
-                      <span>{g.description}</span>
+                      <GemProof placeId={g.placeId} rating={g.rating} reviews={g.reviews} />
+                      {/* Real gems carry their rating as the description: the proof line already says it. */}
+                      {!(g.rating && g.description?.startsWith('Rated ')) && <span>{g.description}</span>}
                       {g.address && <span className="text-[16px] text-muted">{g.address}</span>}
                       <a className="text-[17px] text-ink" href={g.mapsUrl ?? `https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
                         Open in Google Maps

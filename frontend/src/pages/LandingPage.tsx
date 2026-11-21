@@ -10,6 +10,13 @@ const EXAMPLE_DAYS = [
   { route: 'Tours to Brussels', km: 515, note: 'Arrive on the Grand-Place' },
 ];
 
+/** What every gem passes before it shows up on a trip. */
+const CHECKS = [
+  { title: 'It is on the map', body: 'Each gem is a real place found on Google Maps, with its address and a link to it.' },
+  { title: 'People rated it', body: 'You see its rating and how many travellers gave it. Places with few or low ratings are left out.' },
+  { title: 'It is on your road', body: 'Only places within about 20 km of the route you drive, so a detour stays a detour.' },
+];
+
 const wrap = 'mx-auto max-w-[1240px] px-16 md:px-40';
 
 export function LandingPage() {
@@ -54,6 +61,24 @@ export function LandingPage() {
               <span className="font-display text-[24px] text-ink md:text-[28px]" style={{ fontWeight: 400, letterSpacing: '-0.02em' }}>{d.route}</span>
               <span className="num font-display text-[24px] text-ink md:text-[28px]" style={{ fontWeight: 400 }}>{d.km} km</span>
               <span className="text-[18px]">{d.note}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className={`${wrap} pb-80`}>
+        <h2 className="max-w-[20ch] font-display text-[36px] leading-[1.08] text-ink md:text-[52px]" style={{ fontWeight: 400, letterSpacing: '-0.035em' }}>
+          AI invents places. Routify checks them.
+        </h2>
+        <p className="mt-16 max-w-[52ch] text-[19px]">
+          Other planners write a nice list and hope it exists. Every gem on a Routify trip passed three checks before it reached your plan.
+        </p>
+        <ol className="mt-[36px] grid list-none gap-24 p-0 md:grid-cols-3">
+          {CHECKS.map((c, i) => (
+            <li key={c.title} className="border-t border-ink pt-16">
+              <span className="num font-display text-[28px] text-ink" style={{ fontWeight: 400 }}>{i + 1}</span>
+              <h3 className="mt-8 font-display text-[24px] text-ink" style={{ fontWeight: 400 }}>{c.title}</h3>
+              <p className="mt-[6px]">{c.body}</p>
             </li>
           ))}
         </ol>

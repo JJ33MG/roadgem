@@ -70,3 +70,28 @@ describe('overnightsFrom', () => {
     expect(overnightsFrom(undefined, 2)).toEqual(['', '']);
   });
 });
+
+import { countriesFromSteps, countryOfAddress } from './routeGems';
+
+describe('countries along a leg', () => {
+  it('splits the kilometres where Google says Entering <country>', () => {
+    const steps = [
+      { distanceKm: 120, instruction: 'Head north on <b>A-1</b>' },
+      { distanceKm: 30, instruction: 'Continue on AP-8<div style="font-size:0.9em">Entering France</div>' },
+      { distanceKm: 200, instruction: 'Keep left onto <b>A63</b>' },
+    ];
+    expect(countriesFromSteps(steps, 'ES')).toEqual([{ code: 'ES', km: 120 }, { code: 'FR', km: 230 }]);
+  });
+
+  it('counts the whole leg for the start country when no border is crossed', () => {
+    expect(countriesFromSteps([{ distanceKm: 80, instruction: 'Head east' }], 'BE')).toEqual([{ code: 'BE', km: 80 }]);
+  });
+
+  it('knows the country of an address and the usual country names', () => {
+    expect(countryOfAddress('Grand-Place, 1000 Brussels, Belgium')).toBe('BE');
+    expect(countryOfAddress('Prague, Czechia')).toBe('CZ');
+    expect(countryOfAddress('Somewhere, Atlantis')).toBeNull();
+    const names: [string, string][] = [['Netherlands', 'NL'], ['Germany', 'DE'], ['Italy', 'IT'], ['Austria', 'AT'], ['Switzerland', 'CH'], ['Slovenia', 'SI'], ['Slovakia', 'SK'], ['Hungary', 'HU'], ['Poland', 'PL'], ['Portugal', 'PT'], ['Croatia', 'HR'], ['Luxembourg', 'LU'], ['Denmark', 'DK']];
+    for (const [n, c] of names) expect(countryOfAddress(`X, ${n}`)).toBe(c);
+  });
+});

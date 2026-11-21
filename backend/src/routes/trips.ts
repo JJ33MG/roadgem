@@ -7,7 +7,7 @@ import { buildBookingUrl } from '../utils/affiliates';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { gemsFor } from '../utils/gems';
-import { findRouteGems, overnightsFrom, routeLine } from '../utils/routeGems';
+import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -77,7 +77,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     );
 
     // The page follows each day's overnight town as the plan names it.
-    const savedPlanner: typeof planner & { overnights: string[]; route?: string } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
+    const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[] } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
 
     let totalDistance = 0;
     if (Array.isArray(tripData.stops) && tripData.stops.length > 1) {
@@ -91,8 +91,9 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     // sampled every ~75 km plus the start and the end.
     const road = await routeLine(
       (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) })),
-    ).catch(() => ({ points: [], encoded: '' }));
+    ).catch(() => ({ points: [], encoded: '', legs: [] }));
     savedPlanner.route = road.encoded;
+    savedPlanner.legs = road.legs;
     const hiddenGems = !gemsEnabled ? [] : await findRouteGems(road, Math.max(3, gemsPerDay * days)).catch(() => []);
 
     const saved = await prisma.trip.create({

@@ -182,17 +182,61 @@ async function nearby(p: LatLng, key: string): Promise<PlaceCandidate[]> {
   return cands;
 }
 
+export interface RoadLeg {
+  km: number;
+  hours: number;
+  /** Kilometres per country on this leg, in driving order. */
+  countries: { code: string; km: number }[];
+}
+
 export interface RoadLine {
   points: LatLng[];
   /** Google's encoded polyline of the road; '' when only the stops are known. */
   encoded: string;
+  /** One per pair of stops (empty when Directions did not answer). */
+  legs: RoadLeg[];
+}
+
+const COUNTRY_CODES: Record<string, string> = {
+  belgium: 'BE', netherlands: 'NL', 'the netherlands': 'NL', germany: 'DE', france: 'FR', spain: 'ES', italy: 'IT',
+  austria: 'AT', switzerland: 'CH', czechia: 'CZ', 'czech republic': 'CZ', slovenia: 'SI', slovakia: 'SK', hungary: 'HU',
+  poland: 'PL', portugal: 'PT', croatia: 'HR', luxembourg: 'LU', denmark: 'DK', norway: 'NO', sweden: 'SE', finland: 'FI',
+  greece: 'GR', romania: 'RO', bulgaria: 'BG', 'united kingdom': 'GB', uk: 'GB', ireland: 'IE', andorra: 'AD', monaco: 'MC',
+  liechtenstein: 'LI', 'bosnia and herzegovina': 'BA', serbia: 'RS', montenegro: 'ME', albania: 'AL', 'north macedonia': 'MK',
+  estonia: 'EE', latvia: 'LV', lithuania: 'LT',
+};
+const codeOf = (name: string) => COUNTRY_CODES[name.trim().toLowerCase()] ?? null;
+
+/** The country of a Google address ("…, Brussels, Belgium" → BE); null when unknown. */
+export function countryOfAddress(address: string): string | null {
+  const parts = address.split(',');
+  return codeOf(parts[parts.length - 1] ?? '');
+}
+
+/** Kilometres per country along one leg, split where Google's step says "Entering <country>". */
+export function countriesFromSteps(steps: { distanceKm: number; instruction: string }[], startCode: string): { code: string; km: number }[] {
+  const out: { code: string; km: number }[] = [];
+  let current = startCode;
+  const add = (code: string, km: number) => {
+    const last = out[out.length - 1];
+    if (last && last.code === code) last.km += km;
+    else out.push({ code, km });
+  };
+  for (const st of steps) {
+    const m = /Entering ([A-Za-z .'-]+?)\s*(?:<|$)/.exec(st.instruction);
+    const entered = m ? codeOf(m[1]) : null;
+    // The step that crosses the border is mostly driven in the new country.
+    if (entered) current = entered;
+    add(current, st.distanceKm);
+  }
+  return out.map((c) => ({ code: c.code, km: Math.round(c.km) }));
 }
 
 /** The driving road through the stops (Google Directions), or straight lines between them. */
 export async function routeLine(stops: LatLng[]): Promise<RoadLine> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
   const clean = stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
-  if (!key || clean.length < 2) return { points: clean, encoded: '' };
+  if (!key || clean.length < 2) return { points: clean, encoded: '', legs: [] };
   return directions(clean, key);
 }
 
@@ -203,16 +247,30 @@ async function directions(stops: LatLng[], key: string): Promise<RoadLine> {
         origin: `${stops[0].lat},${stops[0].lng}`,
         destination: `${stops[stops.length - 1].lat},${stops[stops.length - 1].lng}`,
         waypoints: stops.slice(1, -1).map((s) => `${s.lat},${s.lng}`).join('|') || undefined,
+        language: 'en',
         key,
       },
       timeout: 10000,
     });
-    const poly = res.data?.routes?.[0]?.overview_polyline?.points;
-    if (poly) return { points: decodePolyline(poly), encoded: poly };
+    const route = res.data?.routes?.[0];
+    const poly = route?.overview_polyline?.points;
+    if (poly) {
+      let lastCode = 'XX';
+      const legs: RoadLeg[] = (route.legs ?? []).map((leg: any) => {
+        const start = countryOfAddress(String(leg.start_address ?? '')) ?? lastCode;
+        const countries = countriesFromSteps(
+          (leg.steps ?? []).map((st: any) => ({ distanceKm: Number(st.distance?.value ?? 0) / 1000, instruction: String(st.html_instructions ?? '') })),
+          start,
+        );
+        lastCode = countries[countries.length - 1]?.code ?? start;
+        return { km: Math.round(Number(leg.distance?.value ?? 0) / 1000), hours: Math.round((Number(leg.duration?.value ?? 0) / 3600) * 10) / 10, countries };
+      });
+      return { points: decodePolyline(poly), encoded: poly, legs };
+    }
   } catch {
     // Fall back to the stops themselves.
   }
-  return { points: stops, encoded: '' };
+  return { points: stops, encoded: '', legs: [] };
 }
 
 /** Real gems for a route: about `perPoint` per sampled point, `total` at most. */

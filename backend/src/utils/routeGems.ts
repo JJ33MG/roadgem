@@ -110,19 +110,24 @@ export function samplePoints(line: LatLng[], everyKm = 75, cap = 16): LatLng[] {
 }
 
 /** Proven but quiet places, best first, one per place, at most `limit`. */
+/** A real, proven but quiet place of a kind worth a stop. */
+export function qualifies(c: PlaceCandidate): boolean {
+  return (
+    c.rating >= MIN_RATING &&
+    c.reviews >= MIN_REVIEWS &&
+    c.reviews <= MAX_REVIEWS &&
+    c.types.some((t) => ALLOWED.has(t)) &&
+    !c.types.some((t) => BLOCKED.has(t))
+  );
+}
+
 export function pickGems(cands: PlaceCandidate[], limit: number): PlaceCandidate[] {
   const seen = new Set<string>();
   return cands
     .filter((c) => {
       if (seen.has(c.placeId)) return false;
       seen.add(c.placeId);
-      return (
-        c.rating >= MIN_RATING &&
-        c.reviews >= MIN_REVIEWS &&
-        c.reviews <= MAX_REVIEWS &&
-        c.types.some((t) => ALLOWED.has(t)) &&
-        !c.types.some((t) => BLOCKED.has(t))
-      );
+      return qualifies(c);
     })
     .sort((a, b) => Math.round(b.rating * 10) - Math.round(a.rating * 10) || b.reviews - a.reviews)
     .slice(0, limit);
@@ -274,12 +279,22 @@ async function directions(stops: LatLng[], key: string): Promise<RoadLine> {
 }
 
 /** Real gems for a route: about `perPoint` per sampled point, `total` at most. */
-export async function findRouteGems(road: RoadLine, total: number, perPoint = 2): Promise<RouteGem[]> {
+/** Google's places around a point (about 15 km), cached in memory for a week. */
+export function googleNearby(p: LatLng): Promise<PlaceCandidate[]> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
+  return key ? nearby(p, key) : Promise.resolve([]);
+}
+
+/**
+ * `at` gives the places around a point: by default straight from Google; trips pass the gem
+ * library, which asks Google only for places it has not searched yet.
+ */
+export async function findRouteGems(road: RoadLine, total: number, perPoint = 2, at: (p: LatLng) => Promise<PlaceCandidate[]> = googleNearby): Promise<RouteGem[]> {
   const line = road.points;
-  if (!key || line.length === 0 || total <= 0) return [];
-  const points = samplePoints(line, 75, 16);
-  const perPointCands = await Promise.all(points.map((p) => nearby(p, key).catch(() => [] as PlaceCandidate[])));
+  if (!process.env.GOOGLE_MAPS_API_KEY || line.length === 0 || total <= 0) return [];
+  // Denser than before (every 50 km): the library makes repeat searches free.
+  const points = samplePoints(line, 50, 24);
+  const perPointCands = await Promise.all(points.map((p) => at(p).catch(() => [] as PlaceCandidate[])));
   // Take the best few per point so gems spread over the whole road, then cap the total.
   const seen = new Set<string>();
   const spread: PlaceCandidate[] = [];

@@ -287,3 +287,33 @@ model Like {
   @@id([postId, userId])
   @@index([userId])
 }
+
+// The gem library: real Google places along Europe's roads that passed the checks
+// (rating, number of reviews, kind of place). Every trip and the seeding job add to it.
+model PlaceGem {
+  id        String   @id @default(cuid())
+  placeId   String   @unique
+  name      String
+  lat       Float
+  lng       Float
+  address   String   @default("")
+  category  String   @default("other")
+  rating    Float
+  reviews   Int
+  photoRef  String?
+  types     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lat, lng])
+}
+
+// A map cell (about 11 km) already searched on Google, so it is not searched again for a while.
+model GemSearch {
+  cell   String   @id
+  source String   @default("trip") // trip | seed
+  found  Int      @default(0)
+  at     DateTime @default(now())
+
+  @@index([source])
+}

@@ -88,6 +88,9 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 
+  // Fill the gem library in the background when a seeding budget is set (GEM_SEED_BUDGET).
+  import('./gems/seedRun').then((m) => m.runGemSeed()).catch((err) => console.error('[gems] seed failed:', err));
+
   // Start agent scheduler (only when Redis is available)
   if (process.env.REDIS_URL) {
     // Loaded lazily: importing the queues opens Redis connections.

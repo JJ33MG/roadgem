@@ -9,6 +9,7 @@ import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { gemsFor } from '../utils/gems';
 import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
 import { costsOfPlanner } from '../costs/costs';
+import { candidatesAt, libraryDeps } from '../gems/library';
 import { newEditKey } from '../utils/edits';
 import { editTrip } from './tripEdits';
 import { fetchGoogleImage, tripMapImage } from './tripMap';
@@ -36,6 +37,9 @@ function firstStopCoords(stopsJson: string): { lat: number; lng: number; locatio
 }
 
 const router = Router();
+// Gems come from the library; Google is asked only for stretches of road not searched yet.
+const gemLibrary = libraryDeps(prisma);
+const gemSource = (p: { lat: number; lng: number }) => candidatesAt(gemLibrary, p, 'trip').then((r) => r.cands);
 
 router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -99,7 +103,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     ).catch(() => ({ points: [], encoded: '', legs: [] }));
     savedPlanner.route = road.encoded;
     savedPlanner.legs = road.legs;
-    const hiddenGems = !gemsEnabled ? [] : await findRouteGems(road, Math.max(3, gemsPerDay * days)).catch(() => []);
+    const hiddenGems = !gemsEnabled ? [] : await findRouteGems(road, Math.max(3, gemsPerDay * days), 2, gemSource).catch(() => []);
 
     const saved = await prisma.trip.create({
       data: {

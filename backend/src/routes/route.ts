@@ -17,7 +17,7 @@ const cache = new Map<string, LatLng>();
 
 export const inEurope = (p: LatLng) => p.lat >= 34 && p.lat <= 72 && p.lng >= -25 && p.lng <= 45;
 
-async function geocode(place: string): Promise<LatLng | null> {
+export async function geocode(place: string): Promise<LatLng | null> {
   const key = place.toLowerCase().trim();
   if (cache.has(key)) return cache.get(key)!;
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;

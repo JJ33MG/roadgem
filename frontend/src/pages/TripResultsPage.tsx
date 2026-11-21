@@ -6,6 +6,8 @@ import { AccommodationCard } from '@/components/display/AccommodationCard';
 import { Modal } from '@/components/utility/Modal';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
 // The globe engine is large: loaded only when a trip page opens.
+import { DayCosts } from '@/components/trip/DayCosts';
+import { euros, tripTotal } from '@/lib/costs';
 const GlobeMap = lazy(() => import('@/components/map/GlobeMap').then((m) => ({ default: m.GlobeMap })));
 import { Button, Panel } from '@/components/ui';
 import { useAccommodations } from '@/hooks/useAccommodations';
@@ -213,6 +215,7 @@ export function TripResultsPage() {
             <li>{trip.days} days</li>
             {trip.totalDistance > 0 && <li className="num">{Math.round(trip.totalDistance).toLocaleString('en')} km</li>}
             {planner && <li>About {planner.kmPerDay} km a day</li>}
+            {trip.costs && <li>{`About ${euros(tripTotal(trip.costs, dayCount))} for the trip`}</li>}
           </ul>
         </div>
         <div className="flex flex-wrap gap-12">
@@ -301,6 +304,18 @@ export function TripResultsPage() {
                   ))}
                 </ol>
               </div>
+            )}
+
+            {trip.costs && (
+              <DayCosts
+                day={activeDay}
+                costs={trip.costs}
+                fromLeg={fromIdx}
+                toLeg={toIdx}
+                withNight={activeDay < dayCount}
+                vehicle={planner?.vehicle}
+                stay={stayTypes[0]}
+              />
             )}
 
             <Panel className="mt-24">

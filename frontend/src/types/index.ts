@@ -299,6 +299,7 @@ export interface GeneratedTrip {
   hiddenGems: HiddenGem[];
   /** Gems held back from the free plan (the server sends the first three). */
   lockedGems?: number;
+  costs?: TripCosts | null;
   /** The planner choices the trip was made with (absent on trips made before Routify). */
   planner?: {
     kmPerDay: number;
@@ -310,5 +311,13 @@ export interface GeneratedTrip {
     overnights?: string[];
     /** The driving road as Google's encoded polyline. */
     route?: string;
+    vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
   };
+}
+
+/** Estimated costs per leg of the road (between two stops), from the server's price tables. */
+export interface TripCosts {
+  legs: { fuel: number; tolls: number; vignettes: { country: string; label: string; price: number }[]; warnings: string[]; total: number }[];
+  overnight: number;
+  updated: string;
 }

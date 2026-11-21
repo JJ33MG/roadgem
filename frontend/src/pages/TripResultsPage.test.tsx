@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { GeneratedTrip } from '@/types';
@@ -92,6 +92,29 @@ describe('TripResultsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
     const day2 = screen.queryAllByText('Burgos gem').length;
     expect(day1 + day2).toBe(1);
+  });
+
+  it('shows what each day costs and the estimated total of the trip', () => {
+    const t = trip({ ...base, vehicle: 'campervan' } as never);
+    t.costs = {
+      updated: '2026-11-22',
+      overnight: 35,
+      legs: [
+        { fuel: 41, tolls: 0, vignettes: [], warnings: [], total: 41 },
+        { fuel: 80, tolls: 22, vignettes: [{ country: 'AT', label: 'Austrian 10-day vignette', price: 12.8 }], warnings: ['France: many cities need a Crit’Air sticker.'], total: 114.8 },
+      ],
+    };
+    renderTrip(t);
+    const day = screen.getByRole('region', { name: 'Costs of day 1' });
+    expect(within(day).getByText('Diesel')).toBeInTheDocument();
+    expect(within(day).getByText('€41')).toBeInTheDocument();
+    expect(within(day).getByText('Campsite tonight')).toBeInTheDocument();
+    expect(within(day).getByText('Estimate, prices of 22 Nov 2026')).toBeInTheDocument();
+    expect(screen.getByText('About €191 for the trip')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    const day2 = screen.getByRole('region', { name: 'Costs of day 2' });
+    expect(within(day2).getByText('Austrian 10-day vignette')).toBeInTheDocument();
+    expect(within(day2).getByText('France: many cities need a Crit’Air sticker.')).toBeInTheDocument();
   });
 
   it('shows no gems and no Plus prompt when gems are switched off', () => {

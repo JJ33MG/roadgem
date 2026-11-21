@@ -148,7 +148,8 @@ export function TripResultsPage() {
     types: stayTypes.map((s) => STAY_TO_ACCOMMODATION[s]),
     checkin,
     checkout,
-    enabled: staysOpen,
+    // Loaded for each day: tonight's stays and their prices show without a click.
+    enabled: true,
   });
 
   if (loading) {
@@ -195,6 +196,8 @@ export function TripResultsPage() {
   const placed = allGems.some((g) => g.latitude && g.longitude);
   const showGems = gemsOn ? (placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];
   const sleepTown = town(legTo?.location) || trip.destination;
+  // The three best-rated real places to sleep tonight (searches like "Airbnb stays in" stay in the full list).
+  const tonight = accommodations.filter((o) => o.type !== 'airbnb').sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 3);
   const weather = trip.weather?.find((w) => w.day === activeDay);
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
@@ -362,13 +365,28 @@ export function TripResultsPage() {
             <Panel className="mt-24">
               <h3 className="font-display text-[26px] text-ink" style={head}>Sleep in {sleepTown}</h3>
               {picked[activeDay] && <p className="mt-6">Your choice: {picked[activeDay].name}</p>}
+              {tonight.length > 0 && (
+                <ul aria-label="Stays tonight" className="mt-16 grid gap-12 p-0" style={{ listStyle: 'none' }}>
+                  {tonight.map((o) => (
+                    <li key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-16 gap-y-4 rounded-part border border-rule bg-paper p-16">
+                      <span className="text-[18px] text-ink" style={{ fontWeight: 500 }}>{o.name}</span>
+                      <span className="num text-[18px] text-ink" style={{ fontWeight: 500 }}>{`About €${Math.round(o.pricePerNight)} a night`}</span>
+                      <span className="text-[16px] text-muted">{o.rating ? `Rated ${o.rating.toFixed(1)} on Google` : STAY_LABELS[o.type === 'airbnb' ? 'holiday_home' : o.type === 'campsite' ? 'campsite' : 'hotel']}</span>
+                      <a href={o.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} aria-label={`Check prices for ${o.name}`} className="justify-self-end text-[17px] text-ink">
+                        Check prices
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {tonight.length > 0 && <p className="mt-8 text-[15px] text-muted">Prices are estimates from the place's price level. The booking site shows the real price for your dates.</p>}
               <div className="mt-16 flex flex-wrap gap-12">
                 {stayTypes.map((s) => (
                   <a key={s} href={stayUrl(s, sleepTown, checkin, checkout)} target="_blank" rel="noopener noreferrer sponsored" onClick={countClick} className="btn-header no-underline">
                     {STAY_LABELS[s]}
                   </a>
                 ))}
-                <Button variant="primary" onClick={() => setStaysOpen(true)}>Stays nearby</Button>
+                <Button variant="primary" onClick={() => setStaysOpen(true)}>{tonight.length ? 'More stays' : 'Stays nearby'}</Button>
               </div>
               {canEdit && (
                 <div className="mt-20 grid gap-12 border-t border-rule pt-16 sm:grid-cols-2">

@@ -8,7 +8,8 @@ vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium:
 vi.mock('@/components/map/GlobeMap', () => ({ GlobeMap: () => <div role="region" aria-label="Map of the route, the nights and the gems" /> }));
 const edits = vi.hoisted(() => ({ key: null as string | null, sendEdit: vi.fn() }));
 vi.mock('@/lib/tripEdits', () => ({ editKeyFor: () => edits.key, sendEdit: edits.sendEdit }));
-vi.mock('@/hooks/useAccommodations', () => ({ useAccommodations: () => ({ accommodations: [], isLoading: false }) }));
+const stays = vi.hoisted(() => ({ list: [] as unknown[] }));
+vi.mock('@/hooks/useAccommodations', () => ({ useAccommodations: () => ({ accommodations: stays.list, isLoading: false }) }));
 
 const slot = (activity: string, location: string) => ({ time: '10:00', activity, location, description: 'A short visit.', estimatedCost: 10, notes: '' });
 const stop = (location: string, latitude: number, longitude: number) => ({
@@ -145,6 +146,20 @@ describe('TripResultsPage', () => {
     edits.key = null;
     renderTrip({ ...trip({ ...base }), yours: true });
     expect(screen.getByRole('button', { name: 'Add a rest day here' })).toBeInTheDocument();
+  });
+
+  it('shows tonight\'s stays with their price a night and a link to book, without opening anything', () => {
+    stays.list = [
+      { id: 'c1', name: 'Camping Lerma', type: 'campsite', rating: 4.2, pricePerNight: 22, imageUrl: null, address: 'Lerma', latitude: 42, longitude: -3.7, affiliateUrl: 'https://www.booking.com/x?aid=1' },
+      { id: 'c2', name: 'Camping Burgos', type: 'campsite', rating: 4.6, pricePerNight: 32, imageUrl: null, address: 'Burgos', latitude: 42.3, longitude: -3.7, affiliateUrl: 'https://www.booking.com/y?aid=1' },
+    ];
+    renderTrip(trip({ ...base }));
+    const tonight = screen.getByRole('list', { name: 'Stays tonight' });
+    const first = within(tonight).getAllByRole('listitem')[0];
+    expect(first).toHaveTextContent('Camping Burgos');
+    expect(first).toHaveTextContent('About €32 a night');
+    expect(within(first).getByRole('link', { name: 'Check prices for Camping Burgos' })).toHaveAttribute('href', 'https://www.booking.com/y?aid=1');
+    stays.list = [];
   });
 
   it('shows no change buttons to someone who did not plan the trip', () => {

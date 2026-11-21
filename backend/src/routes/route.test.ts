@@ -19,3 +19,17 @@ describe('inEurope', () => {
     expect(inEurope({ lat: 41.65, lng: -83.54 })).toBe(false);
   });
 });
+
+import { estimateBody } from './route';
+
+describe('estimateBody', () => {
+  it('gives the distance and both ends, so the globe can draw the arc while planning', () => {
+    const a = { lat: 52.37, lng: 4.9 };
+    const b = { lat: 45.6, lng: 10.7 };
+    const body = estimateBody(a, b);
+    expect(body.km).toBeGreaterThan(900);
+    expect(body.from).toEqual(a);
+    expect(body.to).toEqual(b);
+    expect(estimateBody(null, b)).toEqual({ km: null });
+  });
+});

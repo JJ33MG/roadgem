@@ -41,6 +41,11 @@ async function geocode(place: string): Promise<LatLng | null> {
   return point;
 }
 
+/** The estimate's answer: the rough road distance and both ends (the globe draws the arc between them). */
+export function estimateBody(a: LatLng | null, b: LatLng | null): { km: number | null; from?: LatLng; to?: LatLng } {
+  return a && b ? { km: roadKm(a, b), from: a, to: b } : { km: null };
+}
+
 export const routeRouter = Router();
 
 routeRouter.get('/estimate', async (req: Request, res: Response) => {
@@ -49,7 +54,7 @@ routeRouter.get('/estimate', async (req: Request, res: Response) => {
   if (!from.trim() || !to.trim()) return res.status(400).json({ error: 'Add where you start and where you end.' });
   try {
     const [a, b] = await Promise.all([geocode(from), geocode(to)]);
-    res.json({ km: a && b ? roadKm(a, b) : null });
+    res.json(estimateBody(a, b));
   } catch {
     res.json({ km: null });
   }

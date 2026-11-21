@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
 import { tripsApi } from '@/lib/api';
 import { AccommodationCard } from '@/components/display/AccommodationCard';
 import { Modal } from '@/components/utility/Modal';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
-import { TripMapView } from '@/components/map/TripMapView';
+// The globe engine is large: loaded only when a trip page opens.
+const GlobeMap = lazy(() => import('@/components/map/GlobeMap').then((m) => ({ default: m.GlobeMap })));
 import { Button, Panel } from '@/components/ui';
 import { useAccommodations } from '@/hooks/useAccommodations';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -175,13 +176,15 @@ export function TripResultsPage() {
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
   const tripMap = (
-    <TripMapView
+    <Suspense fallback={<div className="rt-map" aria-hidden="true" />}>
+    <GlobeMap
       stops={stops}
       gems={gemsOn ? allGems : []}
       route={planner?.route}
       dayGems={showGems.map((g) => g.name)}
       className="border border-rule"
     />
+    </Suspense>
   );
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';

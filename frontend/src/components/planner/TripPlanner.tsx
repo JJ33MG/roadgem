@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTripGeneration } from '@/hooks/useTripGeneration';
 import { apiClient } from '@/lib/apiClient';
+import { Panel } from '@/components/ui';
 import { PaywallModal } from '@/components/utility/PaywallModal';
 import { toGenerateRequest, type TripPlan } from '@/lib/tripPlan';
 import { useState } from 'react';
@@ -37,8 +38,17 @@ export function TripPlanner({ initial }: { initial?: TripPlan }) {
   return (
     <>
       <PlannerPanel initial={initial} busy={isLoading} onSubmit={plan} estimateKm={estimateKm} />
-      {isLoading && <PlanningProgress from={ends.from} to={ends.to} />}
-      {error && !limitReached && <p className="mt-12 text-error" role="alert">{error}</p>}
+      {/* Own light panels: on the homepage the planner sits on the dark band, where plain text disappears. */}
+      {isLoading && (
+        <Panel role="region" aria-label="Planning your trip" className="mt-16">
+          <PlanningProgress from={ends.from} to={ends.to} />
+        </Panel>
+      )}
+      {error && !limitReached && (
+        <Panel role="region" aria-label="Your trip was not planned" className="mt-16">
+          <p className="text-error" role="alert">{error}</p>
+        </Panel>
+      )}
       <PaywallModal isOpen={limitReached} onClose={dismissLimit} title="Your free trip is saved" message="The free plan keeps one trip. Routify Plus keeps every trip and shows every gem." />
     </>
   );

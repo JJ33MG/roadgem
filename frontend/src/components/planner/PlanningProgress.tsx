@@ -24,7 +24,7 @@ export function PlanningProgress({ from, to }: { from?: Point | null; to?: Point
   }, []);
   const arc: [LngLat, LngLat] | undefined = from && to ? [[from.lng, from.lat], [to.lng, to.lat]] : undefined;
   return (
-    <div ref={box} className="mt-16 grid gap-12">
+    <div ref={box} className="grid gap-12">
       <MapBoundary>
     <Suspense fallback={<div className="rt-map" aria-hidden="true" />}>
         <GlobeMap arc={arc} label="Your route on the globe while the trip is planned" />

@@ -3,6 +3,17 @@ import { parseGenerateBody } from './tripRequest';
 
 const base = { startLocation: 'Madrid', destination: 'Brussels', startDate: '2026-06-04', endDate: '2026-06-09', budget: 1250 };
 
+describe('vehicle', () => {
+  it('keeps a known vehicle and falls back to car', async () => {
+    const { parseGenerateBody } = await import('./tripRequest');
+    const base = { startLocation: 'A', destination: 'B', startDate: '2026-12-01', endDate: '2026-12-03', budget: 500 };
+    const ok = parseGenerateBody({ ...base, vehicle: 'ev' });
+    const bad = parseGenerateBody({ ...base, vehicle: 'bus' });
+    expect(ok.ok && ok.value.vehicle).toBe('ev');
+    expect(bad.ok && bad.value.vehicle).toBe('car');
+  });
+});
+
 describe('parseGenerateBody', () => {
   it('refuses a request without a start', () => {
     const r = parseGenerateBody({ ...base, startLocation: '' });
@@ -35,6 +46,15 @@ describe('parseGenerateBody', () => {
 });
 
 describe('plannerPrompt', () => {
+  it('plans for the vehicle: campervans and caravans avoid narrow old centres and sleep at campsites', async () => {
+    const { plannerPrompt } = await import('./claude');
+    const t = plannerPrompt({ kmPerDay: 280, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite'], filters: [], vehicle: 'campervan' }, 'own_car');
+    expect(t).toContain('VEHICLE: campervan');
+    expect(t).toContain('narrow');
+    const ev = plannerPrompt({ kmPerDay: 300, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['hotel'], filters: [], vehicle: 'ev' }, 'own_car');
+    expect(ev).toContain('VEHICLE: electric car');
+  });
+
   it('ties every day to its own overnight stop and keeps gem labels out of the day text', async () => {
     const { plannerPrompt } = await import('./claude');
     const t = plannerPrompt({ kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['hotel'], filters: [] }, 'own_car');

@@ -3,6 +3,7 @@
 import type { AccommodationType, Priority, TravelStyle, TripSearchParams } from '@/types';
 
 export type StayType = 'campsite' | 'hotel' | 'holiday_home';
+export type Vehicle = 'car' | 'ev' | 'campervan' | 'caravan';
 
 export interface TripPlan {
   from: string;
@@ -13,9 +14,10 @@ export interface TripPlan {
   gemsEnabled: boolean;
   stayTypes: StayType[];
   filters: string[];
+  vehicle: Vehicle;
 }
 
-export const KM_PER_DAY = { min: 100, max: 800, step: 25 } as const;
+export const KM_PER_DAY = { min: 100, max: 800, step: 10 } as const;
 export const GEMS_PER_DAY = { min: 1, max: 6 } as const;
 
 export const DEFAULT_PLAN: TripPlan = {
@@ -27,7 +29,26 @@ export const DEFAULT_PLAN: TripPlan = {
   gemsEnabled: true,
   stayTypes: ['campsite', 'hotel'],
   filters: [],
+  vehicle: 'car',
 };
+
+/** What each vehicle starts with (spec: km a day 350 / 300 / 280 / 250; campers sleep at campsites). */
+export const VEHICLE_DEFAULTS: Record<Vehicle, { label: string; kmPerDay: number; stayTypes: StayType[] }> = {
+  car: { label: 'Car', kmPerDay: 350, stayTypes: ['campsite', 'hotel'] },
+  ev: { label: 'Electric car', kmPerDay: 300, stayTypes: ['hotel', 'holiday_home'] },
+  campervan: { label: 'Campervan', kmPerDay: 280, stayTypes: ['campsite'] },
+  caravan: { label: 'Caravan', kmPerDay: 250, stayTypes: ['campsite'] },
+};
+
+export const VEHICLES: Vehicle[] = ['car', 'ev', 'campervan', 'caravan'];
+
+/** The plan with a new vehicle and that vehicle's distance and stays. */
+export const withVehicle = (plan: TripPlan, vehicle: Vehicle): TripPlan => ({
+  ...plan,
+  vehicle,
+  kmPerDay: VEHICLE_DEFAULTS[vehicle].kmPerDay,
+  stayTypes: [...VEHICLE_DEFAULTS[vehicle].stayTypes],
+});
 
 export const STAY_LABELS: Record<StayType, string> = {
   campsite: 'Campsites',
@@ -110,5 +131,6 @@ export function toGenerateRequest(plan: TripPlan, startDate: Date): TripSearchPa
     gemsEnabled: plan.gemsEnabled,
     stayTypes: plan.stayTypes,
     filters: plan.filters,
+    vehicle: plan.vehicle,
   };
 }

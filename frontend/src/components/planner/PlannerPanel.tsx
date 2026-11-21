@@ -8,6 +8,9 @@ import {
   QUICK_FILTERS,
   STAY_LABELS,
   suggestedDays,
+  VEHICLE_DEFAULTS,
+  VEHICLES,
+  withVehicle,
   type StayType,
   type TripPlan,
 } from '@/lib/tripPlan';
@@ -92,13 +95,37 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
         </div>
         {missing && <p className="mt-8 text-error" role="alert">Add where you start and where you end.</p>}
 
-        <div className="mt-20 grid gap-16">
+        <p className="mt-20 text-[16px] text-muted" style={{ fontWeight: 500 }}>Travelling by</p>
+        <div role="radiogroup" aria-label="Travelling by" className="mt-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
+          {VEHICLES.map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={plan.vehicle === v}
+              onClick={() => setPlan((p) => withVehicle(p, v))}
+              className={`min-h-[52px] rounded-btn border px-12 text-[17px] ${plan.vehicle === v ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`}
+              style={{ fontWeight: 500 }}
+            >
+              {VEHICLE_DEFAULTS[v].label}
+            </button>
+          ))}
+        </div>
+        {tooShort && (
+          <p className="mt-12 text-[16px] text-ink-2" role="status">
+            {`About ${needed} days at ${plan.kmPerDay} km a day`}
+          </p>
+        )}
+
+        <details className="mt-16 rounded-input border border-rule bg-paper px-16 py-12">
+          <summary className="min-h-[32px] cursor-pointer text-[17px] text-ink" style={{ fontWeight: 500 }}>
+            <span>Adjust</span>
+            <span className="ml-8 text-[16px] text-muted" style={{ fontWeight: 400 }}>
+              {`${plan.kmPerDay} km a day, ${plan.gemsEnabled ? `${plan.gemsPerDay} gems a day` : 'no gems'}, ${plan.stayTypes.map((s) => STAY_LABELS[s].toLowerCase()).join(' or ')}`}
+            </span>
+          </summary>
+        <div className="mt-16 grid gap-16">
           <SliderField label="Kilometres a day" unit="km" value={plan.kmPerDay} min={KM_PER_DAY.min} max={KM_PER_DAY.max} step={KM_PER_DAY.step} onChange={(v) => set('kmPerDay', v)} />
-          {tooShort && (
-            <p className="text-[16px] text-ink-2" role="status">
-              {`About ${needed} days at ${plan.kmPerDay} km a day`}
-            </p>
-          )}
           {plan.gemsEnabled && (
             <SliderField label="Gems a day" value={plan.gemsPerDay} min={GEMS_PER_DAY.min} max={GEMS_PER_DAY.max} onChange={(v) => set('gemsPerDay', v)} />
           )}
@@ -125,6 +152,7 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
             {extraFilters ? `All filters, ${extraFilters} on` : 'All filters'}
           </button>
         </div>
+        </details>
 
         {asking && tooShort ? (
           <div className="mt-20 grid gap-8 sm:grid-cols-2">

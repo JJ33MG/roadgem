@@ -62,6 +62,26 @@ describe('PlannerPanel', () => {
     await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
   });
 
+  it('starts with the vehicle: a campervan drives 280 km a day and sleeps at campsites', () => {
+    const onSubmit = vi.fn();
+    render(<PlannerPanel onSubmit={onSubmit} initial={{ ...DEFAULT_PLAN, from: 'Amsterdam', to: 'Garda' }} />);
+    fireEvent.click(screen.getByRole('radio', { name: 'Campervan' }));
+    expect(screen.getByText('280 km')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Campsites' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Hotels' })).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ vehicle: 'campervan', kmPerDay: 280, stayTypes: ['campsite'] }));
+  });
+
+  it('keeps the form short: the finer settings sit in a closed Adjust section', () => {
+    const { container } = render(<PlannerPanel onSubmit={() => {}} />);
+    const adjust = container.querySelector('details');
+    expect(adjust).not.toBeNull();
+    expect(adjust).not.toHaveAttribute('open');
+    expect(within(adjust as HTMLElement).getByText('Adjust')).toBeInTheDocument();
+    expect(within(adjust as HTMLElement).getByRole('slider', { name: 'Kilometres a day' })).toBeInTheDocument();
+  });
+
   it('does not submit without a start and an end', () => {
     const onSubmit = vi.fn();
     render(<PlannerPanel onSubmit={onSubmit} />);

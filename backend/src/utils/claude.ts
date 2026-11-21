@@ -15,7 +15,17 @@ export interface PlannerOptions {
   gemsEnabled: boolean;
   stayTypes: ('campsite' | 'hotel' | 'holiday_home')[];
   filters: string[];
+  vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
 }
+
+const VEHICLE_RULES: Record<NonNullable<PlannerOptions['vehicle']>, string> = {
+  car: 'VEHICLE: car.',
+  ev: 'VEHICLE: electric car. Overnight towns with public charging; mention a charging stop on long days.',
+  campervan:
+    'VEHICLE: campervan. Prefer campsites and aires, avoid narrow old centres and low bridges, suggest parking at the edge of old towns.',
+  caravan:
+    'VEHICLE: car with caravan. Keep days shorter and on main roads, prefer campsites with easy pitches, avoid narrow old centres and steep passes.',
+};
 
 const STAY_WORDS: Record<PlannerOptions['stayTypes'][number], string> = {
   campsite: 'campsites',
@@ -26,6 +36,7 @@ const STAY_WORDS: Record<PlannerOptions['stayTypes'][number], string> = {
 /** The Routify planner's rules for the itinerary: daily distance, overnight stops, gems on or off. */
 export function plannerPrompt(p: PlannerOptions, transportType: string): string {
   const lines: string[] = [];
+  if (p.vehicle) lines.push(VEHICLE_RULES[p.vehicle]);
   if (transportType !== 'public') {
     lines.push(
       `DAILY DISTANCE: each driving day ends near ${p.kmPerDay} km from where it started, and never more than ${Math.round(p.kmPerDay * 1.2)} km. ` +

@@ -60,6 +60,7 @@ export interface TripSearchParams {
   gemsEnabled?: boolean;
   stayTypes?: ('campsite' | 'hotel' | 'holiday_home')[];
   filters?: string[];
+  vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
 }
 
 export interface GeoPoint {

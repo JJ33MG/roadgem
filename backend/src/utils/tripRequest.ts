@@ -2,6 +2,8 @@
 // (kilometres a day, gems a day, the gems switch, sleep types, filters), with safe defaults.
 
 export type StayType = 'campsite' | 'hotel' | 'holiday_home';
+export type Vehicle = 'car' | 'ev' | 'campervan' | 'caravan';
+const VEHICLES: Vehicle[] = ['car', 'ev', 'campervan', 'caravan'];
 
 export interface GenerateRequest {
   startLocation: string;
@@ -18,6 +20,7 @@ export interface GenerateRequest {
   gemsEnabled: boolean;
   stayTypes: StayType[];
   filters: string[];
+  vehicle: Vehicle;
 }
 
 const STAY_TYPES: StayType[] = ['campsite', 'hotel', 'holiday_home'];
@@ -65,6 +68,7 @@ export function parseGenerateBody(body: unknown): { ok: true; value: GenerateReq
       gemsEnabled: b.gemsEnabled !== false,
       stayTypes: stays.length ? [...new Set(stays)] : DEFAULT_STAYS,
       filters,
+      vehicle: VEHICLES.includes(b.vehicle as Vehicle) ? (b.vehicle as Vehicle) : 'car',
     },
   };
 }

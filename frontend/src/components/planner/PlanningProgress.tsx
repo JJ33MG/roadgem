@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { LngLat } from '@/lib/arc';
+import { MapBoundary } from '@/components/map/MapBoundary';
 
 const GlobeMap = lazy(() => import('@/components/map/GlobeMap').then((m) => ({ default: m.GlobeMap })));
 
@@ -24,9 +25,11 @@ export function PlanningProgress({ from, to }: { from?: Point | null; to?: Point
   const arc: [LngLat, LngLat] | undefined = from && to ? [[from.lng, from.lat], [to.lng, to.lat]] : undefined;
   return (
     <div ref={box} className="mt-16 grid gap-12">
-      <Suspense fallback={<div className="rt-map" aria-hidden="true" />}>
+      <MapBoundary>
+    <Suspense fallback={<div className="rt-map" aria-hidden="true" />}>
         <GlobeMap arc={arc} label="Your route on the globe while the trip is planned" />
       </Suspense>
+    </MapBoundary>
       <p role="status" className="text-[18px] text-ink" style={{ fontWeight: 500 }}>
         {PLANNING_STEPS[step]}
       </p>

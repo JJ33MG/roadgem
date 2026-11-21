@@ -141,6 +141,12 @@ describe('TripResultsPage', () => {
     expect(screen.getByText('Real place, rated 4.7 by 622 Google reviewers')).toBeInTheDocument();
   });
 
+  it('lets the signed-in owner change the trip on another device (no edit key here)', () => {
+    edits.key = null;
+    renderTrip({ ...trip({ ...base }), yours: true });
+    expect(screen.getByRole('button', { name: 'Add a rest day here' })).toBeInTheDocument();
+  });
+
   it('shows no change buttons to someone who did not plan the trip', () => {
     edits.key = null;
     renderTrip(trip({ ...base }));

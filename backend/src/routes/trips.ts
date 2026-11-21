@@ -206,6 +206,7 @@ async function readTrip(tripId: string, userId?: string) {
     ...gemsFor(trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [], viewerIsPremium),
     planner,
     costs: costsOfPlanner(planner),
+    yours: Boolean(trip.userId && userId && trip.userId === userId),
   };
 }
 

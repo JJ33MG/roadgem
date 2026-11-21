@@ -19,6 +19,7 @@ import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
 import { partnerFor, trackClick } from '@/lib/track';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
+import { MapBoundary } from '@/components/map/MapBoundary';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
 
@@ -93,8 +94,8 @@ export function TripResultsPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
-  // Whoever planned the trip in this browser holds its edit key and may change it.
-  const canEdit = !!tripId && !!editKeyFor(tripId);
+  // Whoever planned the trip in this browser holds its edit key; a signed-in owner may change it anywhere.
+  const canEdit = !!tripId && (!!editKeyFor(tripId) || !!trip?.yours);
   async function change(edit: TripEdit) {
     if (!tripId) return;
     setSaving(true);
@@ -197,6 +198,7 @@ export function TripResultsPage() {
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
   const tripMap = (
+    <MapBoundary>
     <Suspense fallback={<div className="rt-map" aria-hidden="true" />}>
     <GlobeMap
       stops={stops}
@@ -206,6 +208,7 @@ export function TripResultsPage() {
       className="border border-rule"
     />
     </Suspense>
+    </MapBoundary>
   );
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';

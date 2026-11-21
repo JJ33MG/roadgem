@@ -302,6 +302,8 @@ export interface GeneratedTrip {
   costs?: TripCosts | null;
   /** Handed out once when the trip is made: lets this browser change the plan later. */
   editKey?: string;
+  /** True when the signed-in viewer owns this trip (and may change it on any device). */
+  yours?: boolean;
   /** The planner choices the trip was made with (absent on trips made before Routify). */
   planner?: {
     kmPerDay: number;

@@ -11,7 +11,8 @@ const HERE = { lat: 50.8469, lng: 4.3527 }; // ~25 m away
 const FAR = { lat: 50.9, lng: 4.4 };
 
 describe.skipIf(!url)('community service', () => {
-  const db = new PrismaClient({ datasources: { db: { url } } });
+  // Made only when the suite runs (describe.skipIf still evaluates this body without a database).
+  const db = url ? new PrismaClient({ datasources: { db: { url } } }) : (undefined as unknown as PrismaClient);
   let n = 0;
   const user = async (name = `u${++n}`) => db.user.create({ data: { email: `${name}-${Date.now()}-${n}@test.local`, password: 'x', name } });
 
@@ -20,7 +21,7 @@ describe.skipIf(!url)('community service', () => {
     await db.post.deleteMany();
     await db.gem.deleteMany();
   });
-  afterAll(() => db.$disconnect());
+  afterAll(() => db?.$disconnect());
 
   it('refuses a photo taken away from the gem, so no points from home', async () => {
     const u = await user();

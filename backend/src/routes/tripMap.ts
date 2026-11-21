@@ -36,7 +36,11 @@ export async function tripMapImage(
   const hit = cache.get(url);
   if (hit) return { status: 200, ...hit };
   const img = await fetchImage(url).catch(() => null);
-  if (!img || !img.ok || !img.type.startsWith('image/')) return { status: 502, error: 'The map is not available right now.' };
+  if (!img || !img.ok || !img.type.startsWith('image/')) {
+    // Google explains a refusal in the body (e.g. the Static Maps API is not enabled for the key).
+    console.warn('[trip map] Google refused the image:', img ? `${img.type} ${img.body.toString('utf8').slice(0, 300)}` : 'no answer');
+    return { status: 502, error: 'The map is not available right now.' };
+  }
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
   cache.set(url, { type: img.type, body: img.body });
   return { status: 200, type: img.type, body: img.body };

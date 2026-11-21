@@ -20,6 +20,7 @@ import { partnerFor, trackClick } from '@/lib/track';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
+import { TripMapImage } from '@/components/map/TripMapImage';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
 
@@ -197,7 +198,7 @@ export function TripResultsPage() {
   const weather = trip.weather?.find((w) => w.day === activeDay);
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
-  const tripMap = (
+  const globe = (
     <MapBoundary>
     <Suspense fallback={<div className="rt-map" aria-hidden="true" />}>
     <GlobeMap
@@ -210,6 +211,11 @@ export function TripResultsPage() {
     </Suspense>
     </MapBoundary>
   );
+  // A real Google map with the day's drive on top; the globe only when that image cannot load.
+  const mapVersion = String(JSON.stringify([trip.days, planner?.overnights, hiddenIds]).split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
+  const tripMap = trip.tripId ? (
+    <TripMapImage tripId={trip.tripId} from={fromIdx} to={toIdx} version={mapVersion} href={mapsUrl} fallback={globe} />
+  ) : globe;
   const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';
 

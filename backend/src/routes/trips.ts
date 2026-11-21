@@ -11,6 +11,7 @@ import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils
 import { costsOfPlanner } from '../costs/costs';
 import { newEditKey } from '../utils/edits';
 import { editTrip } from './tripEdits';
+import { fetchGoogleImage, tripMapImage } from './tripMap';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -226,6 +227,29 @@ router.patch('/:tripId/plan', optionalAuth, async (req: AuthRequest, res: Respon
     const key = typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined;
     await editTrip(prisma, { tripId: req.params.tripId, edit: req.body?.edit, userId: req.userId, key });
     res.json(await readTrip(req.params.tripId, req.userId));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// A real Google map image of the trip; ?from=&to= are the stop indexes of the day being viewed.
+router.get('/:tripId/map', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const int = (v: unknown, d: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(Number(v)) || d));
+    const viewer = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
+    const r = await tripMapImage(prisma, fetchGoogleImage, {
+      tripId: req.params.tripId,
+      from: int(req.query.from, 0, 0, 60),
+      to: int(req.query.to, 0, 0, 60),
+      width: int(req.query.w, 640, 200, 640),
+      height: int(req.query.h, 400, 200, 640),
+      key: process.env.GOOGLE_MAPS_API_KEY ?? '',
+      premium: viewer?.subscriptionTier === 'premium',
+    });
+    if (r.status !== 200) return res.status(r.status).json({ error: r.error });
+    res.set('Content-Type', r.type!);
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.send(r.body);
   } catch (err) {
     next(err);
   }

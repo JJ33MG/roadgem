@@ -8,6 +8,7 @@ import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { gemsFor } from '../utils/gems';
 import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
+import { costsOfPlanner } from '../costs/costs';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -151,6 +152,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       weather,
       ...gemsFor<(typeof hiddenGems)[number]>(hiddenGems, isPremium),
       planner: savedPlanner,
+      costs: costsOfPlanner(savedPlanner),
     };
 
     res.json(trip);
@@ -203,6 +205,7 @@ router.get('/:tripId', optionalAuth, async (req: AuthRequest, res: Response, nex
       weather: JSON.parse(trip.weather),
       ...gemsFor(trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [], viewerIsPremium),
       planner: JSON.parse(trip.planner || '{}'),
+      costs: costsOfPlanner(JSON.parse(trip.planner || '{}')),
     });
   } catch (err) {
     next(err);

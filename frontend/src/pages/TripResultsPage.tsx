@@ -16,6 +16,7 @@ import { generateTripPDF } from '@/utils/generatePDF';
 import { buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
 import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
 import { partnerFor, trackClick } from '@/lib/track';
+import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
@@ -89,6 +90,22 @@ export function TripResultsPage() {
   const { isPremium } = useSubscription();
   const wide = useWide();
   const contentRef = useRef<HTMLDivElement>(null);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  // Whoever planned the trip in this browser holds its edit key and may change it.
+  const canEdit = !!tripId && !!editKeyFor(tripId);
+  async function change(edit: TripEdit) {
+    if (!tripId) return;
+    setSaving(true);
+    setEditError(null);
+    try {
+      setTrip(await sendEdit(tripId, edit));
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'The change could not be saved.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!trip && tripId) {
@@ -153,7 +170,8 @@ export function TripResultsPage() {
   const from = town(stops[0]?.location) || 'Start';
   const to = town(stops[stops.length - 1]?.location) || trip.destination;
   // The free plan shows three gems per trip (the server already holds the rest back).
-  const allGems = isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3);
+  const hiddenIds = planner?.hiddenGems ?? [];
+  const allGems = (isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3)).filter((g) => !g.placeId || !hiddenIds.includes(g.placeId));
   const lockedGems = isPremium ? 0 : (trip.lockedGems ?? Math.max(0, (trip.hiddenGems ?? []).length - 3));
   // Each gem belongs to the one day whose road passes closest to it.
   const dayCount = (trip.itinerary ?? []).length || trip.days || 1;
@@ -283,10 +301,21 @@ export function TripResultsPage() {
                           Post a photo here
                         </Link>
                       )}
+                      {canEdit && g.placeId && (
+                        <button type="button" disabled={saving} aria-label={`Hide ${g.name}`} onClick={() => void change({ type: 'hideGem', placeId: g.placeId! })} className="min-h-[48px] justify-self-start text-[17px] text-muted underline">
+                          Hide
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
               </div>
+            )}
+
+            {canEdit && hiddenIds.length > 0 && (
+              <button type="button" disabled={saving} onClick={() => hiddenIds.reduce((p, id) => p.then(() => change({ type: 'showGem', placeId: id })), Promise.resolve())} className="mt-12 min-h-[48px] text-[17px] text-ink underline">
+                {`Show ${hiddenIds.length} hidden gem${hiddenIds.length === 1 ? '' : 's'}`}
+              </button>
             )}
 
             {day && (
@@ -329,6 +358,26 @@ export function TripResultsPage() {
                 ))}
                 <Button variant="primary" onClick={() => setStaysOpen(true)}>Stays nearby</Button>
               </div>
+              {canEdit && (
+                <div className="mt-20 grid gap-12 border-t border-rule pt-16 sm:grid-cols-2">
+                  <label className="flex flex-col gap-[6px] text-[16px] text-muted" style={{ fontWeight: 500 }}>
+                    Move tonight's stop
+                    <select
+                      disabled={saving}
+                      value={toIdx}
+                      onChange={(e) => void change({ type: 'night', day: activeDay, stopIndex: Number(e.target.value) })}
+                      className="h-[52px] rounded-input border border-rule bg-paper px-12 text-[18px] text-ink"
+                    >
+                      {stops.map((st, i) => (i === 0 ? null : <option key={`${st.location}-${i}`} value={i}>{town(st.location)}</option>))}
+                    </select>
+                  </label>
+                  <Button type="button" disabled={saving || dayCount >= 30} className="self-end" onClick={() => void change({ type: 'restDay', afterDay: activeDay })}>
+                    Add a rest day here
+                  </Button>
+                </div>
+              )}
+              {editError && <p className="mt-12 text-error" role="alert">{editError}</p>}
+              {saving && <p className="mt-12 text-[16px] text-muted" role="status">Saving the change</p>}
             </Panel>
           </section>
         </div>

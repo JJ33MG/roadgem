@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { apiClient } from '@/lib/apiClient';
+import { saveEditKey } from '@/lib/tripEdits';
 import type { GeneratedTrip, TripSearchParams } from '@/types';
 
 const TIMEOUT_MS = 90_000;
@@ -32,6 +33,7 @@ export function useTripGeneration(): UseTripGenerationResult {
       const res = await apiClient.post<GeneratedTrip>('/trips/generate', params, {
         signal: controller.signal,
       });
+      if (res.data.editKey) saveEditKey(res.data.tripId, res.data.editKey);
       setTrip(res.data);
       return res.data;
     } catch (err) {

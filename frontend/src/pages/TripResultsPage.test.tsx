@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { GeneratedTrip } from '@/types';
@@ -6,6 +6,8 @@ import { TripResultsPage } from './TripResultsPage';
 
 vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: false }) }));
 vi.mock('@/components/map/GlobeMap', () => ({ GlobeMap: () => <div role="region" aria-label="Map of the route, the nights and the gems" /> }));
+const edits = vi.hoisted(() => ({ key: null as string | null, sendEdit: vi.fn() }));
+vi.mock('@/lib/tripEdits', () => ({ editKeyFor: () => edits.key, sendEdit: edits.sendEdit }));
 vi.mock('@/hooks/useAccommodations', () => ({ useAccommodations: () => ({ accommodations: [], isLoading: false }) }));
 
 const slot = (activity: string, location: string) => ({ time: '10:00', activity, location, description: 'A short visit.', estimatedCost: 10, notes: '' });
@@ -115,6 +117,27 @@ describe('TripResultsPage', () => {
     const day2 = screen.getByRole('region', { name: 'Costs of day 2' });
     expect(within(day2).getByText('Austrian 10-day vignette')).toBeInTheDocument();
     expect(within(day2).getByText('France: many cities need a Crit’Air sticker.')).toBeInTheDocument();
+  });
+
+  it('lets the planner of the trip hide a gem and add a rest day, without planning again', async () => {
+    edits.key = 'k';
+    const t = trip({ ...base });
+    t.hiddenGems = [{ name: 'Lerma', description: 'Ducal square.', address: 'Lerma', latitude: 42.02, longitude: -3.75, category: 'historic', placeId: 'pl1' }];
+    edits.sendEdit.mockResolvedValueOnce({ ...t, planner: { ...t.planner, hiddenGems: ['pl1'] } });
+    renderTrip(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Hide Lerma' }));
+    await waitFor(() => expect(edits.sendEdit).toHaveBeenCalledWith('t1', { type: 'hideGem', placeId: 'pl1' }));
+    expect(await screen.findByRole('button', { name: 'Show 1 hidden gem' })).toBeInTheDocument();
+    edits.sendEdit.mockResolvedValueOnce(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Add a rest day here' }));
+    await waitFor(() => expect(edits.sendEdit).toHaveBeenCalledWith('t1', { type: 'restDay', afterDay: 1 }));
+    edits.key = null;
+  });
+
+  it('shows no change buttons to someone who did not plan the trip', () => {
+    edits.key = null;
+    renderTrip(trip({ ...base }));
+    expect(screen.queryByRole('button', { name: 'Add a rest day here' })).toBeNull();
   });
 
   it('shows no gems and no Plus prompt when gems are switched off', () => {

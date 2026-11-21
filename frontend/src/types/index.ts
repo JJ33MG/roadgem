@@ -300,6 +300,8 @@ export interface GeneratedTrip {
   /** Gems held back from the free plan (the server sends the first three). */
   lockedGems?: number;
   costs?: TripCosts | null;
+  /** Handed out once when the trip is made: lets this browser change the plan later. */
+  editKey?: string;
   /** The planner choices the trip was made with (absent on trips made before Routify). */
   planner?: {
     kmPerDay: number;
@@ -312,6 +314,7 @@ export interface GeneratedTrip {
     /** The driving road as Google's encoded polyline. */
     route?: string;
     vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
+    hiddenGems?: string[];
   };
 }
 

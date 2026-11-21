@@ -9,6 +9,8 @@ import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { gemsFor } from '../utils/gems';
 import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
 import { costsOfPlanner } from '../costs/costs';
+import { newEditKey } from '../utils/edits';
+import { editTrip } from './tripEdits';
 import { parseGenerateBody } from '../utils/tripRequest';
 
 const HOTEL_PRICE_BY_LEVEL = [45, 70, 110, 170, 260];
@@ -78,7 +80,8 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     );
 
     // The page follows each day's overnight town as the plan names it.
-    const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[] } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
+    const editKey = newEditKey();
+    const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[]; hiddenGems?: string[] } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
 
     let totalDistance = 0;
     if (Array.isArray(tripData.stops) && tripData.stops.length > 1) {
@@ -115,7 +118,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
         tips: JSON.stringify(tripData.tips || []),
         weather: JSON.stringify(weather),
         hiddenGems: JSON.stringify(hiddenGems),
-        planner: JSON.stringify(savedPlanner),
+        planner: JSON.stringify({ ...savedPlanner, editKeyHash: editKey.hash }),
         itineraryDays: {
           create: (tripData.itinerary || []).slice(0, days).map((day: any) => ({
             day: day.day,
@@ -153,6 +156,8 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
       ...gemsFor<(typeof hiddenGems)[number]>(hiddenGems, isPremium),
       planner: savedPlanner,
       costs: costsOfPlanner(savedPlanner),
+      // Handed out once: the browser keeps it to change this trip later without an account.
+      editKey: editKey.key,
     };
 
     res.json(trip);
@@ -161,52 +166,65 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
   }
 });
 
+/** What the browser gets for a saved trip (the edit key's hash never leaves the server). */
+async function readTrip(tripId: string, userId?: string) {
+  const trip = await prisma.trip.findUnique({
+    where: { id: tripId },
+    include: { itineraryDays: { include: { activities: true }, orderBy: { day: 'asc' } } },
+  });
+  if (!trip) return null;
+  const viewer = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+  const viewerIsPremium = viewer?.subscriptionTier === 'premium';
+  const itinerary = trip.itineraryDays.map((d) => {
+    const day: Record<string, unknown> = { day: d.day };
+    for (const activity of d.activities) {
+      day[activity.slot] = {
+        time: activity.time,
+        activity: activity.activity,
+        location: activity.location,
+        description: activity.description,
+        estimatedCost: activity.estimatedCost,
+        notes: activity.notes,
+      };
+    }
+    return day;
+  });
+  const { editKeyHash: _hidden, ...planner } = JSON.parse(trip.planner || '{}');
+  return {
+    tripId: trip.id,
+    destination: trip.destination,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    days: trip.days,
+    stops: JSON.parse(trip.stops),
+    itinerary,
+    totalCost: trip.totalCost,
+    totalDistance: trip.totalDistance,
+    highlights: JSON.parse(trip.highlights),
+    tips: JSON.parse(trip.tips),
+    weather: JSON.parse(trip.weather),
+    ...gemsFor(trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [], viewerIsPremium),
+    planner,
+    costs: costsOfPlanner(planner),
+  };
+}
+
 router.get('/:tripId', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const trip = await prisma.trip.findUnique({
-      where: { id: req.params.tripId },
-      include: { itineraryDays: { include: { activities: true }, orderBy: { day: 'asc' } } },
-    });
+    const trip = await readTrip(req.params.tripId, req.userId);
+    if (!trip) return res.status(404).json({ error: 'Trip not found' });
+    res.json(trip);
+  } catch (err) {
+    next(err);
+  }
+});
 
-    if (!trip) {
-      return res.status(404).json({ error: 'Trip not found' });
-    }
-
-    const viewer = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
-    const viewerIsPremium = viewer?.subscriptionTier === 'premium';
-
-    const itinerary = trip.itineraryDays.map((d) => {
-      const day: Record<string, unknown> = { day: d.day };
-      for (const activity of d.activities) {
-        day[activity.slot] = {
-          time: activity.time,
-          activity: activity.activity,
-          location: activity.location,
-          description: activity.description,
-          estimatedCost: activity.estimatedCost,
-          notes: activity.notes,
-        };
-      }
-      return day;
-    });
-
-    res.json({
-      tripId: trip.id,
-      destination: trip.destination,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      days: trip.days,
-      stops: JSON.parse(trip.stops),
-      itinerary,
-      totalCost: trip.totalCost,
-      totalDistance: trip.totalDistance,
-      highlights: JSON.parse(trip.highlights),
-      tips: JSON.parse(trip.tips),
-      weather: JSON.parse(trip.weather),
-      ...gemsFor(trip.hiddenGems ? JSON.parse(trip.hiddenGems) : [], viewerIsPremium),
-      planner: JSON.parse(trip.planner || '{}'),
-      costs: costsOfPlanner(JSON.parse(trip.planner || '{}')),
-    });
+// Change a planned trip: the signed-in owner, or whoever holds the edit key handed out when it was made.
+router.patch('/:tripId/plan', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const key = typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined;
+    await editTrip(prisma, { tripId: req.params.tripId, edit: req.body?.edit, userId: req.userId, key });
+    res.json(await readTrip(req.params.tripId, req.userId));
   } catch (err) {
     next(err);
   }

@@ -8,21 +8,16 @@ import { LandingPage } from '@/pages/LandingPage';
 import { SearchFormPage } from '@/pages/SearchFormPage';
 import { TripResultsPage } from '@/pages/TripResultsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
-import { DayDetailPage } from '@/pages/DayDetailPage';
-import { HotelOptionsPage } from '@/pages/HotelOptionsPage';
-import { RestaurantOptionsPage } from '@/pages/RestaurantOptionsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { SignupPage } from '@/pages/SignupPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { PricingPage } from '@/pages/PricingPage';
-import AgentsDashboardPage from '@/pages/AgentsDashboardPage';
 import { DestinationsPage } from '@/pages/DestinationsPage';
 import { DestinationDetailPage } from '@/pages/DestinationDetailPage';
 import { CommunityPage } from '@/pages/community/CommunityPage';
 import { PostPhotoPage } from '@/pages/community/PostPhotoPage';
 import { SuggestGemPage } from '@/pages/community/SuggestGemPage';
 import { ModeratePage } from '@/pages/community/ModeratePage';
-import { TemplatesPage } from '@/pages/TemplatesPage';
 
 // Pages change without a transition: Ribbon keeps motion for state, not navigation.
 function AnimatedRoutes() {
@@ -39,15 +34,10 @@ function AnimatedRoutes() {
           <Route path="/destinations/:slug" element={<DestinationDetailPage />} />
 
           <Route path="/community" element={<CommunityPage />} />
-          <Route path="/templates" element={<TemplatesPage />} />
 
           <Route path="/trips/:tripId" element={<TripResultsPage />} />
-          <Route path="/trips/:tripId/days/:dayNumber" element={<DayDetailPage />} />
-          <Route path="/trips/:tripId/hotels" element={<HotelOptionsPage />} />
-          <Route path="/trips/:tripId/restaurants" element={<RestaurantOptionsPage />} />
 
           <Route element={<ProtectedRoute adminOnly />}>
-            <Route path="/agents" element={<AgentsDashboardPage />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

@@ -163,7 +163,7 @@ export function TripResultsPage() {
   let firstNight = activeDay;
   while (firstNight > 1 && nightIndex(firstNight - 1) === toIdx) firstNight--;
   let lastNight = activeDay;
-  while (lastNight + 1 < nights && nightIndex(lastNight + 1) === toIdx) lastNight++;
+  while (lastNight + 1 <= nights && nightIndex(lastNight + 1) === toIdx) lastNight++;
   const checkin = start ? format(addDays(start, firstNight - 1), 'yyyy-MM-dd') : undefined;
   const checkout = start ? format(addDays(start, lastNight), 'yyyy-MM-dd') : undefined;
   // The day heading shows the day's own date, not the first night of the stay.

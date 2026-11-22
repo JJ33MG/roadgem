@@ -284,4 +284,17 @@ describe('TripResultsPage booking clicks', () => {
     const compare = screen.getByRole('link', { name: 'Compare cars' }).getAttribute('href')!;
     expect(compare).toMatch(/\/track\/go\/discovercars\?/);
   });
+
+  it('books the last nights of a trip in the same town as one stay too', () => {
+    const t = trip({ ...base, stayTypes: ['hotel'], overnights: ['Madrid', 'Burgos', 'Burgos'] } as never);
+    t.days = 3;
+    t.endDate = '2026-06-07';
+    t.itinerary = [...t.itinerary, { ...t.itinerary[1], day: 3 }];
+    renderTrip(t);
+    const to = () => new URL(new URLSearchParams(screen.getByRole('link', { name: 'Hotels' }).getAttribute('href')!.split('?')[1]).get('to')!);
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect([to().searchParams.get('checkin'), to().searchParams.get('checkout')]).toEqual(['2026-06-05', '2026-06-07']);
+    fireEvent.click(screen.getByRole('button', { name: 'Day 3' }));
+    expect([to().searchParams.get('checkin'), to().searchParams.get('checkout')]).toEqual(['2026-06-05', '2026-06-07']);
+  });
 });

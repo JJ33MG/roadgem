@@ -10,6 +10,12 @@ type Props = { tripId: string; from: string; to: string; km: number; countries: 
 export function ShareTrip({ tripId, from, to, km, countries, totalGems, signedIn }: Props) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  // The finished card, kept for a second tap when the browser wants the share sheet straight after a tap (Safari).
+  const [ready, setReady] = useState<File | null>(null);
+
+  async function open(file: File) {
+    await navigator.share({ files: [file], title: `${from} to ${to}` });
+  }
 
   async function share() {
     setBusy(true);
@@ -19,8 +25,14 @@ export function ShareTrip({ tripId, from, to, km, countries, totalGems, signedIn
         ? await Promise.all([getPassport(tripId).catch(() => null), myInvite().catch(() => null)])
         : [null, null];
       const file = await cardFile({ from, to, done: pass?.stamps.length ?? 0, total: pass?.total || totalGems, km, countries, inviteUrl: invite?.url });
-      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-        await navigator.share({ files: [file], title: `${from} to ${to}` });
+      if (navigator.canShare?.({ files: [file] }) && typeof navigator.share === "function") {
+        try {
+          await open(file);
+        } catch (err) {
+          if ((err as Error)?.name !== 'NotAllowedError') throw err;
+          setReady(file);
+          setNote('Your card is ready.');
+        }
       } else {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(file);
@@ -37,7 +49,19 @@ export function ShareTrip({ tripId, from, to, km, countries, totalGems, signedIn
 
   return (
     <>
-      <Button onClick={() => void share()} disabled={busy}>{busy ? 'Making your card' : 'Share your trip'}</Button>
+      {ready ? (
+        <Button
+          variant="primary"
+          onClick={() => {
+            // Called straight from the tap, as Safari requires.
+            open(ready).then(() => setReady(null)).catch(() => undefined);
+          }}
+        >
+          Share the card
+        </Button>
+      ) : (
+        <Button onClick={() => void share()} disabled={busy}>{busy ? 'Making your card' : 'Share your trip'}</Button>
+      )}
       {note && <span className="text-[16px] text-muted" role="status">{note}</span>}
     </>
   );

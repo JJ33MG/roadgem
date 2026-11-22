@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Route, Wallet, Crown, Plus, ArrowRight, CheckCircle } from 'lucide-react';
@@ -14,6 +15,7 @@ const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
 
 export function DashboardPage() {
+  usePageTitle('My trips');
   const [searchParams] = useSearchParams();
   const justUpgraded = searchParams.get('upgraded') === 'true';
   const { user, refreshUser } = useAuth();

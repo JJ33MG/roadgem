@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Link } from 'react-router-dom';
 
 /** The example route on the homepage: real places, example distances. */
@@ -19,6 +20,7 @@ const CHECKS = [
 const wrap = 'mx-auto max-w-[1240px] px-16 md:px-40';
 
 export function LandingPage() {
+  usePageTitle();
   return (
     <>
       <section className="mx-auto mt-16 max-w-[1240px] px-16 md:px-24">

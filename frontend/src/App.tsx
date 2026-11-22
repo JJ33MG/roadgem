@@ -11,6 +11,8 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { SignupPage } from '@/pages/SignupPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { PrivacyPage } from '@/pages/legal/PrivacyPage';
+import { TermsPage } from '@/pages/legal/TermsPage';
 import { PricingPage } from '@/pages/PricingPage';
 import { DestinationsPage } from '@/pages/DestinationsPage';
 import { DestinationDetailPage } from '@/pages/DestinationDetailPage';
@@ -27,6 +29,8 @@ function AnimatedRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/plan" element={<SearchFormPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 

@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
@@ -104,6 +105,7 @@ export function TripResultsPage() {
   const [picked, setPicked] = useState<Record<number, AccommodationOption>>({});
   const { isPremium } = useSubscription();
   const wide = useWide();
+  usePageTitle(trip?.stops?.length ? `${town(trip.stops[0].location)} to ${town(trip.stops[trip.stops.length - 1].location) || trip.destination}` : trip?.destination);
   const contentRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);

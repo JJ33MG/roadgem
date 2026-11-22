@@ -1,9 +1,11 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/utility/AuthLayout';
 
 export function SignupPage() {
+  usePageTitle('Sign up');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { signup } = useAuth();

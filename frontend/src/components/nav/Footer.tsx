@@ -4,6 +4,8 @@ const LINKS = [
   { to: '/plan', label: 'Plan a trip' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/community', label: 'Community' },
+  { to: '/privacy', label: 'Privacy' },
+  { to: '/terms', label: 'Terms' },
 ];
 
 /** A quiet row: the wordmark, a few links and the photo credits. */

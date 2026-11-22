@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export function NotFoundPage() {
+  usePageTitle('Page not found');
   return (
-    <div className="section flex flex-col items-center py-128 text-center">
-      <p className="text-display font-display font-w360 text-mercury-blue">404</p>
-      <h1 className="mt-16 text-heading font-display font-w360 text-starlight">Page not found</h1>
-      <Link to="/" className="btn-primary mt-32">
-        Back home
-      </Link>
-    </div>
+    <section className="mx-auto max-w-[640px] px-16 py-80 text-center">
+      <h1 className="font-display text-[40px] text-ink" style={{ fontWeight: 400, letterSpacing: '-0.03em' }}>Page not found</h1>
+      <p className="mt-12">This page is not here. Plan a trip, or go back to the start.</p>
+      <div className="mt-24 flex flex-wrap justify-center gap-12">
+        <Link to="/plan" className="btn-primary no-underline">Plan a trip</Link>
+        <Link to="/" className="btn-header no-underline">Home</Link>
+      </div>
+    </section>
   );
 }

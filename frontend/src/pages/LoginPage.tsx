@@ -1,9 +1,11 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/utility/AuthLayout';
 
 export function LoginPage() {
+  usePageTitle('Log in');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get('next');

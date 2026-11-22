@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -41,6 +42,7 @@ const FAQS = [
 const head = { fontWeight: 400, letterSpacing: '-0.035em' } as const;
 
 export function PricingPage() {
+  usePageTitle('Pricing');
   const { user } = useAuth();
   const { isPremium } = useSubscription();
   const { upgrade } = useManageSubscription();

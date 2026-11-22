@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -9,6 +10,7 @@ type Tab = 'feed' | 'board';
 
 /** The community: photos from gems with likes, and the explorers board. */
 export function CommunityPage() {
+  usePageTitle('Explorers');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('feed');

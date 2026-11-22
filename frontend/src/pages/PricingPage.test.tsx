@@ -12,9 +12,13 @@ describe('PricingPage', () => {
     const { container } = render(<MemoryRouter><PricingPage /></MemoryRouter>);
     expect(screen.getByText('€0')).toBeInTheDocument();
     expect(screen.getByText('€9')).toBeInTheDocument();
+    expect(screen.getByText('€4.99')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Trip pass' })).toBeInTheDocument();
+    expect(screen.getAllByText('The cheapest route, without toll roads').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Real costs per day: fuel, tolls and vignettes').length).toBeGreaterThan(0);
     expect(screen.getByText('Unlimited trips')).toBeInTheDocument();
-    expect(screen.getByText('Every gem on the route')).toBeInTheDocument();
-    expect(screen.getByText('A printable PDF of the trip')).toBeInTheDocument();
+    expect(screen.getAllByText('Every gem on the route').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('A printable PDF of the trip').length).toBeGreaterThan(0);
     expect(container.querySelector('[class*="gradient"]')).toBeNull();
     expect(screen.queryByText(/Roadgem/i)).toBeNull();
   });

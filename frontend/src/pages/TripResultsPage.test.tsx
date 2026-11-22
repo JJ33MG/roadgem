@@ -204,6 +204,12 @@ describe('TripResultsPage', () => {
     edits.key = null;
   });
 
+  it('keeps the printable PDF for Plus', () => {
+    renderTrip(trip({ ...base }));
+    expect(screen.queryByRole('button', { name: 'Download PDF' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'PDF with Plus' })).toHaveAttribute('href', '/pricing');
+  });
+
   it('shows no change buttons to someone who did not plan the trip', () => {
     edits.key = null;
     renderTrip(trip({ ...base }));
@@ -213,7 +219,7 @@ describe('TripResultsPage', () => {
   it('shows no gems and no Plus prompt when gems are switched off', () => {
     renderTrip(trip({ ...base, gemsEnabled: false, stayTypes: ['hotel'] }));
     expect(screen.queryByText(/gem/i)).toBeNull();
-    expect(screen.queryByText(/Plus/)).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Every gem with Plus' })).toBeNull();
   });
 
   it('offers one booking button per chosen stay type', () => {

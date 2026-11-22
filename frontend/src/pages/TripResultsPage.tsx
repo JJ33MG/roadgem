@@ -273,7 +273,11 @@ export function TripResultsPage() {
           >
             {copied ? 'Link copied' : 'Share'}
           </Button>
-          <Button onClick={exportPdf} disabled={exporting}>{exporting ? 'Making the PDF' : 'Download PDF'}</Button>
+          {isPremium ? (
+            <Button onClick={exportPdf} disabled={exporting}>{exporting ? 'Making the PDF' : 'Download PDF'}</Button>
+          ) : (
+            <Link to="/pricing" className="btn-header no-underline">PDF with Plus</Link>
+          )}
         </div>
       </div>
 

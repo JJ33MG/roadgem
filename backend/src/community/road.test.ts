@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { checkIn, passport, CHECKIN_POINTS } from './road';
+import { newEditKey } from '../utils/edits';
+
+const KEY = newEditKey();
 
 const gems = [
   { placeId: 'p1', name: 'Lerma', latitude: 42.0, longitude: -3.75 },
@@ -9,7 +12,7 @@ const gems = [
 function fakeDb(existing: { placeId: string; name: string; createdAt: Date }[] = []) {
   const stamps = [...existing];
   return {
-    trip: { findUnique: vi.fn(async ({ where }: any) => (where.id === 't1' ? { id: 't1', hiddenGems: JSON.stringify(gems) } : null)) },
+    trip: { findUnique: vi.fn(async ({ where }: any) => (where.id === 't1' ? { id: 't1', userId: 'u1', hiddenGems: JSON.stringify(gems), planner: '{}' } : where.id === 't2' ? { id: 't2', userId: null, hiddenGems: JSON.stringify(gems), planner: JSON.stringify({ editKeyHash: KEY.hash }) } : null)) },
     checkIn: {
       findUnique: vi.fn(async ({ where }: any) => stamps.find((s) => s.placeId === where.userId_tripId_placeId.placeId) ?? null),
       create: vi.fn(async ({ data }: any) => { stamps.push({ ...data, createdAt: new Date('2027-05-01T10:00:00Z') }); return data; }),
@@ -47,5 +50,11 @@ describe('checking in at a gem', () => {
   it('the passport lists the stamps against all gems of the trip', async () => {
     const db = fakeDb([{ placeId: 'p2', name: 'Covarrubias', createdAt: new Date('2027-05-01T12:00:00Z') }]);
     expect(await passport(db as never, 'u1', 't1')).toEqual({ total: 2, stamps: [{ placeId: 'p2', name: 'Covarrubias', at: '2027-05-01T12:00:00.000Z' }] });
+  });
+
+  it('counts only on your own trip: another traveller\'s trip, or a trip without owner and without its key, is refused', async () => {
+    await expect(checkIn(fakeDb() as never, { userId: 'u9', tripId: 't1', placeId: 'p1', at: near, plus: false })).rejects.toMatchObject({ status: 403 });
+    await expect(checkIn(fakeDb() as never, { userId: 'u9', tripId: 't2', placeId: 'p1', at: near, plus: false })).rejects.toMatchObject({ status: 403 });
+    expect((await checkIn(fakeDb() as never, { userId: 'u9', tripId: 't2', placeId: 'p1', at: near, plus: false, editKey: KEY.key })).stamps).toBe(1);
   });
 });

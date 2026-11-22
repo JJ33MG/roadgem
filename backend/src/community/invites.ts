@@ -28,6 +28,12 @@ export async function inviteCodeFor(db: PrismaClient, userId: string): Promise<s
 async function addPlus(db: PrismaClient, userId: string, days: number, now: Date) {
   const u = await db.user.findUnique({ where: { id: userId } });
   if (!u) return;
+  if (u.subscriptionTier === 'premium' && !u.subscriptionExpires) return; // Plus without an end date already
+  if (u.stripeSubscriptionId) {
+    // A paying member: the days wait after the paid period (a renewal resets the period end, not these).
+    await db.user.update({ where: { id: userId }, data: { plusBonusDays: { increment: days } } });
+    return;
+  }
   const from = hasPlus(u, now) && u.subscriptionExpires && u.subscriptionExpires > now ? u.subscriptionExpires : now;
   await db.user.update({ where: { id: userId }, data: { subscriptionTier: 'premium', subscriptionExpires: new Date(from.getTime() + days * DAY) } });
 }

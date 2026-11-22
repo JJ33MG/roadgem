@@ -64,6 +64,9 @@ app.get('/api/health', async (_req: Request, res: Response) => {
 });
 
 
+// Against throwaway accounts (invite rewards) and password guessing.
+app.use('/api/auth/signup', limit('signup', 5, HOUR, 'Too many new accounts from here. Try again in an hour.'));
+app.use('/api/auth/login', limit('login', 20, HOUR, 'Too many attempts. Try again in an hour.'));
 app.use('/api/auth', authRouter);
 app.use('/api/user', usersRouter);
 app.use('/api/trips', tripsRouter);

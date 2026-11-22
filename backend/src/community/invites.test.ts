@@ -45,4 +45,21 @@ describe.skipIf(!url)('invites', () => {
     expect(results.filter((r) => r.inviterDays === 7)).toHaveLength(8);
     expect(results[8]).toEqual({ inviteeDays: 14, inviterDays: 0 });
   });
+
+  it('keeps the bonus week of a paying member apart, so a Stripe renewal does not wipe it', async () => {
+    const end = new Date(now.getTime() + 20 * DAY);
+    const inviter = await user({ subscriptionTier: 'premium', subscriptionExpires: end, stripeSubscriptionId: 'sub_1' });
+    const code = await inviteCodeFor(db, inviter.id);
+    await acceptInvite(db, { code, inviteeId: (await user()).id, now });
+    const i = await db.user.findUnique({ where: { id: inviter.id } });
+    expect(i!.subscriptionExpires!.getTime()).toBe(end.getTime());
+    expect(i!.plusBonusDays).toBe(7);
+  });
+
+  it('leaves Plus without an end date (set by hand) as it is', async () => {
+    const inviter = await user({ subscriptionTier: 'premium', subscriptionExpires: null });
+    const code = await inviteCodeFor(db, inviter.id);
+    await acceptInvite(db, { code, inviteeId: (await user()).id, now });
+    expect((await db.user.findUnique({ where: { id: inviter.id } }))!.subscriptionExpires).toBeNull();
+  });
 });

@@ -77,10 +77,12 @@ router.get('/posts/:id/photo', optionalAuth, wrap(async (req, res) => {
 }));
 
 // On the road: a stamp in the trip passport for being at one of the trip's gems.
+const allowCheckIn = rateLimiter(30, 60 * 60_000);
 router.post('/checkins', requireAuth, wrap(async (req, res) => {
+  if (!allowCheckIn(req.userId!)) return res.status(429).json({ error: 'That is a lot of check-ins. Try again in an hour.' });
   const me = await prisma.user.findUnique({ where: { id: req.userId } });
   const { tripId, placeId, at } = (req.body ?? {}) as { tripId?: unknown; placeId?: unknown; at?: { lat: number; lng: number } };
-  res.json(await checkIn(prisma, { userId: req.userId!, tripId: String(tripId ?? ''), placeId: String(placeId ?? ''), at: at as never, plus: hasPlus(me) }));
+  res.json(await checkIn(prisma, { userId: req.userId!, tripId: String(tripId ?? ''), placeId: String(placeId ?? ''), at: at as never, plus: hasPlus(me), editKey: typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined }));
 }));
 
 router.get('/passport/:tripId', requireAuth, wrap(async (req, res) => {

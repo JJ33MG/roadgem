@@ -21,6 +21,10 @@ model User {
   /// Personal invite code (made on first use).
   inviteCode          String?   @unique
   invitedById         String?
+  /// The Stripe subscription of a paying member (bonus days are kept apart from its period).
+  stripeSubscriptionId String?
+  /// Plus days earned with invites, counted after the paid period.
+  plusBonusDays       Int       @default(0)
   /// The Routify team account: its posts are labelled as the team.
   isTeam              Boolean   @default(false)
 

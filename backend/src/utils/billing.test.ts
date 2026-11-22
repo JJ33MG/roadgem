@@ -12,6 +12,11 @@ describe('who has Plus', () => {
     expect(hasPlus(null, now)).toBe(false);
   });
 
+  it('counts bonus days (from invites) after the paid period', () => {
+    expect(hasPlus({ subscriptionTier: 'premium', subscriptionExpires: new Date('2026-11-20'), plusBonusDays: 14 }, now)).toBe(true);
+    expect(hasPlus({ subscriptionTier: 'premium', subscriptionExpires: new Date('2026-11-01'), plusBonusDays: 7 }, now)).toBe(false);
+  });
+
   it('a trip with a Trip pass is unlocked for everyone who opens it', () => {
     expect(tripUnlocked({ pass: true })).toBe(true);
     expect(tripUnlocked({})).toBe(false);
@@ -37,7 +42,7 @@ describe('checkout', () => {
 describe('Stripe events', () => {
   function db() {
     return {
-      user: { update: vi.fn(async (_a: any) => ({})), updateMany: vi.fn(async () => ({ count: 1 })) },
+      user: { update: vi.fn(async (_a: any) => ({})), updateMany: vi.fn(async () => ({ count: 1 })), findUnique: vi.fn(async (_a: any) => ({ id: 'u1', plusBonusDays: 0 })) },
       trip: {
         findUnique: vi.fn(async () => ({ id: 't1', planner: JSON.stringify({ vehicle: 'car' }) })),
         update: vi.fn(async (_a: any) => ({})),
@@ -56,6 +61,16 @@ describe('Stripe events', () => {
     expect(d.user.update.mock.calls[0][0]).toMatchObject({ where: { id: 'u1' }, data: { subscriptionTier: 'premium' } });
     await applyStripeEvent(d as never, { type: 'customer.subscription.deleted', data: { object: { metadata: { userId: 'u1' } } } } as never, now);
     expect(d.user.update.mock.calls[1][0]).toMatchObject({ where: { id: 'u1' }, data: { subscriptionTier: 'free', subscriptionExpires: null } });
+  });
+
+  it('remembers the Stripe subscription, and a member with bonus days keeps Plus for them after cancelling', async () => {
+    const d = db();
+    await applyStripeEvent(d as never, { type: 'checkout.session.completed', data: { object: { mode: 'subscription', subscription: 'sub_9', metadata: { type: 'plus', userId: 'u1' } } } } as never, now);
+    expect(d.user.update.mock.calls[0][0].data.stripeSubscriptionId).toBe('sub_9');
+    d.user.findUnique = vi.fn(async () => ({ id: 'u1', plusBonusDays: 7 })) as never;
+    await applyStripeEvent(d as never, { type: 'customer.subscription.deleted', data: { object: { metadata: { userId: 'u1' } } } } as never, now);
+    expect(d.user.update.mock.calls[1][0].data).toMatchObject({ subscriptionTier: 'premium', plusBonusDays: 0, stripeSubscriptionId: null });
+    expect(d.user.update.mock.calls[1][0].data.subscriptionExpires.toISOString()).toBe('2026-12-08T12:00:00.000Z');
   });
 
   it('a renewal moves the end of the period to what Stripe says', async () => {

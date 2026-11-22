@@ -1,6 +1,7 @@
 // On the road: where the traveller is, checking in at a gem, and the trip passport.
 import axios from 'axios';
 import { apiClient } from './apiClient';
+import { editKeyFor } from './tripEdits';
 
 export type Point = { lat: number; lng: number };
 
@@ -18,7 +19,9 @@ export function here(): Promise<Point> {
 
 export async function checkInAt(tripId: string, placeId: string, at: Point): Promise<{ points: number; stamps: number; total: number }> {
   try {
-    return (await apiClient.post('/community/checkins', { tripId, placeId, at })).data;
+    // A trip planned on this device before signing in is still yours: its edit key says so.
+    const key = editKeyFor(tripId);
+    return (await apiClient.post('/community/checkins', { tripId, placeId, at }, { headers: key ? { 'x-edit-key': key } : {} })).data;
   } catch (err) {
     const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: string } | undefined)?.error : null;
     throw new Error(msg || 'The check-in did not go through. Try again.');

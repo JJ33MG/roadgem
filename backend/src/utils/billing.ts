@@ -7,10 +7,12 @@ export const TRIP_PASS_CENTS = 499;
 /** A renewal can arrive a little late: Plus stays on for a few days after the paid period. */
 const GRACE_DAYS = 3;
 
-export function hasPlus(user: { subscriptionTier: string; subscriptionExpires: Date | null } | null, now = new Date()): boolean {
+/** Plus while the paid period runs, plus bonus days from invites (kept apart so a renewal does not wipe them). */
+export function hasPlus(user: { subscriptionTier: string; subscriptionExpires: Date | null; plusBonusDays?: number | null } | null, now = new Date()): boolean {
   if (!user || user.subscriptionTier !== 'premium') return false;
   if (!user.subscriptionExpires) return true; // set by hand (testing): no end date
-  return user.subscriptionExpires.getTime() + GRACE_DAYS * 86_400_000 > now.getTime();
+  const bonus = (user.plusBonusDays ?? 0) * 86_400_000;
+  return user.subscriptionExpires.getTime() + bonus + GRACE_DAYS * 86_400_000 > now.getTime();
 }
 
 /** A Trip pass opens everything Plus gives for that one trip, to whoever opens it. */
@@ -53,7 +55,7 @@ export function checkoutParams(i: CheckoutInput, prices: { monthly?: string; yea
   };
 }
 
-type Db = { user: Pick<PrismaClient['user'], 'update'>; trip: Pick<PrismaClient['trip'], 'findUnique' | 'update'> };
+type Db = { user: Pick<PrismaClient['user'], 'update' | 'findUnique'>; trip: Pick<PrismaClient['trip'], 'findUnique' | 'update'> };
 
 /** What a Stripe event changes in Routify. Safe to receive twice (Stripe retries). */
 export async function applyStripeEvent(db: Db, event: Stripe.Event, now = new Date()): Promise<void> {
@@ -71,7 +73,11 @@ export async function applyStripeEvent(db: Db, event: Stripe.Event, now = new Da
       // Until the first invoice tells the real end: a month from now.
       const expires = new Date(now);
       expires.setMonth(expires.getMonth() + 1);
-      await db.user.update({ where: { id: meta.userId }, data: { subscriptionTier: 'premium', subscriptionExpires: expires } });
+      const subscription = typeof s.subscription === 'string' ? s.subscription : s.subscription?.id;
+      await db.user.update({
+        where: { id: meta.userId },
+        data: { subscriptionTier: 'premium', subscriptionExpires: expires, ...(subscription ? { stripeSubscriptionId: subscription } : {}) },
+      });
     }
     return;
   }
@@ -86,6 +92,15 @@ export async function applyStripeEvent(db: Db, event: Stripe.Event, now = new Da
   }
   if (event.type === 'customer.subscription.deleted') {
     const userId = (event.data.object as Stripe.Subscription).metadata?.userId;
-    if (userId) await db.user.update({ where: { id: userId }, data: { subscriptionTier: 'free', subscriptionExpires: null } });
+    if (!userId) return;
+    // Bonus days earned with invites still count after the paid subscription ends.
+    const u = await db.user.findUnique({ where: { id: userId } });
+    const bonus = u?.plusBonusDays ?? 0;
+    await db.user.update({
+      where: { id: userId },
+      data: bonus > 0
+        ? { subscriptionTier: 'premium', subscriptionExpires: new Date(now.getTime() + bonus * 86_400_000), plusBonusDays: 0, stripeSubscriptionId: null }
+        : { subscriptionTier: 'free', subscriptionExpires: null, stripeSubscriptionId: null },
+    });
   }
 }

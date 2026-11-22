@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { TripPlanner } from '@/components/planner/TripPlanner';
 
 /** The example route on the homepage: real places, example distances. */
 const EXAMPLE_DAYS = [
@@ -37,10 +36,19 @@ export function LandingPage() {
               <p className="mt-20 max-w-[34ch] text-[20px] leading-[1.45] text-band-ink md:text-[22px]" style={{ opacity: 0.88 }}>
                 Set the pace and the detours. Routify plans the days, beds and gems.
               </p>
+              <Link to="/plan" className="btn-primary mt-[32px] min-h-[56px] px-[32px] text-[19px] no-underline">
+                Start your road trip
+              </Link>
+              <p className="mt-12 text-[16px] text-band-ink" style={{ opacity: 0.75 }}>Free, ready in about a minute, no account needed.</p>
             </div>
-            <div>
-              <TripPlanner />
-            </div>
+            <img
+              src="/photos/road.jpg"
+              alt="A mountain road winding through a green valley"
+              width={1280}
+              height={851}
+              className="aspect-[4/3] w-full rounded-card object-cover"
+              style={{ filter: 'sepia(0.1) saturate(0.92)' }}
+            />
           </div>
         </div>
       </section>

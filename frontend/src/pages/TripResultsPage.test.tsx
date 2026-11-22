@@ -275,4 +275,13 @@ describe('TripResultsPage booking clicks', () => {
     renderTrip(trip({ ...base, stayTypes: ['hotel'] }));
     expect(to('Hotels').searchParams.get('group_adults')).toBe('2');
   });
+
+  it('offers a rental car that fits the group, with the dates and places, through Routify', () => {
+    renderTrip(trip({ ...base, travellers: 6 } as never));
+    const panel = screen.getByRole('heading', { name: 'Rental car' }).closest('div')!;
+    expect(panel).toHaveTextContent('Pick up in Madrid on 4 June, drop off in Brussels on 6 June.');
+    expect(panel).toHaveTextContent('A 7-seater');
+    const compare = screen.getByRole('link', { name: 'Compare cars' }).getAttribute('href')!;
+    expect(compare).toMatch(/\/track\/go\/discovercars\?/);
+  });
 });

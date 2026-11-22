@@ -19,6 +19,8 @@ export const PARTNERS: Record<string, Partner> = {
   getyourguide: { hosts: ['getyourguide.com'], param: { env: 'GETYOURGUIDE_AFFILIATE_ID', name: 'partner_id' } },
   viator: { hosts: ['viator.com'], param: { env: 'VIATOR_AFFILIATE_ID', name: 'pid' } },
   rentalcars: { hosts: ['rentalcars.com'], param: { env: 'RENTALCARS_AFFILIATE_ID', name: 'affiliateCode' } },
+  // DiscoverCars' own programme: the username is the affiliate id, sent as a_aid.
+  discovercars: { hosts: ['discovercars.com'], param: { env: 'DISCOVERCARS_AFFILIATE_ID', name: 'a_aid' } },
   airbnb: { hosts: ['airbnb.com'] },
 };
 

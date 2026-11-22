@@ -20,6 +20,7 @@ import { generateTripPDF } from '@/utils/generatePDF';
 import { buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
 import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
 import { goLink } from '@/lib/track';
+import { carForGroup } from '@/lib/cars';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
@@ -488,10 +489,19 @@ export function TripResultsPage() {
           ) : (
           <Panel>
             <h3 className="font-display text-[24px] text-ink" style={head}>Rental car</h3>
-            <p className="mt-6">{`Pick up in ${from}, drop off in ${to}.`}</p>
-            <a href={go(rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr))} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary mt-16 w-full no-underline">
-              Find a car
-            </a>
+            <p className="mt-6">
+              {start && trip.endDate
+                ? `Pick up in ${from} on ${format(start, 'd MMMM')}, drop off in ${to} on ${format(new Date(trip.endDate), 'd MMMM')}.`
+                : `Pick up in ${from}, drop off in ${to}.`}
+            </p>
+            <p className="mt-6 text-ink" style={{ fontWeight: 500 }}>{`${carForGroup(travellers).label} for ${travellers} ${travellers === 1 ? 'traveller' : 'travellers'}.`}</p>
+            <div className="mt-16 grid gap-8">
+              {/* DiscoverCars' date parameters are only in its affiliate panel: the town page for now. */}
+              <a href={go('https://www.discovercars.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
+              <a href={go(rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">
+                Rentalcars.com
+              </a>
+            </div>
           </Panel>
           )}
           {gemsOn && !isPremium && (

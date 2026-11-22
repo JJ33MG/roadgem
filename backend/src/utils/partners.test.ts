@@ -29,6 +29,12 @@ describe('partner links', () => {
     delete process.env.BOOKING_DEEPLINK;
   });
 
+  it('credits DiscoverCars with the username as a_aid', () => {
+    process.env.DISCOVERCARS_AFFILIATE_ID = 'routify';
+    expect(new URL(partnerTarget('discovercars', 'https://www.discovercars.com/')!).searchParams.get('a_aid')).toBe('routify');
+    delete process.env.DISCOVERCARS_AFFILIATE_ID;
+  });
+
   it('passes the link unchanged without an id, and refuses other websites (no open redirect)', () => {
     expect(partnerTarget('pitchup', 'https://www.pitchup.com/campsites/spain/')).toBe('https://www.pitchup.com/campsites/spain/');
     expect(partnerTarget('booking', 'https://evil.example/booking.com')).toBeNull();

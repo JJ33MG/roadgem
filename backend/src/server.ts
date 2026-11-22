@@ -9,11 +9,13 @@ import photosRouter from './routes/photos';
 import accommodationsRouter from './routes/accommodations';
 import destinationsRouter from './routes/destinations';
 import stripeRouter from './routes/stripe';
-import agentsRouter from './routes/agents';
 import communityRouter from './routes/community';
 import templatesRouter from './routes/templates';
 import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
+import { limit } from './middleware/limits';
+
+const HOUR = 60 * 60_000;
 import path from 'path';
 import { routeRouter } from './routes/route';
 import playRouter from './routes/play';
@@ -59,17 +61,16 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', usersRouter);
 app.use('/api/trips', tripsRouter);
 app.use('/api/subscription', subscriptionRouter);
-app.use('/api/photos', photosRouter);
-app.use('/api/accommodations', accommodationsRouter);
-app.use('/api/destinations', destinationsRouter);
+app.use('/api/photos', limit('photos', 400, HOUR), photosRouter);
+app.use('/api/accommodations', limit('stays', 60, HOUR), accommodationsRouter);
+app.use('/api/destinations', limit('places', 300, HOUR), destinationsRouter);
 app.use('/api/stripe', stripeRouter);
-app.use('/api/agents', agentsRouter);
 app.use('/api/community', playRouter);
 app.use('/api/community', communityRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/stats', statsRouter());
 app.use('/api/track', trackRouter);
-app.use('/api/route', routeRouter);
+app.use('/api/route', limit('route', 30, HOUR), routeRouter);
 
 // Unknown API paths answer in JSON, never with the website.
 app.use('/api', (_req: Request, res: Response) => res.status(404).json({ error: 'Not found' }));

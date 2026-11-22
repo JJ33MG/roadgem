@@ -20,7 +20,11 @@ router.get('/status', requireAuth, async (req: AuthRequest, res: Response, next:
   }
 });
 
+/** Plus without paying: only for testing, with ALLOW_DIRECT_UPGRADE=true (never on the live site). */
+export const directUpgradeAllowed = (env: Record<string, string | undefined> = process.env) => env.ALLOW_DIRECT_UPGRADE === 'true';
+
 router.post('/upgrade', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!directUpgradeAllowed()) return res.status(403).json({ error: 'Plus is started through checkout.' });
   try {
     const expires = new Date();
     expires.setMonth(expires.getMonth() + 1);

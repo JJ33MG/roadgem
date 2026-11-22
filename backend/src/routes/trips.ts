@@ -6,6 +6,7 @@ import { findNearbyPlaces } from '../utils/places';
 import { buildBookingUrl } from '../utils/affiliates';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
+import { generateLimit, limit } from '../middleware/limits';
 import { gemsFor } from '../utils/gems';
 import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
 import { costsOfPlanner } from '../costs/costs';
@@ -41,7 +42,7 @@ const router = Router();
 const gemLibrary = libraryDeps(prisma);
 const gemSource = (p: { lat: number; lng: number }) => candidatesAt(gemLibrary, p, 'trip').then((r) => r.cands);
 
-router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const parsed = parseGenerateBody(req.body);
     if (!parsed.ok) {
@@ -244,7 +245,7 @@ router.patch('/:tripId/plan', optionalAuth, async (req: AuthRequest, res: Respon
 });
 
 // A real Google map image of the trip; ?from=&to= are the stop indexes of the day being viewed.
-router.get('/:tripId/map', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+router.get('/:tripId/map', optionalAuth, limit('map', 200, 60 * 60_000), async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const int = (v: unknown, d: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(Number(v)) || d));
     const viewer = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;

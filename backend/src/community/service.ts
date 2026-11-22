@@ -147,11 +147,12 @@ export async function feed(db: PrismaClient, viewerId: string | null, before?: D
   }));
 }
 
-/** Explorers by points: approved photos and challenges, plus 200 for every found gem that turned official. */
+/** Explorers by points: approved photos and challenges, check-ins on the road, plus 200 for every found gem that turned official. */
 export async function board(db: PrismaClient, take = 20) {
-  const [byPosts, found] = await Promise.all([
+  const [byPosts, found, byCheckIns] = await Promise.all([
     db.post.groupBy({ by: ['userId'], where: { status: 'public' }, _sum: { points: true }, _count: { _all: true } }),
     db.gem.groupBy({ by: ['finderId'], where: { status: 'official', finderId: { not: null } }, _count: { _all: true } }),
+    db.checkIn.groupBy({ by: ['userId'], _sum: { points: true } }),
   ]);
   const totals = new Map<string, { points: number; photos: number; gems: number }>();
   for (const r of byPosts) totals.set(r.userId, { points: r._sum.points ?? 0, photos: r._count._all, gems: 0 });
@@ -160,6 +161,12 @@ export async function board(db: PrismaClient, take = 20) {
     t.points += POINTS.foundGem * r._count._all;
     t.gems = r._count._all;
     totals.set(r.finderId!, t);
+  }
+  // Check-ins on the road count too.
+  for (const r of byCheckIns) {
+    const t = totals.get(r.userId) ?? { points: 0, photos: 0, gems: 0 };
+    t.points += r._sum.points ?? 0;
+    totals.set(r.userId, t);
   }
   const top = [...totals.entries()].sort((a, b) => b[1].points - a[1].points).slice(0, take);
   const users = await db.user.findMany({ where: { id: { in: top.map(([id]) => id) } }, select: { id: true, name: true } });

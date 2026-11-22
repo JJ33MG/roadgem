@@ -317,3 +317,20 @@ model GemSearch {
 
   @@index([source])
 }
+
+// A stamp in a traveller's trip passport: checked in at one of the trip's gems, on the spot.
+model CheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  tripId    String
+  placeId   String
+  name      String
+  lat       Float
+  lng       Float
+  distanceM Int
+  points    Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tripId, placeId])
+  @@index([userId])
+}

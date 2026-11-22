@@ -6,6 +6,8 @@ import { isAdmin } from '../community/rules';
 import { board, createPost, feed, review, suggestGem, toggleLike } from '../community/service';
 import { checkPhoto, fallbackChallenge, writeChallenge } from '../community/aiCheck';
 import { rateLimiter } from './track';
+import { checkIn, passport } from '../community/road';
+import { hasPlus } from '../utils/billing';
 
 const router = Router();
 
@@ -66,6 +68,17 @@ router.get('/posts/:id/photo', optionalAuth, wrap(async (req, res) => {
   res.set('Cache-Control', post.status === 'public' ? 'public, max-age=86400' : 'private, no-store');
   res.set('X-Content-Type-Options', 'nosniff');
   res.send(Buffer.from(post.photo));
+}));
+
+// On the road: a stamp in the trip passport for being at one of the trip's gems.
+router.post('/checkins', requireAuth, wrap(async (req, res) => {
+  const me = await prisma.user.findUnique({ where: { id: req.userId } });
+  const { tripId, placeId, at } = (req.body ?? {}) as { tripId?: unknown; placeId?: unknown; at?: { lat: number; lng: number } };
+  res.json(await checkIn(prisma, { userId: req.userId!, tripId: String(tripId ?? ''), placeId: String(placeId ?? ''), at: at as never, plus: hasPlus(me) }));
+}));
+
+router.get('/passport/:tripId', requireAuth, wrap(async (req, res) => {
+  res.json(await passport(prisma, req.userId!, req.params.tripId));
 }));
 
 router.get('/board', wrap(async (_req, res) => {

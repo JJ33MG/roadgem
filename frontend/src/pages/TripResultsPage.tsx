@@ -23,6 +23,7 @@ import { goLink } from '@/lib/track';
 import { carForGroup } from '@/lib/cars';
 import { OnTheRoad } from '@/components/trip/OnTheRoad';
 import { ExplorerGems } from '@/components/trip/ExplorerGems';
+import { ShareTrip } from '@/components/trip/ShareTrip';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
@@ -304,8 +305,19 @@ export function TripResultsPage() {
               setTimeout(() => setCopied(false), 2000);
             }}
           >
-            {copied ? 'Link copied' : 'Share'}
+            {copied ? 'Link copied' : 'Copy link'}
           </Button>
+          {trip.tripId && (
+            <ShareTrip
+              tripId={trip.tripId}
+              from={from}
+              to={to}
+              km={trip.totalDistance ?? 0}
+              countries={[...new Set((planner?.legs ?? []).flatMap((l) => l.countries.map((c) => c.code)))]}
+              totalGems={(trip.hiddenGems ?? []).length + (trip.lockedGems ?? 0)}
+              signedIn={!!getAuthToken()}
+            />
+          )}
           {isPremium ? (
             <Button onClick={exportPdf} disabled={exporting}>{exporting ? 'Making the PDF' : 'Download PDF'}</Button>
           ) : (

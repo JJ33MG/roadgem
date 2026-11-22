@@ -491,7 +491,7 @@ export function TripResultsPage() {
         </div>
 
         <aside className="grid content-start gap-24">
-          {wide && <div className="lg:sticky lg:top-[88px]">{tripMap}</div>}
+          {wide && <div>{tripMap}</div>}
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Open the route in Google Maps</a>
           {renting === 'campervan' ? (
             <Panel>

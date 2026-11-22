@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { GeneratedTrip } from '@/types';
 import { TripResultsPage } from './TripResultsPage';
 
-vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: false }) }));
+const sub = vi.hoisted(() => ({ isPremium: false }));
+vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: sub.isPremium }) }));
 vi.mock('@/components/map/GlobeMap', () => ({ GlobeMap: () => <div role="region" aria-label="Map of the route, the nights and the gems" /> }));
 const edits = vi.hoisted(() => ({ key: null as string | null, sendEdit: vi.fn() }));
 vi.mock('@/lib/tripEdits', () => ({ editKeyFor: () => edits.key, sendEdit: edits.sendEdit }));
@@ -179,6 +180,28 @@ describe('TripResultsPage', () => {
     renderTrip(trip({ ...base }));
     const gyg = screen.getByRole('link', { name: 'Things to do in Burgos' }).getAttribute('href')!;
     expect(new URLSearchParams(gyg.split('?')[1]).get('to')).toBe('https://www.getyourguide.com/s/?q=Burgos');
+  });
+
+  it('shows what the toll-free route saves; Plus switches to it in one tap', async () => {
+    const t = trip({ ...base });
+    t.costs = { updated: '2026-11-22', overnight: 35, legs: [{ fuel: 41, tolls: 30, vignettes: [], warnings: [], total: 71 }], cheaper: { tollFree: true, using: false, saves: 58, extraHours: 1.7, extraKm: 40 } };
+    const { unmount } = renderTrip(t);
+    let box = screen.getByRole('region', { name: 'Cheapest route' });
+    expect(within(box).getByText('Skip the toll roads and save about €58')).toBeInTheDocument();
+    expect(within(box).getByText('About 1 h 40 min longer, 40 km more.')).toBeInTheDocument();
+    expect(within(box).getByRole('link', { name: 'See Plus' })).toBeInTheDocument();
+    expect(within(box).queryByRole('button')).toBeNull();
+    unmount();
+
+    sub.isPremium = true;
+    edits.key = 'k';
+    edits.sendEdit.mockResolvedValueOnce(t);
+    renderTrip(t);
+    box = screen.getByRole('region', { name: 'Cheapest route' });
+    fireEvent.click(within(box).getByRole('button', { name: 'Use the toll-free route' }));
+    await waitFor(() => expect(edits.sendEdit).toHaveBeenCalledWith('t1', { type: 'route' }));
+    sub.isPremium = false;
+    edits.key = null;
   });
 
   it('shows no change buttons to someone who did not plan the trip', () => {

@@ -327,4 +327,6 @@ export interface TripCosts {
   legs: { fuel: number; tolls: number; vignettes: { country: string; label: string; price: number }[]; warnings: string[]; total: number }[];
   overnight: number;
   updated: string;
+  /** The toll-free road against the fastest, when it saves at least €5. */
+  cheaper?: { tollFree: true; using: boolean; saves: number; extraHours: number; extraKm: number } | null;
 }

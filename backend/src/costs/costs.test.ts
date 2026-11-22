@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { costsForLegs } from './costs';
+import { costsForLegs, costsOfPlanner } from './costs';
 import { TABLES } from './tables';
 
 const cents = (n: number) => Math.round(n * 100) / 100;
@@ -45,7 +45,25 @@ describe('costsForLegs', () => {
   });
 });
 
-import { costsOfPlanner } from './costs';
+
+describe('the toll-free route', () => {
+  it('pays no motorway tolls on a toll-free route, and says what it saves against the fastest', () => {
+    const fast = [{ km: 600, hours: 6, countries: [{ code: 'FR', km: 600 }] }];
+    const slow = [{ km: 640, hours: 8, countries: [{ code: 'FR', km: 640 }] }];
+    expect(costsForLegs({ vehicle: 'car', legs: slow, stayTypes: ['hotel'], tollFree: true }).legs[0].tolls).toBe(0);
+    const c = costsOfPlanner({ vehicle: 'car', stayTypes: ['hotel'], legs: fast, alt: { legs: slow, tollFree: true } })!;
+    expect(c.cheaper).toMatchObject({ tollFree: true, using: false, extraHours: 2, extraKm: 40 });
+    expect(c.cheaper!.saves).toBeGreaterThan(30);
+    const switched = costsOfPlanner({ vehicle: 'car', stayTypes: ['hotel'], legs: slow, tollFree: true, alt: { legs: fast, tollFree: false } })!;
+    expect(switched.cheaper).toMatchObject({ tollFree: true, using: true });
+    expect(switched.legs[0].tolls).toBe(0);
+  });
+
+  it('offers nothing when the toll-free route is not cheaper', () => {
+    const legs = [{ km: 300, hours: 3, countries: [{ code: 'DE', km: 300 }] }];
+    expect(costsOfPlanner({ vehicle: 'car', stayTypes: ['hotel'], legs, alt: { legs, tollFree: true } })!.cheaper).toBeNull();
+  });
+});
 
 describe('costsOfPlanner', () => {
   it('prices a saved trip from its legs, and gives nothing for old trips without legs', () => {

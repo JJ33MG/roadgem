@@ -238,14 +238,14 @@ export function countriesFromSteps(steps: { distanceKm: number; instruction: str
 }
 
 /** The driving road through the stops (Google Directions), or straight lines between them. */
-export async function routeLine(stops: LatLng[]): Promise<RoadLine> {
+export async function routeLine(stops: LatLng[], opts: { avoidTolls?: boolean } = {}): Promise<RoadLine> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
   const clean = stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
   if (!key || clean.length < 2) return { points: clean, encoded: '', legs: [] };
-  return directions(clean, key);
+  return directions(clean, key, opts.avoidTolls === true);
 }
 
-async function directions(stops: LatLng[], key: string): Promise<RoadLine> {
+async function directions(stops: LatLng[], key: string, avoidTolls = false): Promise<RoadLine> {
   try {
     const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
       params: {
@@ -253,6 +253,7 @@ async function directions(stops: LatLng[], key: string): Promise<RoadLine> {
         destination: `${stops[stops.length - 1].lat},${stops[stops.length - 1].lng}`,
         waypoints: stops.slice(1, -1).map((s) => `${s.lat},${s.lng}`).join('|') || undefined,
         language: 'en',
+        avoid: avoidTolls ? 'tolls' : undefined,
         key,
       },
       timeout: 10000,

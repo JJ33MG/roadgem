@@ -36,4 +36,12 @@ describe('edit key', () => {
     expect(editKeyMatches(undefined, key)).toBe(false);
     expect(editKeyMatches(hash, undefined)).toBe(false);
   });
+
+  it('switches between the fastest and the toll-free route, keeping the other one', () => {
+    const planner = { route: 'FAST', legs: [{ km: 1 }], alt: { route: 'FREE', legs: [{ km: 2 }], tollFree: true } };
+    const once = applyEdit(planner as never, { type: 'route' }, ['A', 'B']) as any;
+    expect(once).toMatchObject({ route: 'FREE', legs: [{ km: 2 }], tollFree: true, alt: { route: 'FAST', legs: [{ km: 1 }], tollFree: false } });
+    expect(applyEdit(once, { type: 'route' }, ['A', 'B'])).toMatchObject({ route: 'FAST', tollFree: false });
+    expect(() => applyEdit({} as never, { type: 'route' }, ['A', 'B'])).toThrow('This trip has no other route.');
+  });
 });

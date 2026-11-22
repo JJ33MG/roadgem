@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
 // The globe engine is large: loaded only when a trip page opens.
 import { DayCosts } from '@/components/trip/DayCosts';
 import { GemProof } from '@/components/trip/GemProof';
+import { CheaperRoute } from '@/components/trip/CheaperRoute';
 import { euros, tripTotal } from '@/lib/costs';
 const GlobeMap = lazy(() => import('@/components/map/GlobeMap').then((m) => ({ default: m.GlobeMap })));
 import { Button, Panel } from '@/components/ui';
@@ -275,6 +276,10 @@ export function TripResultsPage() {
           <Button onClick={exportPdf} disabled={exporting}>{exporting ? 'Making the PDF' : 'Download PDF'}</Button>
         </div>
       </div>
+
+      {trip.costs?.cheaper && (
+        <CheaperRoute cheaper={trip.costs.cheaper} isPremium={isPremium} canEdit={canEdit} busy={saving} onSwitch={() => void change({ type: 'route' })} />
+      )}
 
       <nav aria-label="Days" className="mt-32 flex gap-8 overflow-x-auto pb-4">
         {days.map((d) => (

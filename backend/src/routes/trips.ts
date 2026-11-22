@@ -86,7 +86,7 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
 
     // The page follows each day's overnight town as the plan names it.
     const editKey = newEditKey();
-    const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[]; hiddenGems?: string[] } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
+    const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[]; hiddenGems?: string[]; alt?: { route: string; legs: RoadLeg[]; tollFree: boolean } } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
 
     let totalDistance = 0;
     if (Array.isArray(tripData.stops) && tripData.stops.length > 1) {
@@ -103,6 +103,12 @@ router.post('/generate', optionalAuth, async (req: AuthRequest, res: Response, n
     ).catch(() => ({ points: [], encoded: '', legs: [] }));
     savedPlanner.route = road.encoded;
     savedPlanner.legs = road.legs;
+    // The toll-free road too, when the fastest one pays tolls: the page shows what it saves (Plus can switch).
+    const roadStops = (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) }));
+    if (costsOfPlanner(savedPlanner)?.legs.some((l) => l.tolls > 0)) {
+      const free = await routeLine(roadStops, { avoidTolls: true }).catch(() => null);
+      if (free?.legs.length) savedPlanner.alt = { route: free.encoded, legs: free.legs, tollFree: true };
+    }
     const hiddenGems = !gemsEnabled ? [] : await findRouteGems(road, Math.max(3, gemsPerDay * days), 2, gemSource).catch(() => []);
 
     const saved = await prisma.trip.create({
@@ -229,7 +235,8 @@ router.get('/:tripId', optionalAuth, async (req: AuthRequest, res: Response, nex
 router.patch('/:tripId/plan', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const key = typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined;
-    await editTrip(prisma, { tripId: req.params.tripId, edit: req.body?.edit, userId: req.userId, key });
+    const viewer = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
+    await editTrip(prisma, { tripId: req.params.tripId, edit: req.body?.edit, userId: req.userId, key, premium: viewer?.subscriptionTier === 'premium' });
     res.json(await readTrip(req.params.tripId, req.userId));
   } catch (err) {
     next(err);

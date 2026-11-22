@@ -6,7 +6,9 @@ export type Edit =
   | { type: 'night'; day: number; stopIndex: number }
   | { type: 'hideGem'; placeId: string }
   | { type: 'showGem'; placeId: string }
-  | { type: 'restDay'; afterDay: number };
+  | { type: 'restDay'; afterDay: number }
+  /** Swap the fastest and the toll-free route (Plus). */
+  | { type: 'route' };
 
 export class EditError extends Error {
   status = 400;
@@ -39,6 +41,17 @@ export function applyEdit<P extends Planner>(planner: P, edit: Edit, stops: stri
       if (overnights.length >= 30) throw fail('A trip has at most 30 days.');
       overnights.splice(edit.afterDay, 0, overnights[edit.afterDay - 1]);
       return { ...planner, overnights };
+    }
+    case 'route': {
+      const alt = planner.alt as { route?: unknown; legs?: unknown; tollFree?: unknown } | undefined;
+      if (!alt || !Array.isArray(alt.legs)) throw fail('This trip has no other route.');
+      return {
+        ...planner,
+        route: alt.route,
+        legs: alt.legs,
+        tollFree: alt.tollFree === true,
+        alt: { route: planner.route, legs: planner.legs, tollFree: planner.tollFree === true },
+      };
     }
     default:
       throw fail('Unknown change.');

@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { editTrip } from './tripEdits';
 import { newEditKey } from '../utils/edits';
 
-function fakeDb(userId: string | null, hash: string, opts: { stale?: boolean } = {}) {
+function fakeDb(userId: string | null, hash: string, opts: { stale?: boolean; planner?: Record<string, unknown> } = {}) {
   const trip = {
     id: 't1', userId, days: 2, endDate: '2026-12-03',
     stops: JSON.stringify([{ location: 'Madrid, Spain' }, { location: 'Burgos, Spain' }, { location: 'Bordeaux, France' }]),
-    planner: JSON.stringify({ overnights: ['Burgos', 'Bordeaux'], editKeyHash: hash }),
+    planner: JSON.stringify(opts.planner ? { ...opts.planner, editKeyHash: hash } : { overnights: ['Burgos', 'Bordeaux'], editKeyHash: hash }),
   };
   // The write only lands when the planner is still the one that was read (another edit did not slip in).
   const update = vi.fn(async ({ where, data }: { where: { planner: string }; data: Record<string, unknown> }) => ({ count: opts.stale || where.planner !== trip.planner ? 0 : 1, data }));
@@ -51,5 +51,14 @@ describe('editTrip', () => {
     await expect(editTrip(db as never, { tripId: 't1', edit: { type: 'restDay', afterDay: 1 }, key })).rejects.toMatchObject({ status: 409 });
     expect(db.tripDay.create).not.toHaveBeenCalled();
     expect(db.tripDay.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('switching to the toll-free route is for Plus: 403 for the free plan, saved for Plus', async () => {
+    const { key, hash } = newEditKey();
+    const a = fakeDb(null, hash, { planner: { route: 'F', legs: [], alt: { route: 'T', legs: [], tollFree: true } } });
+    await expect(editTrip(a.db as never, { tripId: 't1', edit: { type: 'route' }, key })).rejects.toMatchObject({ status: 403, message: 'The cheapest route comes with Plus.' });
+    expect(a.update).not.toHaveBeenCalled();
+    await editTrip(a.db as never, { tripId: 't1', edit: { type: 'route' }, key, premium: true });
+    expect(a.update).toHaveBeenCalled();
   });
 });

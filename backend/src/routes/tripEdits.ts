@@ -18,13 +18,14 @@ const outdated = () => Object.assign(new EditError('This trip just changed elsew
  * still being the one read (compare-and-swap), so two quick edits cannot overwrite each other,
  * and a rest day's TripDay shift rolls back with it.
  */
-export async function editTrip(db: Db, input: { tripId: string; edit: Edit; userId?: string; key?: string }) {
+export async function editTrip(db: Db, input: { tripId: string; edit: Edit; userId?: string; key?: string; premium?: boolean }) {
   await db.$transaction(async (tx) => {
     const trip = await tx.trip.findUnique({ where: { id: input.tripId } });
     if (!trip) throw Object.assign(new EditError('Trip not found.'), { status: 404 });
     const planner = JSON.parse(trip.planner || '{}') as Record<string, unknown> & { overnights?: string[]; editKeyHash?: string };
     const owner = Boolean(trip.userId && input.userId && trip.userId === input.userId);
     if (!owner && !editKeyMatches(planner.editKeyHash, input.key)) throw denied();
+    if (input.edit?.type === 'route' && !input.premium) throw Object.assign(new EditError('The cheapest route comes with Plus.'), { status: 403 });
 
     const stops = (JSON.parse(trip.stops || '[]') as { location: string }[]).map((s) => s.location);
     const next = applyEdit(planner, input.edit, stops);

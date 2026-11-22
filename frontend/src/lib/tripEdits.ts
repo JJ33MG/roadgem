@@ -6,7 +6,8 @@ export type TripEdit =
   | { type: 'night'; day: number; stopIndex: number }
   | { type: 'hideGem'; placeId: string }
   | { type: 'showGem'; placeId: string }
-  | { type: 'restDay'; afterDay: number };
+  | { type: 'restDay'; afterDay: number }
+  | { type: 'route' };
 
 const storeKey = (tripId: string) => `routify.edit.${tripId}`;
 

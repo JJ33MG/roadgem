@@ -9,6 +9,7 @@ import { rateLimiter } from './track';
 import { checkIn, passport } from '../community/road';
 import { explorerGemsNear, monthlyChallenge } from '../community/explorer';
 import { inviteCodeFor } from '../community/invites';
+import { pickOfTheWeek } from '../community/launch';
 import { decodePolyline } from '../utils/routeGems';
 import { hasPlus } from '../utils/billing';
 
@@ -104,6 +105,16 @@ router.get('/invite', requireAuth, wrap(async (req, res) => {
   const code = await inviteCodeFor(prisma, req.userId!);
   const site = process.env.FRONTEND_URL || 'https://routify-preview-production.up.railway.app';
   res.json({ code, url: `${site.replace(/\/+$/, '')}/signup?invite=${code}` });
+}));
+
+// Gems of the week: well-rated places from the gem library, so the community shows gems from day one.
+router.get('/gems-of-the-week', wrap(async (_req, res) => {
+  const rows = await prisma.placeGem.findMany({ where: { rating: { gte: 4.6 }, reviews: { gte: 100 } }, take: 500, orderBy: { reviews: 'desc' } });
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.json(pickOfTheWeek(rows).map((g) => ({
+    placeId: g.placeId, name: g.name, lat: g.lat, lng: g.lng, rating: g.rating, reviews: g.reviews, address: g.address,
+    photoUrl: g.photoRef ? `/api/photos/image/${encodeURIComponent(g.photoRef)}` : null,
+  })));
 }));
 
 router.get('/monthly', wrap(async (_req, res) => {

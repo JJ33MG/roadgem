@@ -1,6 +1,7 @@
 // The community game on top of the database: posts, suggestions, moderation, likes, feed and board.
 import type { PrismaClient } from '@prisma/client';
 import { hasPlus } from '../utils/billing';
+import { teamLabel } from './launch';
 import { decodePhoto, metresBetween, onTheSpot, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
 
 type GemRef = { gemId: string } | { placeId: string; name: string; lat: number; lng: number; address?: string };
@@ -141,7 +142,7 @@ export async function feed(db: PrismaClient, viewerId: string | null, before?: D
     take: Math.min(Math.max(take, 1), 50),
     select: {
       id: true, caption: true, challenge: true, points: true, createdAt: true,
-      user: { select: { name: true } },
+      user: { select: { name: true, email: true, isTeam: true } },
       gem: { select: { id: true, name: true, status: true, address: true, lat: true, lng: true } },
       _count: { select: { likes: true } },
       likes: viewerId ? { where: { userId: viewerId }, select: { userId: true } } : false,
@@ -153,7 +154,7 @@ export async function feed(db: PrismaClient, viewerId: string | null, before?: D
     challenge: p.challenge,
     points: p.points,
     createdAt: p.createdAt,
-    by: p.user.name,
+    ...teamLabel(p.user),
     gem: p.gem,
     likes: p._count.likes,
     likedByMe: Array.isArray(p.likes) && p.likes.length > 0,
@@ -183,7 +184,7 @@ export async function board(db: PrismaClient, take = 20) {
     totals.set(r.userId, t);
   }
   const top = [...totals.entries()].sort((a, b) => b[1].points - a[1].points).slice(0, take);
-  const users = await db.user.findMany({ where: { id: { in: top.map(([id]) => id) } }, select: { id: true, name: true } });
-  const nameOf = new Map(users.map((u) => [u.id, u.name]));
+  const users = await db.user.findMany({ where: { id: { in: top.map(([id]) => id) } }, select: { id: true, name: true, email: true, isTeam: true } });
+  const nameOf = new Map(users.map((u) => [u.id, teamLabel(u).by]));
   return top.map(([id, t], i) => ({ rank: i + 1, userId: id, name: nameOf.get(id) ?? 'Traveller', ...t }));
 }

@@ -5,6 +5,8 @@ export type FeedItem = {
   id: string; caption: string; challenge: boolean; points: number; createdAt: string; by: string;
   gem: { id: string; name: string; status: string; address: string; lat: number; lng: number };
   likes: number; likedByMe: boolean; photoUrl: string;
+  /** Posted by the Routify team (labelled, never presented as a traveller). */
+  team?: boolean;
 };
 export type BoardRow = { rank: number; userId: string; name: string; points: number; photos: number; gems: number };
 export type GemChallenge = { gemId: string; name: string; status: string; lat: number; lng: number; challenge: string };
@@ -52,3 +54,5 @@ export const monthly = () => call<{ challenge: string; plusOnly: boolean }>(apiC
 export type ExplorerAnswer = { locked: true; count: number } | { gems: { id: string; name: string; lat: number; lng: number; description: string }[] };
 export const explorerGems = (tripId: string) => call<ExplorerAnswer>(apiClient.get(`/community/explorer/${tripId}`), 'Explorer gems could not be loaded.');
 export const myInvite = () => call<{ code: string; url: string }>(apiClient.get('/community/invite'), 'Your invite link could not be loaded.');
+export type WeekGem = { placeId: string; name: string; lat: number; lng: number; rating: number; reviews: number; address: string; photoUrl: string | null };
+export const gemsOfTheWeek = () => call<WeekGem[]>(apiClient.get('/community/gems-of-the-week'), 'The gems of the week could not be loaded.');

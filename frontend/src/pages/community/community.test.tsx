@@ -15,6 +15,7 @@ const api = vi.hoisted(() => ({
   mine: vi.fn().mockResolvedValue({ posts: [], points: 0, rank: null, moderator: false }),
   photoSrc: (p: string) => p,
   monthly: vi.fn().mockResolvedValue({ challenge: 'The oldest bridge on your route.', plusOnly: true }),
+  gemsOfTheWeek: vi.fn().mockResolvedValue([{ placeId: 'p1', name: 'Castle of Peñafiel', lat: 41.6, lng: -4.1, rating: 4.7, reviews: 5100, address: 'Peñafiel, Spain', photoUrl: null }]),
 }));
 const sub = vi.hoisted(() => ({ isPremium: true }));
 vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: sub.isPremium }) }));
@@ -109,6 +110,15 @@ describe('ModeratePage', () => {
     render(<MemoryRouter><CommunityPage /></MemoryRouter>);
     expect(await screen.findByText('The oldest bridge on your route.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Challenge of the month' })).toBeInTheDocument();
+  });
+
+  it('shows gems of the week, and labels team posts as the Routify team', async () => {
+    api.feed.mockResolvedValue([{ id: 'x', caption: 'Sunrise', challenge: false, points: 10, createdAt: '2027-03-01', by: 'Routify team', team: true, gem: { id: 'g', name: 'Lerma', status: 'official', address: '', lat: 0, lng: 0 }, likes: 0, likedByMe: false, photoUrl: '/p' }]);
+    api.board.mockResolvedValue([]);
+    render(<MemoryRouter><CommunityPage /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Gems of the week' })).toBeInTheDocument();
+    expect(screen.getByText('Castle of Peñafiel')).toBeInTheDocument();
+    expect(await screen.findByText('Routify team')).toBeInTheDocument();
   });
 
   it('lists waiting photos and approves one', async () => {

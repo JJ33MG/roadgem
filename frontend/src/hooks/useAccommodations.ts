@@ -9,10 +9,11 @@ interface UseAccommodationsParams {
   types?: AccommodationType[];
   checkin?: string;
   checkout?: string;
+  adults?: number;
   enabled?: boolean;
 }
 
-export function useAccommodations({ lat, lng, location, types, checkin, checkout, enabled = true }: UseAccommodationsParams) {
+export function useAccommodations({ lat, lng, location, types, checkin, checkout, adults, enabled = true }: UseAccommodationsParams) {
   const [accommodations, setAccommodations] = useState<AccommodationOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export function useAccommodations({ lat, lng, location, types, checkin, checkout
     setError(null);
 
     accommodationsApi
-      .search({ lat, lng, location, types, checkin, checkout })
+      .search({ lat, lng, location, types, checkin, checkout, adults })
       .then((res) => {
         if (cancelled) return;
         setAccommodations(res.data.accommodations);
@@ -42,7 +43,7 @@ export function useAccommodations({ lat, lng, location, types, checkin, checkout
     return () => {
       cancelled = true;
     };
-  }, [lat, lng, location, types?.join(','), checkin, checkout, enabled]);
+  }, [lat, lng, location, types?.join(','), checkin, checkout, adults, enabled]);
 
   return { accommodations, isLoading, error };
 }

@@ -318,6 +318,8 @@ export interface GeneratedTrip {
     route?: string;
     vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
     hiddenGems?: string[];
+    /** People travelling together; older trips have none (two adults). */
+    travellers?: number;
     /** A Trip pass was bought for this trip. */
     pass?: boolean;
     /** Road legs stop to stop, with kilometres per country. */

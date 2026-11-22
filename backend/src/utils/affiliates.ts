@@ -3,8 +3,10 @@ dotenv.config();
 
 // --- Accommodation ---
 
-export function buildBookingUrl(query: string, checkin?: string, checkout?: string): string {
-  const params = new URLSearchParams({ ss: query });
+/** Booking.com search for the dates and the whole group (two adults a room). */
+export function buildBookingUrl(query: string, checkin?: string, checkout?: string, adults = 2): string {
+  const people = Math.min(30, Math.max(1, Math.round(adults) || 2));
+  const params = new URLSearchParams({ ss: query, group_adults: String(people), no_rooms: String(Math.ceil(people / 2)), group_children: '0' });
   if (checkin) params.set('checkin', checkin);
   if (checkout) params.set('checkout', checkout);
   const aid = process.env.BOOKING_AFFILIATE_ID;

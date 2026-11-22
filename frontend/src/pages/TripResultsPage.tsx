@@ -28,13 +28,13 @@ import { TripMapImage } from '@/components/map/TripMapImage';
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
 
 /** Booking links per stay type: Booking.com lists hotels and campsites, Vrbo the holiday homes. */
-export function stayUrl(type: StayType, place: string, checkin?: string, checkout?: string): string {
+export function stayUrl(type: StayType, place: string, checkin?: string, checkout?: string, adults = 2): string {
   if (type === 'holiday_home') {
     // Vrbo: holiday homes with an affiliate program (Airbnb closed its own).
-    const p = new URLSearchParams({ destination: place, ...(checkin ? { startDate: checkin } : {}), ...(checkout ? { endDate: checkout } : {}) });
+    const p = new URLSearchParams({ destination: place, adults: String(adults), ...(checkin ? { startDate: checkin } : {}), ...(checkout ? { endDate: checkout } : {}) });
     return `https://www.vrbo.com/search?${p}`;
   }
-  const p = new URLSearchParams({ ss: place, ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
+  const p = new URLSearchParams({ ss: place, group_adults: String(adults), no_rooms: String(Math.ceil(adults / 2)), group_children: '0', ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
   if (type === 'campsite') p.set('nflt', 'ht_id=214');
   return `https://www.booking.com/searchresults.html?${p}`;
 }
@@ -167,6 +167,8 @@ export function TripResultsPage() {
   const planner = trip?.planner;
   const gemsOn = planner?.gemsEnabled ?? true;
   const stayTypes = (planner?.stayTypes ?? ['campsite', 'hotel']) as StayType[];
+  // Trips made before the group size was asked: two adults.
+  const travellers = planner?.travellers ?? 2;
 
   const { accommodations, isLoading: staysLoading } = useAccommodations({
     lat: legTo?.latitude,
@@ -175,6 +177,7 @@ export function TripResultsPage() {
     types: stayTypes.map((s) => STAY_TO_ACCOMMODATION[s]),
     checkin,
     checkout,
+    adults: travellers,
     // Loaded for each day: tonight's stays and their prices show without a click.
     enabled: true,
   });
@@ -435,7 +438,7 @@ export function TripResultsPage() {
               {tonight.length > 0 && <p className="mt-8 text-[15px] text-muted">Prices are estimates from the place's price level. The booking site shows the real price for your dates.</p>}
               <div className="mt-16 flex flex-wrap gap-12">
                 {stayTypes.map((s) => (
-                  <a key={s} href={go(stayUrl(s, sleepTown, checkin, checkout))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
+                  <a key={s} href={go(stayUrl(s, sleepTown, checkin, checkout, travellers))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
                     {STAY_LABELS[s]}
                   </a>
                 ))}

@@ -264,4 +264,15 @@ describe('TripResultsPage booking clicks', () => {
     expect(to().searchParams.get('checkin')).toBe('2026-06-04');
     expect(to().searchParams.get('checkout')).toBe('2026-06-06');
   });
+
+  it('books stays for the whole group, two adults when an older trip has no group size', () => {
+    const { unmount } = renderTrip(trip({ ...base, stayTypes: ['hotel', 'holiday_home'], travellers: 4 } as never));
+    const to = (name: string) => new URL(new URLSearchParams(screen.getByRole('link', { name }).getAttribute('href')!.split('?')[1]).get('to')!);
+    expect(to('Hotels').searchParams.get('group_adults')).toBe('4');
+    expect(to('Hotels').searchParams.get('no_rooms')).toBe('2');
+    expect(to('Holiday homes').searchParams.get('adults')).toBe('4');
+    unmount();
+    renderTrip(trip({ ...base, stayTypes: ['hotel'] }));
+    expect(to('Hotels').searchParams.get('group_adults')).toBe('2');
+  });
 });

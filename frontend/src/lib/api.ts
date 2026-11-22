@@ -80,6 +80,7 @@ export const accommodationsApi = {
     types?: AccommodationType[];
     checkin?: string;
     checkout?: string;
+    adults?: number;
   }) =>
     apiClient.get<{ accommodations: AccommodationOption[] }>('/accommodations', {
       params: {
@@ -89,6 +90,7 @@ export const accommodationsApi = {
         types: params.types?.join(','),
         checkin: params.checkin,
         checkout: params.checkout,
+        adults: params.adults,
       },
     }),
 };

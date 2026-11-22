@@ -17,7 +17,7 @@ function estimatePrice(priceLevel: number | null, type: AccommodationType): numb
   return table[priceLevel];
 }
 
-function toOption(place: NearbyPlace, type: AccommodationType, location: string, checkin?: string, checkout?: string) {
+function toOption(place: NearbyPlace, type: AccommodationType, location: string, checkin?: string, checkout?: string, adults = 2) {
   return {
     id: place.placeId,
     name: place.name,
@@ -28,7 +28,7 @@ function toOption(place: NearbyPlace, type: AccommodationType, location: string,
     address: place.address,
     latitude: place.latitude,
     longitude: place.longitude,
-    affiliateUrl: buildBookingUrl(`${place.name}, ${location}`, checkin, checkout),
+    affiliateUrl: buildBookingUrl(`${place.name}, ${location}`, checkin, checkout, adults),
   };
 }
 
@@ -39,6 +39,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const location = String(req.query.location || '').trim();
     const checkin = req.query.checkin ? String(req.query.checkin) : undefined;
     const checkout = req.query.checkout ? String(req.query.checkout) : undefined;
+    const adults = Math.min(9, Math.max(1, Number(req.query.adults) || 2));
 
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
       return res.status(400).json({ error: 'lat and lng are required' });
@@ -57,14 +58,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const isHostel = /hostel/i.test(place.name);
         const type: AccommodationType = isHostel ? 'hostel' : 'hotel';
         if (!requestedTypes.includes(type)) continue;
-        results.push(toOption(place, type, location || place.address, checkin, checkout));
+        results.push(toOption(place, type, location || place.address, checkin, checkout, adults));
       }
     }
 
     if (requestedTypes.includes('campsite')) {
       const campgrounds = await findNearbyPlaces(lat, lng, 'campground');
       for (const place of campgrounds) {
-        results.push(toOption(place, 'campsite', location || place.address, checkin, checkout));
+        results.push(toOption(place, 'campsite', location || place.address, checkin, checkout, adults));
       }
     }
 

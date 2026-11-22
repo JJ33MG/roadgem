@@ -1,5 +1,6 @@
 // PATCH /api/trips/:tripId/plan — change a planned trip (move a night, hide or show a gem, add a rest day).
 import type { PrismaClient } from '@prisma/client';
+import { tripUnlocked } from '../utils/billing';
 import { applyEdit, editKeyMatches, EditError, type Edit } from '../utils/edits';
 
 type Db = Pick<PrismaClient, 'trip' | 'tripDay' | '$transaction'>;
@@ -25,7 +26,7 @@ export async function editTrip(db: Db, input: { tripId: string; edit: Edit; user
     const planner = JSON.parse(trip.planner || '{}') as Record<string, unknown> & { overnights?: string[]; editKeyHash?: string };
     const owner = Boolean(trip.userId && input.userId && trip.userId === input.userId);
     if (!owner && !editKeyMatches(planner.editKeyHash, input.key)) throw denied();
-    if (input.edit?.type === 'route' && !input.premium) throw Object.assign(new EditError('The cheapest route comes with Plus.'), { status: 403 });
+    if (input.edit?.type === 'route' && !input.premium && !tripUnlocked(planner)) throw Object.assign(new EditError('The cheapest route comes with Plus.'), { status: 403 });
 
     const stops = (JSON.parse(trip.stops || '[]') as { location: string }[]).map((s) => s.location);
     const next = applyEdit(planner, input.edit, stops);

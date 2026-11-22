@@ -10,6 +10,7 @@ import { generateLimit, limit } from '../middleware/limits';
 import { gemsFor } from '../utils/gems';
 import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
 import { costsOfPlanner } from '../costs/costs';
+import { hasPlus, tripUnlocked } from '../utils/billing';
 import { candidatesAt, libraryDeps } from '../gems/library';
 import { newEditKey } from '../utils/edits';
 import { editTrip } from './tripEdits';
@@ -57,8 +58,8 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     let isPremium = false;
     if (req.userId) {
       const user = await prisma.user.findUnique({ where: { id: req.userId } });
-      isPremium = user?.subscriptionTier === 'premium';
-      if (user && user.subscriptionTier !== 'premium') {
+      isPremium = hasPlus(user);
+      if (user && !isPremium) {
         const existingTrips = await prisma.trip.count({ where: { userId: req.userId } });
         if (existingTrips >= 1) {
           return res.status(403).json({
@@ -189,7 +190,7 @@ async function readTrip(tripId: string, userId?: string) {
   });
   if (!trip) return null;
   const viewer = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null;
-  const viewerIsPremium = viewer?.subscriptionTier === 'premium';
+  const viewerIsPremium = hasPlus(viewer) || tripUnlocked(JSON.parse(trip.planner || '{}'));
   const itinerary = trip.itineraryDays.map((d) => {
     const day: Record<string, unknown> = { day: d.day };
     for (const activity of d.activities) {
@@ -240,7 +241,7 @@ router.patch('/:tripId/plan', optionalAuth, async (req: AuthRequest, res: Respon
   try {
     const key = typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined;
     const viewer = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
-    await editTrip(prisma, { tripId: req.params.tripId, edit: req.body?.edit, userId: req.userId, key, premium: viewer?.subscriptionTier === 'premium' });
+    await editTrip(prisma, { tripId: req.params.tripId, edit: req.body?.edit, userId: req.userId, key, premium: hasPlus(viewer) });
     res.json(await readTrip(req.params.tripId, req.userId));
   } catch (err) {
     next(err);
@@ -259,7 +260,7 @@ router.get('/:tripId/map', optionalAuth, limit('map', 200, 60 * 60_000), async (
       width: int(req.query.w, 640, 200, 640),
       height: int(req.query.h, 400, 200, 640),
       key: process.env.GOOGLE_MAPS_API_KEY ?? '',
-      premium: viewer?.subscriptionTier === 'premium',
+      premium: hasPlus(viewer),
     });
     if (r.status !== 200) return res.status(r.status).json({ error: r.error });
     res.set('Content-Type', r.type!);

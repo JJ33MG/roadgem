@@ -21,5 +21,7 @@ describe('PricingPage', () => {
     expect(screen.getAllByText('A printable PDF of the trip').length).toBeGreaterThan(0);
     expect(container.querySelector('[class*="gradient"]')).toBeNull();
     expect(screen.queryByText(/Roadgem/i)).toBeNull();
+    expect(screen.getByRole('radio', { name: 'Yearly, €59' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Plan a trip, then get its pass' })).toHaveAttribute('href', '/plan');
   });
 });

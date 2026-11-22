@@ -1,6 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { prisma } from '../utils/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { hasPlus } from '../utils/billing';
 
 const router = Router();
 
@@ -11,8 +12,9 @@ router.get('/status', requireAuth, async (req: AuthRequest, res: Response, next:
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // An ended period shows as free, also when Stripe's cancellation message never arrived.
     res.json({
-      subscriptionTier: user.subscriptionTier,
+      subscriptionTier: hasPlus(user) ? 'premium' : 'free',
       subscriptionExpires: user.subscriptionExpires,
     });
   } catch (err) {

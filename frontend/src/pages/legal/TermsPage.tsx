@@ -19,7 +19,7 @@ export function TermsPage() {
 
       <Section title="Plus and the Trip pass">
         <ul className="grid gap-8 pl-24">
-          <li>Plus is a monthly subscription. It renews every month until you stop it; you can stop it any time and it keeps working until the end of the paid month.</li>
+          <li>Plus is a subscription, paid monthly or yearly. It renews until you stop it; you can stop it any time and it keeps working until the end of the paid month or year.</li>
           <li>The Trip pass is a one-off payment: every Plus feature, for one trip.</li>
           <li>Both start right away when you pay. Because the service starts at once, the 14-day right of withdrawal ends when you ask us to start it. If something does not work, email us and we will put it right.</li>
         </ul>

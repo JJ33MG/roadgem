@@ -1,3 +1,4 @@
+import { hasPlus } from '../utils/billing';
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { prisma } from '../utils/prisma';
@@ -32,7 +33,7 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
         email: user.email,
         name: user.name,
         createdAt: user.createdAt,
-        subscriptionTier: user.subscriptionTier,
+        subscriptionTier: hasPlus(user) ? 'premium' : 'free',
         subscriptionExpires: user.subscriptionExpires,
       },
     });
@@ -67,7 +68,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         email: user.email,
         name: user.name,
         createdAt: user.createdAt,
-        subscriptionTier: user.subscriptionTier,
+        subscriptionTier: hasPlus(user) ? 'premium' : 'free',
         subscriptionExpires: user.subscriptionExpires,
       },
     });
@@ -88,7 +89,7 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response, next: Nex
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
-      subscriptionTier: user.subscriptionTier,
+      subscriptionTier: hasPlus(user) ? 'premium' : 'free',
       subscriptionExpires: user.subscriptionExpires,
     });
   } catch (err) {

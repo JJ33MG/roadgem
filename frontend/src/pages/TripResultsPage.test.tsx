@@ -210,6 +210,18 @@ describe('TripResultsPage', () => {
     expect(screen.getByRole('link', { name: 'PDF with Plus' })).toHaveAttribute('href', '/pricing');
   });
 
+  it('offers the Trip pass on a trip, and a trip with a pass shows everything', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = Array.from({ length: 6 }, (_, i) => ({ name: `Gem ${i}`, description: 'Nice.', address: 'Lerma', latitude: 42 + i / 100, longitude: -3.7, category: 'historic' }));
+    const { unmount } = renderTrip(t);
+    expect(screen.getByRole('button', { name: 'Get the Trip pass for this trip, €4.99' })).toBeInTheDocument();
+    unmount();
+    renderTrip({ ...t, lockedGems: 0, planner: { ...t.planner!, pass: true } });
+    expect(screen.queryByRole('button', { name: /Trip pass/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Download PDF' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Every gem with Plus' })).toBeNull();
+  });
+
   it('shows no change buttons to someone who did not plan the trip', () => {
     edits.key = null;
     renderTrip(trip({ ...base }));

@@ -1,3 +1,4 @@
+import { apiClient } from '@/lib/apiClient';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
@@ -103,8 +104,12 @@ export function TripResultsPage() {
   const [exporting, setExporting] = useState(false);
   const [staysOpen, setStaysOpen] = useState(false);
   const [picked, setPicked] = useState<Record<number, AccommodationOption>>({});
-  const { isPremium } = useSubscription();
+  const { isPremium: hasPlus } = useSubscription();
+  const [passBusy, setPassBusy] = useState(false);
+  const [passError, setPassError] = useState<string | null>(null);
   const wide = useWide();
+  // Plus, or a Trip pass bought for this trip: every gem, the cheapest route and the PDF.
+  const isPremium = hasPlus || trip?.planner?.pass === true;
   usePageTitle(trip?.stops?.length ? `${town(trip.stops[0].location)} to ${town(trip.stops[trip.stops.length - 1].location) || trip.destination}` : trip?.destination);
   const contentRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
@@ -242,6 +247,18 @@ export function TripResultsPage() {
   const startStr = start ? format(start, 'yyyy-MM-dd') : '';
 
   const go = (href: string) => goLink(href, trip!.tripId);
+
+  async function buyPass() {
+    setPassBusy(true);
+    setPassError(null);
+    try {
+      const res = await apiClient.post<{ url: string }>('/stripe/trip-pass', { tripId: trip!.tripId });
+      window.location.href = res.data.url;
+    } catch {
+      setPassError('Payments open soon. The Trip pass is not for sale yet.');
+      setPassBusy(false);
+    }
+  }
 
   async function exportPdf() {
     if (!contentRef.current) return;
@@ -471,7 +488,13 @@ export function TripResultsPage() {
               <h3 className="font-display text-[24px] text-ink" style={head}>Every gem with Plus</h3>
               {lockedGems > 0 && <p className="mt-6 text-ink" style={{ fontWeight: 500 }}>{`${lockedGems} more gems on this trip with Plus.`}</p>}
               <p className="mt-6">Unlimited trips, every gem on the route and a printable trip.</p>
-              <Link to="/pricing" className="btn-header mt-16 no-underline">See Plus</Link>
+              <div className="mt-16 grid gap-8">
+                <Button variant="primary" disabled={passBusy} onClick={() => void buyPass()} aria-label="Get the Trip pass for this trip, €4.99">
+                  {passBusy ? 'Opening checkout' : 'Trip pass for this trip, €4.99'}
+                </Button>
+                <Link to="/pricing" className="btn-header no-underline">See Plus</Link>
+              </div>
+              {passError && <p className="mt-8 text-[16px] text-muted" role="status">{passError}</p>}
             </Panel>
           )}
         </aside>

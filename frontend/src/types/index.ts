@@ -317,6 +317,8 @@ export interface GeneratedTrip {
     route?: string;
     vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
     hiddenGems?: string[];
+    /** A Trip pass was bought for this trip. */
+    pass?: boolean;
     /** Road legs stop to stop, with kilometres per country. */
     legs?: { km: number; hours: number; countries: { code: string; km: number }[] }[];
   };

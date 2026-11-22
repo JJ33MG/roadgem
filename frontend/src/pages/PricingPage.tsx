@@ -1,6 +1,6 @@
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useManageSubscription } from '@/hooks/useManageSubscription';
@@ -32,7 +32,7 @@ const PLUS = [
 ];
 
 const FAQS = [
-  { q: 'Can I stop any time?', a: 'Yes. Stop from your account page; Plus keeps working until the end of the month you paid for.' },
+  { q: 'Can I stop any time?', a: 'Yes. Stop from your account page; Plus keeps working until the end of the month or year you paid for.' },
   { q: 'What happens to my trips if I stop?', a: 'They stay. You can open every trip you saved; only new trips follow the free plan again.' },
   { q: 'Do I need a card for the free plan?', a: 'No. Plan and save one full trip without paying anything.' },
   { q: 'Trip pass or Plus?', a: 'One road trip a year: the Trip pass unlocks everything for that trip, once. Several trips, or planning and comparing a lot: Plus.' },
@@ -48,6 +48,7 @@ export function PricingPage() {
   const { upgrade } = useManageSubscription();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [plan, setPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [error, setError] = useState<string | null>(null);
 
   async function startPlus() {
@@ -58,7 +59,7 @@ export function PricingPage() {
     setBusy(true);
     setError(null);
     try {
-      const res = await apiClient.post<{ url: string }>('/stripe/create-checkout-session', {});
+      const res = await apiClient.post<{ url: string }>('/stripe/create-checkout-session', { plan });
       if (res.data.url) window.location.href = res.data.url;
     } catch {
       // Stripe is not live yet: the direct upgrade keeps testing possible.
@@ -97,15 +98,32 @@ export function PricingPage() {
           <ul className="mt-16 grid gap-8 p-0" style={{ listStyle: 'none' }}>
             {PASS.map((f) => <li key={f} className="border-t border-rule pt-8">{f}</li>)}
           </ul>
-          <Button className="mt-24 w-full" disabled>Coming soon</Button>
+          <Link to="/plan" className="btn-header mt-24 w-full no-underline" aria-label="Plan a trip, then get its pass">Plan a trip, then get its pass</Link>
+          <p className="mt-8 text-[15px] text-muted">You buy the pass on the trip page, no account needed.</p>
         </section>
 
         <Panel aria-labelledby="plus-head">
           <h2 id="plus-head" className="text-[20px] text-ink" style={{ fontWeight: 500 }}>Plus</h2>
           <p className="mt-8 text-ink">
-            <span className="num font-display text-[56px]" style={head}>€9</span>
-            <span className="ml-8 text-[18px] text-muted">a month</span>
+            <span className="num font-display text-[56px]" style={head}>{plan === 'yearly' ? '€59' : '€9'}</span>
+            <span className="ml-8 text-[18px] text-muted">{plan === 'yearly' ? 'a year' : 'a month'}</span>
           </p>
+          <div role="radiogroup" aria-label="Pay" className="mt-12 grid grid-cols-2 gap-8">
+            {(['monthly', 'yearly'] as const).map((p) => (
+              <button
+                key={p}
+                type="button"
+                role="radio"
+                aria-checked={plan === p}
+                aria-label={p === 'monthly' ? 'Monthly, €9' : 'Yearly, €59'}
+                onClick={() => setPlan(p)}
+                className={`min-h-[48px] rounded-btn border px-12 text-[16px] ${plan === p ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`}
+                style={{ fontWeight: 500 }}
+              >
+                {p === 'monthly' ? 'Monthly' : 'Yearly, save 45%'}
+              </button>
+            ))}
+          </div>
           <ul className="mt-16 grid gap-8 p-0" style={{ listStyle: 'none' }}>
             {PLUS.map((f) => <li key={f} className="border-t border-rule pt-8 text-ink">{f}</li>)}
           </ul>

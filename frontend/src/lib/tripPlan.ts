@@ -15,7 +15,19 @@ export interface TripPlan {
   stayTypes: StayType[];
   filters: string[];
   vehicle: Vehicle;
+  /** Leaving day, yyyy-mm-dd ('' until the planner fills in its default). */
+  startDate: string;
+  /** People travelling together (1 to 9): stays and rental cars are booked for all of them. */
+  travellers: number;
 }
+
+export const TRAVELLERS = { min: 1, max: 9 } as const;
+
+const ymd = (d: Date) => d.toISOString().slice(0, 10);
+/** Two weeks from today: a sensible first guess for the leaving day. */
+export const defaultStartDate = (now = new Date()) => ymd(new Date(now.getTime() + 14 * 86_400_000));
+/** True for today or later (compared as calendar days). */
+export const notInPast = (day: string, now = new Date()) => day >= ymd(now);
 
 export const KM_PER_DAY = { min: 100, max: 800, step: 10 } as const;
 export const GEMS_PER_DAY = { min: 1, max: 6 } as const;
@@ -30,6 +42,8 @@ export const DEFAULT_PLAN: TripPlan = {
   stayTypes: ['campsite', 'hotel'],
   filters: [],
   vehicle: 'car',
+  startDate: '',
+  travellers: 2,
 };
 
 /** What each vehicle starts with (spec: km a day 350 / 300 / 280 / 250; campers sleep at campsites). */
@@ -132,5 +146,6 @@ export function toGenerateRequest(plan: TripPlan, startDate: Date): TripSearchPa
     stayTypes: plan.stayTypes,
     filters: plan.filters,
     vehicle: plan.vehicle,
+    travellers: plan.travellers,
   };
 }

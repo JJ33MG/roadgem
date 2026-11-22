@@ -14,6 +14,7 @@ describe('trip plan', () => {
       days: 5,
       startDate: '2026-06-04',
       endDate: '2026-06-09',
+      travellers: 2,
     });
   });
 

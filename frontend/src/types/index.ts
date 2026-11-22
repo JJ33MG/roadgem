@@ -61,6 +61,7 @@ export interface TripSearchParams {
   stayTypes?: ('campsite' | 'hotel' | 'holiday_home')[];
   filters?: string[];
   vehicle?: 'car' | 'ev' | 'campervan' | 'caravan';
+  travellers?: number;
 }
 
 export interface GeoPoint {

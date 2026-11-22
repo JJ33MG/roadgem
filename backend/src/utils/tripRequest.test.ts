@@ -3,6 +3,19 @@ import { parseGenerateBody } from './tripRequest';
 
 const base = { startLocation: 'Madrid', destination: 'Brussels', startDate: '2026-06-04', endDate: '2026-06-09', budget: 1250 };
 
+describe('travellers', () => {
+  it('keeps 1 to 9 travellers, 2 when missing', async () => {
+    const { parseGenerateBody } = await import('./tripRequest');
+    const base = { startLocation: 'A', destination: 'B', startDate: '2027-05-01', endDate: '2027-05-04', budget: 900 };
+    const many = parseGenerateBody({ ...base, travellers: 12 });
+    const none = parseGenerateBody(base);
+    const four = parseGenerateBody({ ...base, travellers: 4 });
+    expect(many.ok && many.value.travellers).toBe(9);
+    expect(none.ok && none.value.travellers).toBe(2);
+    expect(four.ok && four.value.travellers).toBe(4);
+  });
+});
+
 describe('vehicle', () => {
   it('keeps a known vehicle and falls back to car', async () => {
     const { parseGenerateBody } = await import('./tripRequest');

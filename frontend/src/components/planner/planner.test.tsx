@@ -21,7 +21,7 @@ describe('PlannerPanel', () => {
     fireEvent.change(screen.getByLabelText('From'), { target: { value: 'Madrid' } });
     fireEvent.change(screen.getByLabelText('To'), { target: { value: 'Brussels' } });
     fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
-    expect(onSubmit).toHaveBeenCalledWith({ ...DEFAULT_PLAN, from: 'Madrid', to: 'Brussels' });
+    expect(onSubmit).toHaveBeenCalledWith({ ...DEFAULT_PLAN, from: 'Madrid', to: 'Brussels', startDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) });
   });
 
   it('hides the gems slider when gems are switched off', () => {
@@ -80,6 +80,29 @@ describe('PlannerPanel', () => {
     expect(adjust).not.toHaveAttribute('open');
     expect(within(adjust as HTMLElement).getByText('Adjust')).toBeInTheDocument();
     expect(within(adjust as HTMLElement).getByRole('slider', { name: 'Kilometres a day' })).toBeInTheDocument();
+  });
+
+  it('asks when they leave and how many travel, and sends both', () => {
+    const onSubmit = vi.fn();
+    render(<PlannerPanel onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: 'Madrid' } });
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: 'Brussels' } });
+    expect(screen.getByLabelText('Travellers')).toHaveValue(2);
+    fireEvent.change(screen.getByLabelText('Leaving on'), { target: { value: '2027-05-01' } });
+    fireEvent.change(screen.getByLabelText('Travellers'), { target: { value: '4' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ startDate: '2027-05-01', travellers: 4 }));
+  });
+
+  it('refuses a leaving day in the past', () => {
+    const onSubmit = vi.fn();
+    render(<PlannerPanel onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: 'Madrid' } });
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: 'Brussels' } });
+    fireEvent.change(screen.getByLabelText('Leaving on'), { target: { value: '2020-01-01' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Plan my trip' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Pick a day from today on');
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('does not submit without a start and an end', () => {

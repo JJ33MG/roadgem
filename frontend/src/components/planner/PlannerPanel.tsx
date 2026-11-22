@@ -7,7 +7,10 @@ import {
   KM_PER_DAY,
   QUICK_FILTERS,
   STAY_LABELS,
+  defaultStartDate,
+  notInPast,
   suggestedDays,
+  TRAVELLERS,
   VEHICLE_DEFAULTS,
   VEHICLES,
   withVehicle,
@@ -32,13 +35,14 @@ const STAYS: StayType[] = ['campsite', 'hotel', 'holiday_home'];
 
 /** The trip, set like an instrument: route, days, daily distance, gems and where to sleep. */
 export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, estimateKm }: Props) {
-  const [plan, setPlan] = useState<TripPlan>(initial);
+  const [plan, setPlan] = useState<TripPlan>({ ...initial, startDate: initial.startDate || defaultStartDate() });
+  const [pastDate, setPastDate] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [missing, setMissing] = useState(false);
   const [estimated, setEstimated] = useState<number | null>(null);
   const [asking, setAsking] = useState(false);
   const [checking, setChecking] = useState(false);
-  const ids = { from: useId(), to: useId(), days: useId() };
+  const ids = { from: useId(), to: useId(), days: useId(), date: useId(), people: useId() };
   const set = <K extends keyof TripPlan>(key: K, value: TripPlan[K]) => setPlan((p) => ({ ...p, [key]: value }));
 
   const knownKm = routeKm ?? estimated;
@@ -82,6 +86,11 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
             return;
           }
           setMissing(false);
+          if (!notInPast(plan.startDate)) {
+            setPastDate(true);
+            return;
+          }
+          setPastDate(false);
           void check();
         }}
       >
@@ -93,7 +102,26 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
             <input id={ids.days} className={inputClass} type="number" min={1} max={30} value={plan.days} onChange={(e) => set('days', Math.min(30, Math.max(1, Number(e.target.value) || 1)))} />
           </label>
         </div>
+        <div className="mt-12 grid grid-cols-[minmax(0,1fr)_120px] gap-12">
+          <label htmlFor={ids.date} className={labelClass} style={{ fontWeight: 500 }}>
+            Leaving on
+            <input id={ids.date} className={inputClass} type="date" value={plan.startDate} onChange={(e) => set('startDate', e.target.value)} />
+          </label>
+          <label htmlFor={ids.people} className={labelClass} style={{ fontWeight: 500 }}>
+            Travellers
+            <input
+              id={ids.people}
+              className={inputClass}
+              type="number"
+              min={TRAVELLERS.min}
+              max={TRAVELLERS.max}
+              value={plan.travellers}
+              onChange={(e) => set('travellers', Math.min(TRAVELLERS.max, Math.max(TRAVELLERS.min, Number(e.target.value) || 1)))}
+            />
+          </label>
+        </div>
         {missing && <p className="mt-8 text-error" role="alert">Add where you start and where you end.</p>}
+        {pastDate && <p className="mt-8 text-error" role="alert">Pick a day from today on.</p>}
 
         <p className="mt-20 text-[16px] text-muted" style={{ fontWeight: 500 }}>Travelling by</p>
         <div role="radiogroup" aria-label="Travelling by" className="mt-8 grid grid-cols-2 gap-8 sm:grid-cols-4">

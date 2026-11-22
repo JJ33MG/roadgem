@@ -51,9 +51,9 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     }
     const {
       startLocation, destination, startDate, endDate, budget, travelStyle, priorities, transportType, days: reqDays,
-      kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters, vehicle,
+      kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters, vehicle, travellers,
     } = parsed.value;
-    const planner = { kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters, vehicle };
+    const planner = { kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters, vehicle, travellers };
 
     let isPremium = false;
     if (req.userId) {

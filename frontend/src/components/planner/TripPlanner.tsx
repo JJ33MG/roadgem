@@ -30,8 +30,8 @@ export function TripPlanner({ initial }: { initial?: TripPlan }) {
   }
 
   async function plan(p: TripPlan) {
-    const tomorrow = new Date(Date.now() + 86_400_000);
-    const trip = await generateTrip(toGenerateRequest(p, tomorrow));
+    const start = p.startDate ? new Date(`${p.startDate}T00:00:00Z`) : new Date(Date.now() + 86_400_000);
+    const trip = await generateTrip(toGenerateRequest(p, start));
     if (trip) navigate(`/trips/${trip.tripId}`, { state: { trip } });
   }
 

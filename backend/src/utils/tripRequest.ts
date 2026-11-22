@@ -21,6 +21,8 @@ export interface GenerateRequest {
   stayTypes: StayType[];
   filters: string[];
   vehicle: Vehicle;
+  /** People travelling together (1 to 9). */
+  travellers: number;
 }
 
 const STAY_TYPES: StayType[] = ['campsite', 'hotel', 'holiday_home'];
@@ -69,6 +71,7 @@ export function parseGenerateBody(body: unknown): { ok: true; value: GenerateReq
       stayTypes: stays.length ? [...new Set(stays)] : DEFAULT_STAYS,
       filters,
       vehicle: VEHICLES.includes(b.vehicle as Vehicle) ? (b.vehicle as Vehicle) : 'car',
+      travellers: b.travellers === undefined ? 2 : clampNumber(b.travellers, 1, 9, 2),
     },
   };
 }

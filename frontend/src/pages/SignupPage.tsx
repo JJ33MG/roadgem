@@ -15,12 +15,14 @@ export function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const next = params.get('next');
+  // Signed up through a friend's invite link: 2 weeks of Plus.
+  const invite = params.get('invite')?.trim() || undefined;
 
   async function submit() {
     setBusy(true);
     setError(null);
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, invite);
       navigate(next && next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Making the account did not work. Please try again.');
@@ -32,7 +34,7 @@ export function SignupPage() {
   return (
     <AuthLayout
       title="Make an account"
-      intro="Free, and your first trip is saved for you."
+      intro={invite ? 'A friend gave you 2 weeks of Plus. Make your account to start.' : 'Free, and your first trip is saved for you.'}
       fields={[
         { id: 'name', label: 'Your name', type: 'text', autoComplete: 'name', value: name, onChange: setName },
         { id: 'email', label: 'Email', type: 'email', autoComplete: 'email', value: email, onChange: setEmail },

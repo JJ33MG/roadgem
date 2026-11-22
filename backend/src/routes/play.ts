@@ -8,6 +8,7 @@ import { checkPhoto, fallbackChallenge, writeChallenge } from '../community/aiCh
 import { rateLimiter } from './track';
 import { checkIn, passport } from '../community/road';
 import { explorerGemsNear, monthlyChallenge } from '../community/explorer';
+import { inviteCodeFor } from '../community/invites';
 import { decodePolyline } from '../utils/routeGems';
 import { hasPlus } from '../utils/billing';
 
@@ -96,6 +97,13 @@ router.get('/explorer/:tripId', optionalAuth, wrap(async (req, res) => {
   const me = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
   if (!hasPlus(me) && planner.pass !== true) return res.json({ locked: true, count: gems.length });
   res.json({ gems: gems.map(({ id, name, lat, lng, description }) => ({ id, name, lat, lng, description })) });
+}));
+
+// Your invite link: a friend who signs up through it gets 2 weeks of Plus, you 1 week.
+router.get('/invite', requireAuth, wrap(async (req, res) => {
+  const code = await inviteCodeFor(prisma, req.userId!);
+  const site = process.env.FRONTEND_URL || 'https://routify-preview-production.up.railway.app';
+  res.json({ code, url: `${site.replace(/\/+$/, '')}/signup?invite=${code}` });
 }));
 
 router.get('/monthly', wrap(async (_req, res) => {

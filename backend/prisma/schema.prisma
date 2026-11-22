@@ -18,6 +18,11 @@ model User {
   createdAt           DateTime  @default(now())
   subscriptionTier    String    @default("free")
   subscriptionExpires DateTime?
+  /// Personal invite code (made on first use).
+  inviteCode          String?   @unique
+  invitedById         String?
+  /// The Routify team account: its posts are labelled as the team.
+  isTeam              Boolean   @default(false)
 
   trips         Trip[]
   communityGems CommunityGem[]
@@ -334,4 +339,15 @@ model CheckIn {
 
   @@unique([userId, tripId, placeId])
   @@index([userId])
+}
+
+// A friend who signed up through someone's invite link (both get Plus time).
+model Invite {
+  id        String   @id @default(cuid())
+  inviterId String
+  inviteeId String   @unique
+  rewarded  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([inviterId, createdAt])
 }

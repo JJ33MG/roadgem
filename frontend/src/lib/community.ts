@@ -51,3 +51,4 @@ export async function privatePhoto(path: string): Promise<string> {
 export const monthly = () => call<{ challenge: string; plusOnly: boolean }>(apiClient.get('/community/monthly'), 'The challenge could not be loaded.');
 export type ExplorerAnswer = { locked: true; count: number } | { gems: { id: string; name: string; lat: number; lng: number; description: string }[] };
 export const explorerGems = (tripId: string) => call<ExplorerAnswer>(apiClient.get(`/community/explorer/${tripId}`), 'Explorer gems could not be loaded.');
+export const myInvite = () => call<{ code: string; url: string }>(apiClient.get('/community/invite'), 'Your invite link could not be loaded.');

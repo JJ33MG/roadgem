@@ -1,4 +1,5 @@
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { InvitePanel } from '@/components/community/InvitePanel';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Route, Wallet, Crown, Plus, ArrowRight, CheckCircle } from 'lucide-react';
@@ -63,6 +64,8 @@ export function DashboardPage() {
           </h1>
           <p className="mt-8 text-body-sm text-silver">Here's an overview of your road trips.</p>
         </motion.div>
+
+        <div className="mt-24"><InvitePanel /></div>
 
         {/* Stats */}
         <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="mt-32 grid gap-16 sm:grid-cols-3">

@@ -1,4 +1,5 @@
 import { hasPlus } from '../utils/billing';
+import { acceptInvite } from '../community/invites';
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { prisma } from '../utils/prisma';
@@ -9,7 +10,7 @@ const router = Router();
 
 router.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, invite } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ error: 'email, password, and name are required' });
@@ -21,9 +22,14 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
+    let user = await prisma.user.create({
       data: { email, password: hashed, name },
     });
+    // Signed up through a friend's link: both get Plus time (never blocks the sign-up).
+    if (typeof invite === 'string' && invite.trim()) {
+      const r = await acceptInvite(prisma, { code: invite, inviteeId: user.id }).catch(() => null);
+      if (r?.inviteeDays) user = (await prisma.user.findUnique({ where: { id: user.id } })) ?? user;
+    }
 
     const token = signToken({ userId: user.id });
     res.status(201).json({

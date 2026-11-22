@@ -265,6 +265,7 @@ model Post {
   photoType  String
   distanceM  Int
   challenge  Boolean   @default(false)
+  monthly    Boolean   @default(false) // an entry for the monthly challenge (Plus)
   status     String    @default("pending") // pending | public | rejected
   aiNote     String    @default("")
   points     Int       @default(0)

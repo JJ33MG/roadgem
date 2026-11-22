@@ -14,7 +14,10 @@ const api = vi.hoisted(() => ({
   privatePhoto: vi.fn().mockResolvedValue('blob:photo'),
   mine: vi.fn().mockResolvedValue({ posts: [], points: 0, rank: null, moderator: false }),
   photoSrc: (p: string) => p,
+  monthly: vi.fn().mockResolvedValue({ challenge: 'The oldest bridge on your route.', plusOnly: true }),
 }));
+const sub = vi.hoisted(() => ({ isPremium: true }));
+vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: sub.isPremium }) }));
 vi.mock('@/lib/community', () => api);
 vi.mock('@/lib/geo', () => ({ whereAmI: vi.fn().mockResolvedValue({ lat: 50.8469, lng: 4.3527, accuracy: 12 }) }));
 vi.mock('@/lib/photo', () => ({ shrinkPhoto: vi.fn().mockResolvedValue('data:image/jpeg;base64,/9j/AAA=') }));
@@ -91,6 +94,23 @@ describe('SuggestGemPage', () => {
 });
 
 describe('ModeratePage', () => {
+  it('keeps suggesting a new gem for Plus, with the way to get it', () => {
+    sub.isPremium = false;
+    render(<MemoryRouter><SuggestGemPage /></MemoryRouter>);
+    expect(screen.getByText('Suggesting new gems comes with Plus.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'See Plus' })).toHaveAttribute('href', '/pricing');
+    expect(screen.queryByRole('button', { name: /Send/ })).toBeNull();
+    sub.isPremium = true;
+  });
+
+  it('shows the challenge of the month, for Plus', async () => {
+    api.feed.mockResolvedValue([]);
+    api.board.mockResolvedValue([]);
+    render(<MemoryRouter><CommunityPage /></MemoryRouter>);
+    expect(await screen.findByText('The oldest bridge on your route.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Challenge of the month' })).toBeInTheDocument();
+  });
+
   it('lists waiting photos and approves one', async () => {
     api.pending.mockResolvedValue([{ id: 'p1', caption: 'Hi', challenge: true, distanceM: 26, aiNote: 'Clear photo.', createdAt: '2026-11-20T10:00:00Z', user: { name: 'Anna' }, gem: { name: 'Grand-Place', status: 'official', description: '' }, photoUrl: '/api/community/posts/p1/photo' }]);
     api.decide.mockResolvedValue({});

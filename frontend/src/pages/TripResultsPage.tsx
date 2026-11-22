@@ -22,6 +22,7 @@ import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
 import { goLink } from '@/lib/track';
 import { carForGroup } from '@/lib/cars';
 import { OnTheRoad } from '@/components/trip/OnTheRoad';
+import { ExplorerGems } from '@/components/trip/ExplorerGems';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
@@ -507,6 +508,7 @@ export function TripResultsPage() {
             </div>
           </Panel>
           )}
+          {trip.tripId && <ExplorerGems tripId={trip.tripId} />}
           {gemsOn && !isPremium && (
             <Panel>
               <h3 className="font-display text-[24px] text-ink" style={head}>Every gem with Plus</h3>

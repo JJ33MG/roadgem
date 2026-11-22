@@ -31,8 +31,8 @@ describe.skipIf(!url)('community service', () => {
 
   it('stores a photo at the gem as pending, one gem per Google place', async () => {
     const u = await user();
-    const a = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: 'Lovely', challenge: false });
-    await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: true });
+    const a = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: 'Lovely', challenge: false, plus: true });
+    await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: true, plus: true });
     expect(a.status).toBe('pending');
     expect(a.distanceM).toBeLessThan(50);
     expect(await db.gem.count()).toBe(1);
@@ -41,14 +41,46 @@ describe.skipIf(!url)('community service', () => {
 
   it('makes a post public with its points after approval: 10 for a photo, 50 for a challenge', async () => {
     const u = await user();
-    const p1 = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false });
-    const p2 = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: true });
+    const p1 = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false, plus: true });
+    const p2 = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: true, plus: true });
     await review(db, p1.id, 'approve');
     await review(db, p2.id, 'approve');
     const items = await feed(db, null);
     expect(items.map((i) => i.points).sort()).toEqual([10, 50]);
     expect(items[0]).not.toHaveProperty('photo');
     expect((await board(db))[0]).toMatchObject({ name: u.name, points: 60 });
+  });
+
+  it('free members post one photo a day; Plus posts without limit', async () => {
+    const u = await user();
+    await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false, plus: false });
+    await expect(createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false, plus: false })).rejects.toMatchObject({
+      status: 429,
+      message: 'Free members post one photo a day. Plus posts without limit.',
+    });
+    await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false, plus: true });
+    expect(await db.post.count()).toBe(2);
+  });
+
+  it('Plus members get double points for an approved photo', async () => {
+    const u = await db.user.create({ data: { email: `plus-${Date.now()}@test.local`, password: 'x', name: 'P', subscriptionTier: 'premium', subscriptionExpires: new Date(Date.now() + 9e8) } });
+    const p = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: true, plus: true });
+    expect(await review(db, p.id, 'approve')).toMatchObject({ points: 100 });
+  });
+
+  it('suggesting a gem and the monthly challenge come with Plus', async () => {
+    const u = await user();
+    await expect(suggestGem(db, { userId: u.id, name: 'Secret lake', description: 'A quiet lake behind the village church.', category: 'nature', at: HERE, photo: JPEG, plus: false })).rejects.toMatchObject({
+      status: 403,
+      message: 'Suggesting new gems comes with Plus.',
+    });
+    await expect(createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false, monthly: true, plus: false })).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('a Plus that ended gives the free limit again', async () => {
+    const u = await db.user.create({ data: { email: `ended-${Date.now()}@test.local`, password: 'x', name: 'E', subscriptionTier: 'premium', subscriptionExpires: new Date(Date.now() - 5 * 86_400_000) } });
+    const p = await createPost(db, { userId: u.id, gem: GEM, at: HERE, photo: JPEG, caption: '', challenge: false, plus: false });
+    expect(await review(db, p.id, 'approve')).toMatchObject({ points: 10 });
   });
 
   it('can approve a challenge post as a plain photo when the challenge is not done', async () => {
@@ -70,7 +102,7 @@ describe.skipIf(!url)('community service', () => {
 
   it('turns a suggested gem official at 10 visitors and 20 likes, and gives its finder 200 points', async () => {
     const finder = await user('finder');
-    const { gem } = await suggestGem(db, { userId: finder.id, name: 'Secret viewpoint', description: 'A quiet bench above the river.', category: 'viewpoint', at: HERE, photo: JPEG });
+    const { gem } = await suggestGem(db, { userId: finder.id, name: 'Secret viewpoint', description: 'A quiet bench above the river.', category: 'viewpoint', at: HERE, photo: JPEG, plus: true });
     expect(gem.status).toBe('suggested');
     const visitors = await Promise.all(Array.from({ length: 10 }, () => user()));
     const fans = await Promise.all(Array.from({ length: 2 }, () => user()));

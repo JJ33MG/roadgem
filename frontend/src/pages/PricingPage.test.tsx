@@ -22,6 +22,8 @@ describe('PricingPage', () => {
     expect(container.querySelector('[class*="gradient"]')).toBeNull();
     expect(screen.queryByText(/Roadgem/i)).toBeNull();
     expect(screen.getByRole('radio', { name: 'Yearly, €59' })).toBeInTheDocument();
+    expect(screen.getByText('Explorer gems: rare places travellers found')).toBeInTheDocument();
+    expect(screen.getByText('One community photo a day')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Plan a trip, then get its pass' })).toHaveAttribute('href', '/plan');
   });
 });

@@ -1,5 +1,6 @@
 // The community game on top of the database: posts, suggestions, moderation, likes, feed and board.
 import type { PrismaClient } from '@prisma/client';
+import { hasPlus } from '../utils/billing';
 import { decodePhoto, metresBetween, onTheSpot, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
 
 type GemRef = { gemId: string } | { placeId: string; name: string; lat: number; lng: number; address?: string };
@@ -8,6 +9,9 @@ export class CommunityError extends Error {
   status = 400;
   expose = true;
 }
+/** Photos a day for members without Plus. */
+export const FREE_POSTS_A_DAY = 1;
+
 const fail = (msg: string, status = 400) => Object.assign(new CommunityError(msg), { status });
 
 const clean = (s: unknown, max: number) => (typeof s === 'string' ? s.trim().slice(0, max) : '');
@@ -38,8 +42,14 @@ async function gemFor(db: PrismaClient, ref: GemRef) {
 
 export async function createPost(
   db: PrismaClient,
-  input: { userId: string; gem: GemRef; at: unknown; photo: unknown; caption: unknown; challenge: unknown },
+  input: { userId: string; gem: GemRef; at: unknown; photo: unknown; caption: unknown; challenge: unknown; monthly?: unknown; plus?: boolean },
 ) {
+  const plus = input.plus === true;
+  if (input.monthly === true && !plus) throw fail('The monthly challenge comes with Plus.', 403);
+  if (!plus) {
+    const today = await db.post.count({ where: { userId: input.userId, createdAt: { gte: new Date(Date.now() - 86_400_000) } } });
+    if (today >= FREE_POSTS_A_DAY) throw fail('Free members post one photo a day. Plus posts without limit.', 429);
+  }
   const gem = await gemFor(db, input.gem);
   const at = point(input.at);
   if (!onTheSpot(gem, at)) throw fail('Photos count only when you are at the gem (within 300 m). Try again when you are there.');
@@ -53,6 +63,7 @@ export async function createPost(
       photoType: type,
       distanceM: Math.round(metresBetween(gem, at)),
       challenge: input.challenge === true,
+      monthly: input.monthly === true,
     },
     select: { id: true, status: true, distanceM: true, gemId: true },
   });
@@ -60,8 +71,9 @@ export async function createPost(
 
 export async function suggestGem(
   db: PrismaClient,
-  input: { userId: string; name: unknown; description: unknown; category: unknown; at: unknown; photo: unknown },
+  input: { userId: string; name: unknown; description: unknown; category: unknown; at: unknown; photo: unknown; plus?: boolean },
 ) {
+  if (input.plus !== true) throw fail('Suggesting new gems comes with Plus.', 403);
   const name = clean(input.name, 120);
   const description = clean(input.description, 400);
   if (name.length < 3) throw fail('Give the gem a name.');
@@ -71,7 +83,7 @@ export async function suggestGem(
   const gem = await db.gem.create({
     data: { name, description, category: clean(input.category, 30) || 'other', lat: at.lat, lng: at.lng, status: 'suggested', finderId: input.userId },
   });
-  const post = await createPost(db, { userId: input.userId, gem: { gemId: gem.id }, at, photo: input.photo, caption: description, challenge: false });
+  const post = await createPost(db, { userId: input.userId, gem: { gemId: gem.id }, at, photo: input.photo, caption: description, challenge: false, plus: true });
   return { gem, post };
 }
 
@@ -90,15 +102,17 @@ export type Decision = 'approve' | 'approve_photo' | 'reject';
 
 /** approve: points as posted; approve_photo: public, but the challenge did not count; reject: hidden. */
 export async function review(db: PrismaClient, postId: string, decision: Decision, note?: string) {
-  const post = await db.post.findUnique({ where: { id: postId } });
+  const post = await db.post.findUnique({ where: { id: postId }, include: { user: true } });
   if (!post) throw fail('Post not found.', 404);
+  // Plus members (at the moment of approval) get double points.
+  const times = hasPlus(post.user) ? 2 : 1;
   const updated = await db.post.update({
     where: { id: postId },
     data:
       decision !== 'reject'
         ? decision === 'approve'
-          ? { status: 'public', points: pointsFor(post), reviewedAt: new Date() }
-          : { status: 'public', challenge: false, points: pointsFor({ challenge: false }), reviewedAt: new Date() }
+          ? { status: 'public', points: pointsFor(post) * times, reviewedAt: new Date() }
+          : { status: 'public', challenge: false, points: pointsFor({ challenge: false }) * times, reviewedAt: new Date() }
         : { status: 'rejected', points: 0, reviewedAt: new Date(), ...(note ? { aiNote: note.slice(0, 300) } : {}) },
     select: { id: true, status: true, points: true, gemId: true },
   });

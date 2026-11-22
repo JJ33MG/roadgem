@@ -7,6 +7,8 @@ import { board, createPost, feed, review, suggestGem, toggleLike } from '../comm
 import { checkPhoto, fallbackChallenge, writeChallenge } from '../community/aiCheck';
 import { rateLimiter } from './track';
 import { checkIn, passport } from '../community/road';
+import { explorerGemsNear, monthlyChallenge } from '../community/explorer';
+import { decodePolyline } from '../utils/routeGems';
 import { hasPlus } from '../utils/billing';
 
 const router = Router();
@@ -36,9 +38,10 @@ async function aiFirstLook(postId: string) {
 
 router.post('/posts', requireAuth, wrap(async (req, res) => {
   if (!allowPost(req.userId!)) return res.status(429).json({ error: 'That is a lot of photos. Try again in an hour.' });
-  const { gem, at, photo, caption, challenge } = req.body ?? {};
+  const { gem, at, photo, caption, challenge, monthly } = req.body ?? {};
+  const me = await prisma.user.findUnique({ where: { id: req.userId } });
   const ref = gem?.gemId ? { gemId: String(gem.gemId) } : { placeId: gem?.placeId, name: gem?.name, lat: Number(gem?.lat), lng: Number(gem?.lng), address: gem?.address };
-  const post = await createPost(prisma, { userId: req.userId!, gem: ref, at, photo, caption, challenge });
+  const post = await createPost(prisma, { userId: req.userId!, gem: ref, at, photo, caption, challenge, monthly, plus: hasPlus(me) });
   void aiFirstLook(post.id).catch(() => {});
   res.status(201).json(post);
 }));
@@ -46,7 +49,8 @@ router.post('/posts', requireAuth, wrap(async (req, res) => {
 router.post('/suggest', requireAuth, wrap(async (req, res) => {
   if (!allowPost(req.userId!)) return res.status(429).json({ error: 'That is a lot of photos. Try again in an hour.' });
   const { name, description, category, at, photo } = req.body ?? {};
-  const { gem, post } = await suggestGem(prisma, { userId: req.userId!, name, description, category, at, photo });
+  const me = await prisma.user.findUnique({ where: { id: req.userId } });
+  const { gem, post } = await suggestGem(prisma, { userId: req.userId!, name, description, category, at, photo, plus: hasPlus(me) });
   void aiFirstLook(post.id).catch(() => {});
   res.status(201).json({ gemId: gem.id, postId: post.id, status: post.status });
 }));
@@ -79,6 +83,23 @@ router.post('/checkins', requireAuth, wrap(async (req, res) => {
 
 router.get('/passport/:tripId', requireAuth, wrap(async (req, res) => {
   res.json(await passport(prisma, req.userId!, req.params.tripId));
+}));
+
+// Plus: Explorer gems (found by travellers, now official) near this trip's road; free members see how many.
+router.get('/explorer/:tripId', optionalAuth, wrap(async (req, res) => {
+  const trip = await prisma.trip.findUnique({ where: { id: req.params.tripId } });
+  if (!trip) return res.status(404).json({ error: 'Trip not found' });
+  const planner = JSON.parse(trip.planner || '{}') as { route?: string; pass?: boolean };
+  const line = planner.route ? decodePolyline(planner.route) : [];
+  const rows = await prisma.gem.findMany({ where: { status: 'official', finderId: { not: null } }, select: { id: true, name: true, lat: true, lng: true, status: true, finderId: true, description: true } });
+  const gems = explorerGemsNear(rows, line);
+  const me = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
+  if (!hasPlus(me) && planner.pass !== true) return res.json({ locked: true, count: gems.length });
+  res.json({ gems: gems.map(({ id, name, lat, lng, description }) => ({ id, name, lat, lng, description })) });
+}));
+
+router.get('/monthly', wrap(async (_req, res) => {
+  res.json({ challenge: monthlyChallenge(), plusOnly: true });
 }));
 
 router.get('/board', wrap(async (_req, res) => {

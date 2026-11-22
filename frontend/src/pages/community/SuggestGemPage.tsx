@@ -1,3 +1,4 @@
+import { useSubscription } from '@/hooks/useSubscription';
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
@@ -13,6 +14,7 @@ const KINDS: [string, string][] = [
 
 /** A traveller pins a new gem where they stand, with a photo. Others visiting and liking it make it official. */
 export function SuggestGemPage() {
+  const { isPremium } = useSubscription();
   const ids = { name: useId(), about: useId(), kind: useId(), photo: useId() };
   const [name, setName] = useState('');
   const [about, setAbout] = useState('');
@@ -61,6 +63,17 @@ export function SuggestGemPage() {
 
   const field = 'w-full rounded-input border border-rule bg-paper px-16 text-[19px] text-ink';
   const label = 'flex flex-col gap-[6px] text-[16px] text-muted';
+  if (!isPremium) {
+    return (
+      <section className="mx-auto max-w-[640px] px-16 py-40 md:py-[64px]">
+        <h1 className="font-display text-[40px] text-ink" style={head}>Suggest a new gem</h1>
+        <p className="mt-12 text-[19px]">Suggesting new gems comes with Plus.</p>
+        <p className="mt-6">When enough travellers visit your gem, it turns official with your name on it.</p>
+        <Link to="/pricing" className="btn-primary mt-24 no-underline">See Plus</Link>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-[640px] px-16 py-40 md:py-[64px]">
       <h1 className="font-display text-[40px] leading-[1.06] text-ink md:text-[52px]" style={head}>Suggest a new gem</h1>

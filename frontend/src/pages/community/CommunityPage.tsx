@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Panel } from '@/components/ui';
-import { board as loadBoard, feed as loadFeed, like, mine, photoSrc, type BoardRow, type FeedItem, type MyPosts } from '@/lib/community';
+import { board as loadBoard, feed as loadFeed, like, mine, photoSrc, type BoardRow, type FeedItem, type MyPosts, monthly } from '@/lib/community';
 
 const head = { fontWeight: 400, letterSpacing: '-0.035em' } as const;
 type Tab = 'feed' | 'board';
@@ -18,9 +18,11 @@ export function CommunityPage() {
   const [rows, setRows] = useState<BoardRow[] | null>(null);
   const [me, setMe] = useState<MyPosts | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [month, setMonth] = useState<string | null>(null);
 
   useEffect(() => {
     loadFeed().then(setItems).catch((e: Error) => setError(e.message));
+    monthly().then((m) => setMonth(m.challenge)).catch(() => undefined);
   }, []);
   useEffect(() => {
     if (tab === 'board' && !rows) loadBoard().then(setRows).catch((e: Error) => setError(e.message));
@@ -51,6 +53,14 @@ export function CommunityPage() {
         </div>
         <Link to="/community/suggest" className="btn-primary no-underline">Suggest a new gem</Link>
       </div>
+
+      {month && (
+        <Panel className="mt-24">
+          <h2 className="font-display text-[26px] text-ink" style={head}>Challenge of the month</h2>
+          <p className="mt-6 text-[19px] text-ink">{month}</p>
+          <p className="mt-6 text-[16px] text-muted">For Plus members: the best photo of the month wins a prize.</p>
+        </Panel>
+      )}
 
       {me && (
         <Panel className="mt-24 flex flex-wrap items-center justify-between gap-12">

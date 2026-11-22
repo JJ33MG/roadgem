@@ -13,6 +13,8 @@ const FREE = [
   'Three checked gems per trip',
   'Change the plan: move a night, add a rest day',
   'The route in Google Maps in one tap',
+  'Collect gems on the road in your trip passport',
+  'One community photo a day',
   'One saved trip',
 ];
 const PASS = [
@@ -27,8 +29,10 @@ const PLUS = [
   'Every gem on the route',
   'The cheapest route, without toll roads',
   'A printable PDF of the trip',
+  'Explorer gems: rare places travellers found',
+  'Double points and unlimited community photos',
+  'Suggest new gems, and the monthly prize challenge',
   'Your trips on every device you sign in on',
-  'First to get the on-the-road mode',
 ];
 
 const FAQS = [

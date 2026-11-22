@@ -74,6 +74,9 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     const daysFromDates = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
     const days = reqDays ? Math.max(1, Number(reqDays)) : daysFromDates;
 
+    // Weather needs only the destination and dates: fetched while Claude writes the plan.
+    const t0 = Date.now();
+    const weatherP = getWeather(destination, startDate, endDate).catch(() => []);
     const tripData = await generateTripItinerary(
       startLocation,
       destination,
@@ -89,28 +92,28 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     const editKey = newEditKey();
     const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[]; hiddenGems?: string[]; alt?: { route: string; legs: RoadLeg[]; tollFree: boolean } } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
 
-    let totalDistance = 0;
-    if (Array.isArray(tripData.stops) && tripData.stops.length > 1) {
-      const route = await calculateRoute(tripData.stops);
-      totalDistance = route.totalDistance;
-    }
+    const tPlan = Date.now();
 
-    const weather = await getWeather(destination, startDate, endDate);
-
-    // The real road (also drawn on the trip map), then real gems along it: Google places
-    // sampled every ~75 km plus the start and the end.
-    const road = await routeLine(
-      (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) })),
-    ).catch(() => ({ points: [], encoded: '', legs: [] }));
+    // The real road (also drawn on the trip map); its legs give the distance, so no second route call.
+    const roadStops = (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) }));
+    const road = await routeLine(roadStops).catch(() => ({ points: [], encoded: '', legs: [] as RoadLeg[] }));
     savedPlanner.route = road.encoded;
     savedPlanner.legs = road.legs;
-    // The toll-free road too, when the fastest one pays tolls: the page shows what it saves (Plus can switch).
-    const roadStops = (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) }));
-    if (costsOfPlanner(savedPlanner)?.legs.some((l) => l.tolls > 0)) {
-      const free = await routeLine(roadStops, { avoidTolls: true }).catch(() => null);
-      if (free?.legs.length) savedPlanner.alt = { route: free.encoded, legs: free.legs, tollFree: true };
+    let totalDistance = road.legs.reduce((n, l) => n + l.km, 0);
+    if (!totalDistance && Array.isArray(tripData.stops) && tripData.stops.length > 1) {
+      totalDistance = (await calculateRoute(tripData.stops).catch(() => ({ totalDistance: 0 }))).totalDistance;
     }
-    const hiddenGems = !gemsEnabled ? [] : await findRouteGems(road, Math.max(3, gemsPerDay * days), 2, gemSource).catch(() => []);
+
+    // At the same time: the toll-free road (when the fastest pays tolls; Plus can switch) and real
+    // gems along the road from the gem library (Google only for stretches not searched yet).
+    const paysTolls = Boolean(costsOfPlanner(savedPlanner)?.legs.some((l) => l.tolls > 0));
+    const [free, hiddenGems, weather] = await Promise.all([
+      paysTolls ? routeLine(roadStops, { avoidTolls: true }).catch(() => null) : Promise.resolve(null),
+      gemsEnabled ? findRouteGems(road, Math.max(3, gemsPerDay * days), 2, gemSource).catch(() => []) : Promise.resolve([]),
+      weatherP,
+    ]);
+    if (free?.legs.length) savedPlanner.alt = { route: free.encoded, legs: free.legs, tollFree: true };
+    console.log(`[generate] ${days} days: plan ${tPlan - t0} ms, road and gems ${Date.now() - tPlan} ms`);
 
     const saved = await prisma.trip.create({
       data: {

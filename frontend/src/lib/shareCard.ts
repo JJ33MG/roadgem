@@ -68,9 +68,11 @@ export async function cardFile(i: CardInput): Promise<File> {
     ctx.fillText(s, 96, y);
     y += 92;
   }
-  ctx.font = '400 40px Figtree, sans-serif';
+  // The invite link can be long: wrapped at its slashes and question mark so it stays on the card.
+  ctx.font = '400 38px Figtree, sans-serif';
   ctx.globalAlpha = 0.85;
-  ctx.fillText(t.footer, 96, 1780);
+  const footer = wrap(ctx, t.footer.replace(/([/?])/g, '$1 '), 888).map((r) => r.replace(/([/?]) /g, '$1'));
+  footer.forEach((row, k) => ctx.fillText(row, 96, 1820 - (footer.length - 1 - k) * 50));
   ctx.globalAlpha = 1;
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
   if (!blob) throw new Error('The card could not be made.');

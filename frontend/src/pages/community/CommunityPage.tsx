@@ -60,9 +60,10 @@ export function CommunityPage() {
         <section aria-labelledby="week-head" className="mt-32">
           <h2 id="week-head" className="font-display text-[28px] text-ink" style={head}>Gems of the week</h2>
           <p className="mt-6 text-[17px] text-muted">Real places from Routify's gem library, each with its Google rating.</p>
-          <ul className="mt-16 grid gap-12 p-0 sm:grid-cols-2 lg:grid-cols-4" style={{ listStyle: 'none' }}>
+          {/* A row to swipe on a phone, a grid on wider screens. */}
+          <ul className="-mx-16 mt-16 flex snap-x gap-12 overflow-x-auto px-16 pb-8 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4" style={{ listStyle: 'none' }}>
             {week.map((g) => (
-              <li key={g.placeId} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
+              <li key={g.placeId} className="grid w-[260px] shrink-0 snap-start content-start gap-4 rounded-part border border-rule bg-paper p-16 sm:w-auto">
                 {g.photoUrl && <img src={photoSrc(g.photoUrl)} alt={g.name} loading="lazy" width={480} height={300} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" />}
                 <span className="text-ink" style={{ fontWeight: 500 }}>{g.name}</span>
                 <span className="text-[16px] text-muted">{g.address}</span>

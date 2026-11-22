@@ -15,6 +15,8 @@ function fakePrisma() {
       groupBy: vi.fn(async () => [{ partner: 'booking', _count: { _all: 5 } }, { partner: 'airbnb', _count: { _all: 2 } }]),
     },
     post: { count: vi.fn(async ({ where }: any = {}) => (where?.status === 'pending' ? 3 : 8)) },
+    placeGem: { count: vi.fn(async () => 1234) },
+    gemSearch: { count: vi.fn(async () => 210) },
   };
 }
 
@@ -22,7 +24,9 @@ describe('buildStats', () => {
   it('counts totals and the last 7 days from now', async () => {
     const p = fakePrisma();
     const now = new Date('2026-11-19T12:00:00Z');
+    process.env.BOOKING_AFFILIATE_ID = '123';
     const s = await buildStats(p as any, now);
+    delete process.env.BOOKING_AFFILIATE_ID;
     expect(s).toEqual({
       generatedAt: now.toISOString(),
       users: { total: 40, last7d: 5 },
@@ -30,6 +34,8 @@ describe('buildStats', () => {
       plus: 2,
       affiliateClicks: { last7d: 7, byPartner: { booking: 5, airbnb: 2 } },
       community: { pending: 3, approved: 8 },
+      gems: { library: 1234, seedSearches: 210, seedBudget: 0 },
+      setup: { mapsStatic: 'unknown', stripe: false, partners: ['booking'], adminEmails: false },
     });
     expect(p.trip.count.mock.calls[1][0].where.createdAt.gte.toISOString()).toBe('2026-11-12T12:00:00.000Z');
   });

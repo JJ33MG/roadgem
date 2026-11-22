@@ -13,6 +13,11 @@ type Result = { status: number; type?: string; body?: Buffer; error?: string };
 const CACHE_MAX = 300;
 const cache = new Map<string, { type: string; body: Buffer }>();
 
+/** Whether Google drew the last map: 'refused' usually means the Maps Static API is not enabled. */
+export type MapStatus = 'ok' | 'refused' | 'unknown';
+let lastStatus: MapStatus = 'unknown';
+export const mapStatus = () => lastStatus;
+
 export async function tripMapImage(
   db: Db,
   fetchImage: FetchImage,
@@ -38,10 +43,12 @@ export async function tripMapImage(
   const img = await fetchImage(url).catch(() => null);
   if (!img || !img.ok || !img.type.startsWith('image/')) {
     // Google explains a refusal in the body (e.g. the Static Maps API is not enabled for the key).
+    if (img) lastStatus = 'refused';
     console.warn('[trip map] Google refused the image:', img ? `${img.type} ${img.body.toString('utf8').slice(0, 300)}` : 'no answer');
     return { status: 502, error: 'The map is not available right now.' };
   }
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
+  lastStatus = 'ok';
   cache.set(url, { type: img.type, body: img.body });
   return { status: 200, type: img.type, body: img.body };
 }

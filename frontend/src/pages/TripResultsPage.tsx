@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/apiClient';
+import { apiClient, getAuthToken } from '@/lib/apiClient';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
@@ -21,6 +21,7 @@ import { buildGoogleMapsRouteUrl } from '@/components/display/GlobeView';
 import { STAY_LABELS, type StayType } from '@/lib/tripPlan';
 import { goLink } from '@/lib/track';
 import { carForGroup } from '@/lib/cars';
+import { OnTheRoad } from '@/components/trip/OnTheRoad';
 import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
@@ -379,6 +380,8 @@ export function TripResultsPage() {
                 </ul>
               </div>
             )}
+
+            {trip.tripId && showGems.length > 0 && <OnTheRoad tripId={trip.tripId} gems={showGems} signedIn={!!getAuthToken()} />}
 
             {canEdit && hiddenIds.length > 0 && (
               <button type="button" disabled={saving} onClick={() => hiddenIds.reduce((p, id) => p.then(() => change({ type: 'showGem', placeId: id })), Promise.resolve())} className="mt-12 min-h-[48px] text-[17px] text-ink underline">

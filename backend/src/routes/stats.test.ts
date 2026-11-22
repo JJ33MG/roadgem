@@ -36,6 +36,7 @@ describe('buildStats', () => {
       community: { pending: 3, approved: 8 },
       gems: { library: 1234, seedSearches: 210, seedBudget: 0 },
       setup: { mapsStatic: 'unknown', stripe: false, partners: ['booking'], adminEmails: false },
+      health: { errors24h: 0, lastError: null },
     });
     expect(p.trip.count.mock.calls[1][0].where.createdAt.gte.toISOString()).toBe('2026-11-12T12:00:00.000Z');
   });

@@ -15,8 +15,25 @@ export function errorResponse(err: unknown): Failure {
   return { status: 500, body: { error: 'Something went wrong on our end.' } };
 }
 
+// Server errors of the last day, in memory, for the Brain's daily report (a restart resets them).
+const DAY_MS = 86_400_000;
+const errors: { at: number; message: string }[] = [];
+
+export function recordServerError(err: unknown, at = Date.now()): void {
+  const message = (err instanceof Error ? err.message : String(err)).replace(/\s+/g, ' ').trim().slice(0, 200);
+  errors.push({ at, message });
+  while (errors.length > 500) errors.shift();
+}
+
+export function recentErrors(now = Date.now()) {
+  const recent = errors.filter((e) => now - e.at < DAY_MS);
+  const last = recent[recent.length - 1];
+  return { errors24h: recent.length, lastError: last ? { at: new Date(last.at).toISOString(), message: last.message } : null };
+}
+
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
   console.error('Error:', err);
   const { status, body } = errorResponse(err);
+  if (status >= 500) recordServerError(err);
   res.status(status).json(body);
 }

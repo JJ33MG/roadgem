@@ -13,6 +13,7 @@ import communityRouter from './routes/community';
 import templatesRouter from './routes/templates';
 import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
+import { prisma } from './utils/prisma';
 import { limit } from './middleware/limits';
 
 const HOUR = 60 * 60_000;
@@ -52,8 +53,14 @@ app.use(['/api/community/posts', '/api/community/suggest'], express.json({ limit
 app.use(express.json());
 
 // Routes
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok' });
+// Up and the database answers: checked by Railway and by the Brain.
+app.get('/api/health', async (_req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok' });
+  } catch {
+    res.status(503).json({ status: 'database unreachable' });
+  }
 });
 
 

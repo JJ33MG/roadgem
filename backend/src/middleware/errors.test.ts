@@ -16,3 +16,17 @@ describe('errorResponse', () => {
     expect(errorResponse(new Error('db exploded'))).toEqual({ status: 500, body: { error: 'Something went wrong on our end.' } });
   });
 });
+
+import { recentErrors, recordServerError } from './errors';
+
+describe('server errors the Brain reports', () => {
+  it('counts server errors of the last 24 hours and keeps the latest message short', () => {
+    const t = new Date('2026-12-01T12:00:00Z').getTime();
+    recordServerError(new Error('old'), t - 25 * 3_600_000);
+    recordServerError(new Error('Prisma: database unreachable '.repeat(20)), t - 3_600_000);
+    const r = recentErrors(t);
+    expect(r.errors24h).toBe(1);
+    expect(r.lastError!.message.length).toBeLessThanOrEqual(200);
+    expect(r.lastError!.at).toBe(new Date(t - 3_600_000).toISOString());
+  });
+});

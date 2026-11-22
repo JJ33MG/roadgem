@@ -4,6 +4,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { prisma } from '../utils/prisma';
 import { PARTNERS } from '../utils/partners';
+import { recentErrors } from '../middleware/errors';
 import { mapStatus, type MapStatus } from './tripMap';
 
 export interface RoutifyStats {
@@ -17,6 +18,8 @@ export interface RoutifyStats {
   gems: { library: number; seedSearches: number; seedBudget: number };
   /** What is set up, by name only (never a key): the Brain's launch list ticks these off. */
   setup: { mapsStatic: MapStatus; stripe: boolean; partners: string[]; adminEmails: boolean };
+  /** Server errors (5xx) in the last 24 hours, and the latest one. */
+  health: { errors24h: number; lastError: { at: string; message: string } | null };
 }
 
 const WEEK_MS = 7 * 86_400_000;
@@ -52,6 +55,7 @@ export async function buildStats(db: PrismaClient, now: Date): Promise<RoutifySt
       partners: Object.entries(PARTNERS).filter(([, p]) => set(p.param && env[p.param.env]) || set(p.deeplinkEnv && env[p.deeplinkEnv])).map(([id]) => id),
       adminEmails: set(env.ADMIN_EMAILS),
     },
+    health: recentErrors(now.getTime()),
   };
 }
 

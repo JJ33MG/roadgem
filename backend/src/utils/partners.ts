@@ -6,7 +6,7 @@ type Partner = {
   hosts: string[];
   /** Adds the affiliate id to the link itself (Booking.com style). */
   param?: { env: string; name: string };
-  /** Or wraps the link in the network's deep link, with {url} for the target (Awin, CJ, Impact). */
+  /** Or wraps the link in the network's deep link, with {url} for the target (default name <PARTNER>_DEEPLINK). */
   deeplinkEnv?: string;
 };
 
@@ -36,7 +36,8 @@ export function partnerTarget(partner: string, target: string): string | null {
   if (!p || !onHost(url, p.hosts)) return null;
   const id = p.param && process.env[p.param.env];
   if (p.param && id) url.searchParams.set(p.param.name, id);
-  const deeplink = p.deeplinkEnv && process.env[p.deeplinkEnv];
+  // Every partner may also come through a network (CJ, Awin, Travelpayouts, Stay22): <PARTNER>_DEEPLINK.
+  const deeplink = process.env[p.deeplinkEnv ?? `${partner.toUpperCase()}_DEEPLINK`];
   if (deeplink && deeplink.includes('{url}')) return deeplink.replace('{url}', encodeURIComponent(url.toString()));
   return url.toString();
 }

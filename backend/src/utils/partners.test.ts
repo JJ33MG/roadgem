@@ -21,6 +21,14 @@ describe('partner links', () => {
     );
   });
 
+  it('accepts a network deep link for every partner, Booking.com included (its programme runs through CJ)', () => {
+    process.env.BOOKING_DEEPLINK = 'https://www.anrdoezrs.net/click-1-2?url={url}';
+    expect(partnerTarget('booking', 'https://www.booking.com/searchresults.html?ss=Burgos&checkin=2027-05-01')).toBe(
+      'https://www.anrdoezrs.net/click-1-2?url=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DBurgos%26checkin%3D2027-05-01',
+    );
+    delete process.env.BOOKING_DEEPLINK;
+  });
+
   it('passes the link unchanged without an id, and refuses other websites (no open redirect)', () => {
     expect(partnerTarget('pitchup', 'https://www.pitchup.com/campsites/spain/')).toBe('https://www.pitchup.com/campsites/spain/');
     expect(partnerTarget('booking', 'https://evil.example/booking.com')).toBeNull();

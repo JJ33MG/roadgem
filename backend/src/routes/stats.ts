@@ -52,7 +52,7 @@ export async function buildStats(db: PrismaClient, now: Date): Promise<RoutifySt
     setup: {
       mapsStatic: mapStatus(),
       stripe: set(env.STRIPE_SECRET_KEY) && set(env.STRIPE_PRICE_ID),
-      partners: Object.entries(PARTNERS).filter(([, p]) => set(p.param && env[p.param.env]) || set(p.deeplinkEnv && env[p.deeplinkEnv])).map(([id]) => id),
+      partners: Object.entries(PARTNERS).filter(([id, p]) => set(p.param && env[p.param.env]) || set(env[p.deeplinkEnv ?? `${id.toUpperCase()}_DEEPLINK`])).map(([id]) => id),
       adminEmails: set(env.ADMIN_EMAILS),
     },
     health: recentErrors(now.getTime()),

@@ -154,8 +154,16 @@ export function TripResultsPage() {
   const legFrom = stops[fromIdx];
   const legTo = stops[toIdx];
   const start = trip?.startDate ? new Date(trip.startDate) : null;
-  const checkin = start ? format(addDays(start, activeDay - 1), 'yyyy-MM-dd') : undefined;
-  const checkout = start ? format(addDays(start, activeDay), 'yyyy-MM-dd') : undefined;
+  // Consecutive nights in the same town are one stay: booked from the first night to the last.
+  const nights = Math.max(1, (trip?.itinerary ?? []).length || trip?.days || 1);
+  let firstNight = activeDay;
+  while (firstNight > 1 && nightIndex(firstNight - 1) === toIdx) firstNight--;
+  let lastNight = activeDay;
+  while (lastNight + 1 < nights && nightIndex(lastNight + 1) === toIdx) lastNight++;
+  const checkin = start ? format(addDays(start, firstNight - 1), 'yyyy-MM-dd') : undefined;
+  const checkout = start ? format(addDays(start, lastNight), 'yyyy-MM-dd') : undefined;
+  // The day heading shows the day's own date, not the first night of the stay.
+  const dayDate = start ? format(addDays(start, activeDay - 1), 'yyyy-MM-dd') : undefined;
   const planner = trip?.planner;
   const gemsOn = planner?.gemsEnabled ?? true;
   const stayTypes = (planner?.stayTypes ?? ['campsite', 'hotel']) as StayType[];
@@ -325,7 +333,7 @@ export function TripResultsPage() {
           <section aria-labelledby="day-head" className="border-t border-rule pt-24">
             <p className="text-[16px] text-muted" style={{ fontWeight: 500 }}>
               Day {activeDay}
-              {checkin ? `, ${format(new Date(checkin), 'EEEE d MMMM')}` : ''}
+              {dayDate ? `, ${format(new Date(dayDate), 'EEEE d MMMM')}` : ''}
             </p>
             <h2 id="day-head" className="mt-4 font-display text-[32px] text-ink md:text-[40px]" style={head}>
               {onRoad ? `${town(legFrom?.location)} to ${sleepTown}` : `A day in ${sleepTown}`}

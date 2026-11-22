@@ -249,4 +249,19 @@ describe('TripResultsPage booking clicks', () => {
     expect(href).toMatch(/\/track\/go\/booking\?/);
     expect(new URLSearchParams(href.split('?')[1]).get('trip')).toBe('t1');
   });
+
+  it('books every night in the same town as one stay, with its dates filled in', () => {
+    const t = trip({ ...base, stayTypes: ['hotel'], overnights: ['Burgos', 'Burgos', 'Brussels'] } as never);
+    t.days = 3;
+    t.endDate = '2026-06-07';
+    t.itinerary = [...t.itinerary, { ...t.itinerary[1], day: 3 }];
+    renderTrip(t);
+    const to = () => new URL(new URLSearchParams(screen.getByRole('link', { name: 'Hotels' }).getAttribute('href')!.split('?')[1]).get('to')!);
+    expect(to().searchParams.get('ss')).toBe('Burgos');
+    expect(to().searchParams.get('checkin')).toBe('2026-06-04');
+    expect(to().searchParams.get('checkout')).toBe('2026-06-06');
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect(to().searchParams.get('checkin')).toBe('2026-06-04');
+    expect(to().searchParams.get('checkout')).toBe('2026-06-06');
+  });
 });

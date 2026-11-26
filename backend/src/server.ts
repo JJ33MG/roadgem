@@ -24,6 +24,8 @@ import { errorHandler, logLine } from './middleware/errors';
 
 dotenv.config();
 
+import { watchGoogle } from './utils/googleWatch';
+watchGoogle();
 const app: Express = express();
 // Railway puts one proxy in front: req.ip is then the visitor's address.
 app.set('trust proxy', 1);

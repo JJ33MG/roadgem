@@ -21,6 +21,7 @@ import path from 'path';
 import { routeRouter } from './routes/route';
 import playRouter from './routes/play';
 import { errorHandler, logLine } from './middleware/errors';
+import { writingTrips } from './routes/trips';
 
 dotenv.config();
 
@@ -98,7 +99,7 @@ if (process.env.SERVE_FRONTEND === 'true') {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 
   // Fill the gem library in the background when a seeding budget is set (GEM_SEED_BUDGET).
@@ -111,4 +112,13 @@ app.listen(PORT, () => {
   } else {
     console.log('[scheduler] REDIS_URL not set — skipping scheduler (set in Railway to enable)');
   }
+});
+
+// An update stops this server with SIGTERM (Railway waits RAILWAY_DEPLOYMENT_DRAINING_SECONDS before killing it).
+// Stop taking new requests, let running requests and day-writing finish (at most 50 s), then exit.
+process.once('SIGTERM', () => {
+  console.log('[shutdown] finishing running requests and trips');
+  server.close();
+  const deadline = new Promise((r) => setTimeout(r, 50_000));
+  void Promise.race([Promise.allSettled([...writingTrips]), deadline]).then(() => process.exit(0));
 });

@@ -144,7 +144,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       },
     });
     // The days are written now, after the answer: the page shows each one as it arrives.
-    void fillDays(saved.id).catch((err) => console.error('[generate] fillDays', logLine(err)));
+    void track(fillDays(saved.id).catch((err) => console.error('[generate] fillDays', logLine(err))));
 
     const trip = {
       tripId: saved.id,
@@ -174,6 +174,14 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
 
 /** What the browser gets for a saved trip (the edit key's hash never leaves the server). */
 /** Writes every day of a trip that has no text yet (4 at a time) and marks the plan as finished. */
+/** Day-writing still running, so a shutdown can wait for it. */
+export const writingTrips = new Set<Promise<unknown>>();
+const track = (p: Promise<unknown>) => {
+  writingTrips.add(p);
+  void p.finally(() => writingTrips.delete(p));
+  return p;
+};
+
 export async function fillDays(tripId: string): Promise<void> {
   const trip = await prisma.trip.findUnique({ where: { id: tripId }, include: { itineraryDays: { select: { day: true } } } });
   if (!trip) return;
@@ -293,7 +301,7 @@ router.post('/:tripId/days/retry', optionalAuth, async (req: AuthRequest, res: R
     // A plan still being written (less than 5 minutes old) is left alone.
     if (planner.planning === true && Date.now() - trip.createdAt.getTime() < 5 * 60_000) return res.status(409).json({ error: 'Still writing your days.' });
     await prisma.trip.update({ where: { id: trip.id }, data: { planner: JSON.stringify({ ...planner, planning: true, failedDays: [] }) } });
-    void fillDays(trip.id).catch((err) => console.error('[retry] fillDays', logLine(err)));
+    void track(fillDays(trip.id).catch((err) => console.error('[retry] fillDays', logLine(err))));
     res.json({ ok: true });
   } catch (err) {
     next(err);

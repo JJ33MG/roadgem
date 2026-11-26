@@ -32,6 +32,11 @@ import { MapBoundary } from '@/components/map/MapBoundary';
 import { TripMapImage } from '@/components/map/TripMapImage';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
+const GEM_KIND: Record<string, string> = {
+  experience: 'Experience', food: 'Food & drink', nightlife: 'Night out', wellness: 'Wellness', culture: 'Culture', nature: 'Nature',
+  hike: 'Hike', viewpoint: 'Viewpoint', historic: 'History', family: 'Day out',
+};
+const AUDIENCE: Record<string, string> = { family: 'Family', couples: 'Couples', friends: 'Friends' };
 const STAY_TAG: Record<string, string> = { hotel: 'Hotel', campsite: 'Campsite', airbnb: 'Holiday home', hostel: 'Hostel' };
 /** 2.6 hours as "2 h 36", under an hour as "45 min". */
 const hoursLabel = (h: number) => (h < 1 ? `${Math.round(h * 60)} min` : `${Math.floor(h)} h ${String(Math.round((h % 1) * 60)).padStart(2, '0')}`);
@@ -443,6 +448,10 @@ export function TripResultsPage() {
                             <img src={g.photoUrl.startsWith('http') ? g.photoUrl : `${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                           )}
                           {g.photoCredit && <span className="text-[13px] text-muted">{`Photo: ${g.photoCredit}`}</span>}
+                          <span className="flex flex-wrap gap-6">
+                            {GEM_KIND[g.category] && <span className="gem-chip">{GEM_KIND[g.category]}</span>}
+                            {(g.audience ?? []).map((a) => <span key={a} className="gem-chip gem-chip-who">{AUDIENCE[a] ?? a}</span>)}
+                          </span>
                           <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
                           <GemProof placeId={g.placeId} rating={g.rating} reviews={g.reviews} />
                           {/* Real gems carry their rating as the description: the proof line already says it. */}

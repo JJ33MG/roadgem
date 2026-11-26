@@ -77,6 +77,16 @@ describe('TripResultsPage: each day in clear blocks (Jarne, 26 Nov: the day felt
 });
 
 describe('TripResultsPage: gems for every day (26 Nov)', () => {
+  it('labels a gem with its kind and who it suits', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = [{ name: 'Beer Spa Bernard', description: 'Bathe in warm beer', address: 'x', latitude: 42.02, longitude: -3.75, category: 'experience', day: 1, audience: ['couples', 'friends'] } as never];
+    renderTrip(t);
+    const card = within(screen.getByRole('region', { name: 'Gems on the way' }));
+    expect(card.getByText('Experience')).toBeInTheDocument();
+    expect(card.getByText('Couples')).toBeInTheDocument();
+    expect(card.getByText('Friends')).toBeInTheDocument();
+  });
+
   it('shows a Wikimedia photo as it is, with its credit', () => {
     const t = trip({ ...base });
     t.hiddenGems = [{ name: 'Lerma', description: 'x', address: 'x', latitude: 42.02, longitude: -3.75, category: 'historic', day: 1, photoUrl: 'https://upload.wikimedia.org/l.jpg', photoCredit: 'Wikimedia Commons' } as never];

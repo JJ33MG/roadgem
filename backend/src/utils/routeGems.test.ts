@@ -95,3 +95,12 @@ describe('countries along a leg', () => {
     for (const [n, c] of names) expect(countryOfAddress(`X, ${n}`)).toBe(c);
   });
 });
+
+import { qualifies as q2 } from './routeGems';
+describe('qualifies: sports halls and venues are not gems (26 Nov)', () => {
+  it('skips a well-rated arena tagged as an attraction', () => {
+    const arena = { placeId: 'a', name: 'Tachyon Sport Arena', rating: 4.6, reviews: 400, address: '', lat: 0, lng: 0, types: ['tourist_attraction', 'sports_complex'], photoRef: null };
+    expect(q2(arena)).toBe(false);
+    expect(q2({ ...arena, types: ['tourist_attraction'] })).toBe(true);
+  });
+});

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
 import { dayPrompt, parseDay, parseSkeleton, type PlannedDay, type Skeleton } from './dayByDay';
+import { experiencePrompt, parseExperiences, type Experience } from './experiences';
 
 dotenv.config();
 
@@ -208,4 +209,11 @@ export async function generateTripDay(i: {
   });
   const content = message.content[0];
   return parseDay(content.type === 'text' ? content.text : '', i.day, i.to);
+}
+
+/** Experiences in one town, by exact name (checked on Google before they show). */
+export async function generateExperiences(town: string, travelStyle: string): Promise<Experience[]> {
+  const message = await client.messages.create({ model: MODEL, max_tokens: 1200, messages: [{ role: 'user', content: experiencePrompt(town, travelStyle) }] });
+  const content = message.content[0];
+  return parseExperiences(content.type === 'text' ? content.text : '');
 }

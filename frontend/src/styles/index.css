@@ -122,3 +122,5 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 .drive-line .stop { width: 10px; height: 10px; border-radius: var(--radius-pill); border: 2px solid var(--color-ink); justify-self: center; }
 .drive-line .gem { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--color-accent); justify-self: center; }
 .drive-line .link { width: 2px; height: 18px; background: var(--color-rule); justify-self: center; grid-column: 1; }
+.gem-chip { display: inline-block; font-size: 14px; font-weight: 500; padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-accent-soft); color: var(--color-accent); }
+.gem-chip-who { background: var(--color-paper-2); color: var(--color-ink-2); }

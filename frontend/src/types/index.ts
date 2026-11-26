@@ -209,6 +209,8 @@ export interface HiddenGem {
   day?: number;
   /** Where the photo comes from when it is not Google's ("Wikimedia Commons"). */
   photoCredit?: string;
+  /** Who an experience suits: family, couples, friends. */
+  audience?: string[];
   name: string;
   description: string;
   address: string;

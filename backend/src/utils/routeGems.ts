@@ -45,7 +45,11 @@ const ALLOWED = new Set([
 ]);
 /** What Routify asks Google for along the road: sights, views, hikes, nature and days out. */
 export const GEM_TYPES = ['tourist_attraction', 'park', 'national_park', 'hiking_area', 'museum', 'historical_landmark', 'observation_deck', 'botanical_garden', 'beach', 'zoo', 'aquarium', 'amusement_park'];
-const BLOCKED = new Set(['lodging', 'gas_station', 'car_rental', 'store', 'shopping_mall', 'supermarket', 'travel_agency', 'parking', 'bank', 'real_estate_agency']);
+const BLOCKED = new Set([
+  'lodging', 'gas_station', 'car_rental', 'store', 'shopping_mall', 'supermarket', 'travel_agency', 'parking', 'bank', 'real_estate_agency',
+  // Not a stop on a road trip (26 Nov: "Tachyon Sport Arena" came up as a gem)
+  'stadium', 'arena', 'sports_complex', 'sports_club', 'gym', 'fitness_center', 'event_venue', 'convention_center', 'school', 'university', 'hospital', 'cemetery',
+]);
 
 const rad = (d: number) => (d * Math.PI) / 180;
 export function kmBetween(a: LatLng, b: LatLng): number {

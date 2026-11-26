@@ -1,5 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
-import { generateTripDay, generateTripSkeleton } from '../utils/claude';
+import { generateExperiences, generateTripDay, generateTripSkeleton } from '../utils/claude';
+import { verifiedExperience, type ExperienceGem } from '../utils/experiences';
+import { searchText } from '../utils/google';
 import { editKeyMatches } from '../utils/edits';
 import { planningState } from '../utils/dayByDay';
 import { logLine } from '../middleware/errors';
@@ -186,6 +188,48 @@ const track = (p: Promise<unknown>) => {
   return p;
 };
 
+/** Experiences in each town where the traveller sleeps, checked on Google, added to the trip's gems. */
+export async function addExperiences(tripId: string): Promise<void> {
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  const trip = await prisma.trip.findUnique({ where: { id: tripId } });
+  if (!trip || !key) return;
+  const planner = JSON.parse(trip.planner || '{}');
+  if (planner.gemsEnabled === false) return;
+  // Once per trip (a retry of failed days does not look them up again).
+  if ((JSON.parse(trip.hiddenGems || '[]') as { audience?: unknown }[]).some((g) => Array.isArray(g.audience))) return;
+  const stops = JSON.parse(trip.stops || '[]') as { location: string; latitude: number; longitude: number }[];
+  const nights = nightIndexes(stops, planner.overnights ?? [], trip.days);
+  // Each town once (at most 5), with the days that end there.
+  const towns = [...new Set(nights)].slice(0, 5).map((idx) => ({ idx, days: nights.map((n, i) => (n === idx ? i + 1 : 0)).filter(Boolean) }));
+  const found = await Promise.all(
+    towns.map(async ({ idx, days }) => {
+      const stop = stops[idx];
+      if (!stop) return [];
+      const point = { lat: Number(stop.latitude), lng: Number(stop.longitude) };
+      const ideas = (await generateExperiences(stop.location, trip.travelStyle).catch(() => [])).slice(0, 4);
+      const out: ExperienceGem[] = [];
+      for (const e of ideas) {
+        const matches = await searchText(`${e.name}, ${stop.location}`, key, { max: 3 }).catch(() => []);
+        const gem = verifiedExperience(e, matches, point, days[out.length % days.length]);
+        if (!gem) continue;
+        if (!gem.photoUrl) {
+          const url = await commonsPhotoNear(gem.latitude, gem.longitude, gem.name);
+          if (!url) continue; // a gem always has a photo
+          Object.assign(gem, { photoUrl: url, photoCredit: 'Wikimedia Commons' });
+        }
+        out.push(gem);
+        if (out.length >= 3) break;
+      }
+      return out;
+    }),
+  );
+  const fresh = await prisma.trip.findUnique({ where: { id: tripId } });
+  const gems = JSON.parse(fresh?.hiddenGems || '[]') as { placeId?: string }[];
+  const have = new Set(gems.map((g) => g.placeId));
+  const extra = found.flat().filter((g) => !have.has(g.placeId) && have.add(g.placeId));
+  if (extra.length) await prisma.trip.update({ where: { id: tripId }, data: { hiddenGems: JSON.stringify([...gems, ...extra]) } });
+}
+
 export async function fillDays(tripId: string): Promise<void> {
   const trip = await prisma.trip.findUnique({ where: { id: tripId }, include: { itineraryDays: { select: { day: true } } } });
   if (!trip) return;
@@ -229,7 +273,8 @@ export async function fillDays(tripId: string): Promise<void> {
       }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(4, todo.length) }, work));
+  // Experiences are looked up while the days are written; the page shows them when planning ends.
+  await Promise.all([...Array.from({ length: Math.min(4, todo.length) }, work), addExperiences(tripId).catch((err) => console.error(`[experiences] trip ${tripId}`, logLine(err)))]);
   const fresh = await prisma.trip.findUnique({ where: { id: tripId } });
   const p = JSON.parse(fresh?.planner || '{}');
   await prisma.trip.update({ where: { id: tripId }, data: { planner: JSON.stringify({ ...p, planning: false, failedDays: failed }) } });

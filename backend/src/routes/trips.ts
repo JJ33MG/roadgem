@@ -102,7 +102,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     const tPlan = Date.now();
 
     // The real road (also drawn on the trip map); its legs give the distance, so no second route call.
-    const roadStops = (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude) }));
+    const roadStops = (tripData.stops || []).map((st: any) => ({ lat: Number(st.latitude), lng: Number(st.longitude), label: String(st.location ?? '') }));
     const road = await routeLine(roadStops).catch(() => ({ points: [], encoded: '', legs: [] as RoadLeg[] }));
     savedPlanner.route = road.encoded;
     savedPlanner.legs = road.legs;

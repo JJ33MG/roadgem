@@ -1,5 +1,5 @@
 // A quick distance check before planning: locate both ends, straight line × 1.25 for the road.
-import axios from 'axios';
+import { searchText } from '../utils/google';
 import { Router, Request, Response } from 'express';
 
 type LatLng = { lat: number; lng: number };
@@ -22,16 +22,11 @@ export async function geocode(place: string): Promise<LatLng | null> {
   if (cache.has(key)) return cache.get(key)!;
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) return null;
-  // Places (already enabled for photos) instead of the Geocoding API, which this key does not have.
+  // Places text search (new service) instead of the Geocoding API, which this key does not have.
   // Text search returns several matches: Routify plans European trips, so the first one in Europe wins.
   // The server runs in the US, so Google leans American: hint Europe, and ask again with ", Europe" if needed.
-  const search = async (query: string): Promise<LatLng[]> => {
-    const res = await axios.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {
-      params: { query, region: 'eu', key: apiKey },
-      timeout: 8000,
-    });
-    return (res.data?.results ?? []).map((r: any) => r?.geometry?.location).filter(Boolean);
-  };
+  const search = async (query: string): Promise<LatLng[]> =>
+    (await searchText(query, apiKey, { europe: true, max: 5 })).map((r) => ({ lat: r.lat, lng: r.lng }));
   const found = await search(place);
   const loc = found.find(inEurope) ?? (await search(`${place}, Europe`)).find(inEurope) ?? found[0];
   if (!loc) return null;

@@ -2,7 +2,7 @@
 // and the end), Google Places is asked what is nearby, and only well-rated places that are not
 // mass-tourism hotspots are kept. Every gem is a real Google place with its own coordinates,
 // rating and Maps link, so a traveller can check it.
-import axios from 'axios';
+import { computeRoute, searchNearby } from './google';
 
 export type LatLng = { lat: number; lng: number };
 
@@ -162,23 +162,9 @@ async function nearby(p: LatLng, key: string): Promise<PlaceCandidate[]> {
   const cacheKey = `${p.lat.toFixed(2)},${p.lng.toFixed(2)}`;
   const hit = nearbyCache.get(cacheKey);
   if (hit && Date.now() - hit.at < 7 * DAY_MS) return hit.cands;
-  const res = await axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json', {
-    params: { location: `${p.lat},${p.lng}`, radius: 15000, type: 'tourist_attraction', key },
-    timeout: 8000,
-  });
-  const cands: PlaceCandidate[] = (res.data?.results ?? [])
-    .filter((r: any) => r?.business_status === undefined || r.business_status === 'OPERATIONAL')
-    .map((r: any) => ({
-      placeId: r.place_id,
-      name: r.name,
-      rating: Number(r.rating ?? 0),
-      reviews: Number(r.user_ratings_total ?? 0),
-      address: r.vicinity ?? '',
-      lat: r.geometry?.location?.lat,
-      lng: r.geometry?.location?.lng,
-      types: r.types ?? [],
-      photoRef: r.photos?.[0]?.photo_reference ?? null,
-    }));
+  const cands: PlaceCandidate[] = (await searchNearby(p, 15000, ['tourist_attraction'], key))
+    .filter((r) => r.open)
+    .map((r) => ({ placeId: r.id, name: r.name, rating: r.rating, reviews: r.reviews, address: r.address, lat: r.lat, lng: r.lng, types: r.types, photoRef: r.photo }));
   // Never cache an empty answer (project rule).
   if (cands.length) {
     if (nearbyCache.size > 5000) nearbyCache.clear();
@@ -237,41 +223,30 @@ export function countriesFromSteps(steps: { distanceKm: number; instruction: str
   return out.map((c) => ({ code: c.code, km: Math.round(c.km) }));
 }
 
-/** The driving road through the stops (Google Directions), or straight lines between them. */
-export async function routeLine(stops: LatLng[], opts: { avoidTolls?: boolean } = {}): Promise<RoadLine> {
+/** The driving road through the stops (Google Routes API), or straight lines between them. */
+/** A stop on the road; `label` ("Kotor, Montenegro") tells the country a leg starts in. */
+export type Stop = LatLng & { label?: string };
+
+export async function routeLine(stops: Stop[], opts: { avoidTolls?: boolean } = {}): Promise<RoadLine> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
   const clean = stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
   if (!key || clean.length < 2) return { points: clean, encoded: '', legs: [] };
   return directions(clean, key, opts.avoidTolls === true);
 }
 
-async function directions(stops: LatLng[], key: string, avoidTolls = false): Promise<RoadLine> {
+async function directions(stops: Stop[], key: string, avoidTolls = false): Promise<RoadLine> {
   try {
-    const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
-      params: {
-        origin: `${stops[0].lat},${stops[0].lng}`,
-        destination: `${stops[stops.length - 1].lat},${stops[stops.length - 1].lng}`,
-        waypoints: stops.slice(1, -1).map((s) => `${s.lat},${s.lng}`).join('|') || undefined,
-        language: 'en',
-        avoid: avoidTolls ? 'tolls' : undefined,
-        key,
-      },
-      timeout: 10000,
-    });
-    const route = res.data?.routes?.[0];
-    const poly = route?.overview_polyline?.points;
-    if (poly) {
+    const route = await computeRoute(stops, key, avoidTolls);
+    if (route) {
       let lastCode = 'XX';
-      const legs: RoadLeg[] = (route.legs ?? []).map((leg: any) => {
-        const start = countryOfAddress(String(leg.start_address ?? '')) ?? lastCode;
-        const countries = countriesFromSteps(
-          (leg.steps ?? []).map((st: any) => ({ distanceKm: Number(st.distance?.value ?? 0) / 1000, instruction: String(st.html_instructions ?? '') })),
-          start,
-        );
+      const legs: RoadLeg[] = route.legs.map((leg, i) => {
+        // The new Routes API gives no addresses: the stop's own name ("Kotor, Montenegro") says where a leg starts.
+        const start = countryOfAddress(stops[i]?.label ?? '') ?? lastCode;
+        const countries = countriesFromSteps(leg.steps.map((st) => ({ distanceKm: st.meters / 1000, instruction: st.instruction })), start);
         lastCode = countries[countries.length - 1]?.code ?? start;
-        return { km: Math.round(Number(leg.distance?.value ?? 0) / 1000), hours: Math.round((Number(leg.duration?.value ?? 0) / 3600) * 10) / 10, countries };
+        return { km: Math.round(leg.meters / 1000), hours: Math.round((leg.seconds / 3600) * 10) / 10, countries };
       });
-      return { points: decodePolyline(poly), encoded: poly, legs };
+      return { points: decodePolyline(route.encoded), encoded: route.encoded, legs };
     }
   } catch {
     // Fall back to the stops themselves.

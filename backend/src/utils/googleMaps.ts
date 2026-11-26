@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { computeRoute } from './google';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -23,33 +23,14 @@ export async function calculateRoute(stops: RouteStop[]): Promise<RouteResult> {
     return { totalDistance, totalTime };
   }
 
-  const origin = `${stops[0].latitude},${stops[0].longitude}`;
-  const destination = `${stops[stops.length - 1].latitude},${stops[stops.length - 1].longitude}`;
-  const waypoints = stops
-    .slice(1, -1)
-    .map((s) => `${s.latitude},${s.longitude}`)
-    .join('|');
-
-  const response = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
-    params: {
-      origin,
-      destination,
-      waypoints: waypoints || undefined,
-      key: apiKey,
-    },
-  });
-
-  const data = response.data;
-
-  if (data.status !== 'OK' || !data.routes?.length) {
+  const route = await computeRoute(stops.map((s) => ({ lat: s.latitude, lng: s.longitude })), apiKey).catch(() => null);
+  if (!route) {
     const totalDistance = Math.round((stops.length - 1) * (50 + Math.random() * 100) * 10) / 10;
     const totalTime = Math.round((stops.length - 1) * (1 + Math.random() * 2) * 10) / 10;
     return { totalDistance, totalTime };
   }
-
-  const legs = data.routes[0].legs;
-  const totalDistanceMeters = legs.reduce((sum: number, leg: any) => sum + leg.distance.value, 0);
-  const totalTimeSeconds = legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+  const totalDistanceMeters = route.legs.reduce((sum, leg) => sum + leg.meters, 0);
+  const totalTimeSeconds = route.legs.reduce((sum, leg) => sum + leg.seconds, 0);
 
   return {
     totalDistance: Math.round((totalDistanceMeters / 1000) * 10) / 10,

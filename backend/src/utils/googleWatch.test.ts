@@ -12,3 +12,13 @@ describe('googleProblem: why Google refused (26 Nov: photos and stays empty afte
     expect(googleProblem('https://example.com/x', { status: 'REQUEST_DENIED' })).toBeNull();
   });
 });
+
+import { googleFailure } from './googleWatch';
+
+describe('googleFailure: the new services answer a refusal with an HTTP error', () => {
+  it('names the service and Google\'s message', () => {
+    expect(googleFailure('https://places.googleapis.com/v1/places:searchNearby', 403, { error: { status: 'PERMISSION_DENIED', message: 'Places API (New) has not been used in project 1 before or it is disabled.' } }))
+      .toBe('[google] places:searchNearby 403 PERMISSION_DENIED: Places API (New) has not been used in project 1 before or it is disabled.');
+    expect(googleFailure('https://example.com/x', 403, {})).toBeNull();
+  });
+});

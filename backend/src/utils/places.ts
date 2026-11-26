@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { photoMediaUrl, placePhotos, searchNearby, searchText } from './google';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -22,20 +22,9 @@ export async function findPlacePhotoRefs(query: string, maxResults = 1): Promise
   }
 
   try {
-    const findRes = await axios.get('https://maps.googleapis.com/maps/api/place/findplacefromtext/json', {
-      params: { input: query, inputtype: 'textquery', fields: 'place_id,photos', key: apiKey },
-    });
-
-    const candidate = findRes.data?.candidates?.[0];
-    let photoRefs: string[] = candidate?.photos?.map((p: any) => p.photo_reference) ?? [];
-
-    if (photoRefs.length === 0 && candidate?.place_id) {
-      const detailsRes = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
-        params: { place_id: candidate.place_id, fields: 'photos', key: apiKey },
-      });
-      photoRefs = detailsRes.data?.result?.photos?.map((p: any) => p.photo_reference) ?? [];
-    }
-
+    const [place] = await searchText(query, apiKey, { max: 1 });
+    let photoRefs: string[] = place?.photo ? [place.photo] : [];
+    if (place && maxResults > 1) photoRefs = (await placePhotos(place.id, apiKey)).slice(0, maxResults);
     if (photoRefs.length > 0) {
       cache.set(cacheKey, { photoRefs, expires: Date.now() + CACHE_TTL_MS });
     }
@@ -45,8 +34,10 @@ export async function findPlacePhotoRefs(query: string, maxResults = 1): Promise
   }
 }
 
+/** New photo names ("places/…/photos/…") use Places (New); older saved references the old photo service. */
 export function buildPlacePhotoUrl(photoReference: string, maxWidth = 800): string {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (photoReference.startsWith('places/')) return photoMediaUrl(photoReference, maxWidth, apiKey ?? '');
   return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${apiKey}`;
 }
 
@@ -84,25 +75,20 @@ export async function findNearbyPlaces(
   }
 
   try {
-    const res = await axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json', {
-      params: { location: `${lat},${lng}`, radius, type: placeType, key: apiKey },
-    });
-
-    const places: NearbyPlace[] = (res.data?.results ?? []).map((p: any) => ({
-      placeId: p.place_id,
+    const places: NearbyPlace[] = (await searchNearby({ lat, lng }, radius, [placeType], apiKey)).filter((p) => p.open).map((p) => ({
+      placeId: p.id,
       name: p.name,
-      rating: p.rating ?? 0,
-      priceLevel: p.price_level ?? null,
-      address: p.vicinity ?? '',
-      latitude: p.geometry?.location?.lat,
-      longitude: p.geometry?.location?.lng,
-      photoRef: p.photos?.[0]?.photo_reference ?? null,
+      rating: p.rating,
+      priceLevel: p.priceLevel,
+      address: p.address,
+      latitude: p.lat,
+      longitude: p.lng,
+      photoRef: p.photo,
     }));
-
-    nearbyCache.set(cacheKey, { places, expires: Date.now() + CACHE_TTL_MS });
+    // Never cache an empty answer (project rule): a refused key must not hide stays for a day.
+    if (places.length) nearbyCache.set(cacheKey, { places, expires: Date.now() + CACHE_TTL_MS });
     return places;
   } catch {
-    nearbyCache.set(cacheKey, { places: [], expires: Date.now() + CACHE_TTL_MS });
     return [];
   }
 }

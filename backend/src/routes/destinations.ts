@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import axios from 'axios';
+import { autocompleteCities } from '../utils/google';
 import dotenv from 'dotenv';
 import { prisma } from '../utils/prisma';
 
@@ -26,19 +26,7 @@ router.get('/suggestions', async (req: Request, res: Response, next: NextFunctio
       return res.json([]);
     }
 
-    const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
-      params: {
-        input: query,
-        types: '(cities)',
-        locationbias: `rectangle:${EUROPE_BOUNDS.south},${EUROPE_BOUNDS.west}|${EUROPE_BOUNDS.north},${EUROPE_BOUNDS.east}`,
-        key: apiKey,
-      },
-    });
-
-    const suggestions: string[] = (response.data?.predictions ?? [])
-      .map((p: any) => p.description as string)
-      .filter(Boolean)
-      .slice(0, 5);
+    const suggestions = (await autocompleteCities(query, apiKey)).slice(0, 5);
 
     res.json(suggestions);
   } catch (err) {

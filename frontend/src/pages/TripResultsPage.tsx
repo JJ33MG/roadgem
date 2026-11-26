@@ -551,9 +551,9 @@ export function TripResultsPage() {
             </p>
             <p className="mt-6 text-ink" style={{ fontWeight: 500 }}>{`${carForGroup(travellers).label} for ${travellers} ${travellers === 1 ? 'traveller' : 'travellers'}.`}</p>
             <div className="mt-16 grid gap-8">
-              {/* Travelpayouts partners: the traveller enters the places and dates on their site. */}
-              <a href={go('https://localrent.com/en')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
-              <a href={go('https://getrentacar.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">GetRentacar</a>
+              {/* The traveller enters the places and dates on the partner's site. DiscoverCars compares the big rental firms; Localrent the local ones. */}
+              <a href={go('https://www.discovercars.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
+              <a href={go('https://localrent.com/en')} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">Localrent</a>
             </div>
           </Panel>
           )}

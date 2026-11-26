@@ -301,8 +301,8 @@ describe('TripResultsPage booking clicks', () => {
     expect(panel).toHaveTextContent('Pick up in Madrid on 4 June, drop off in Brussels on 6 June.');
     expect(panel).toHaveTextContent('A 7-seater');
     const compare = screen.getByRole('link', { name: 'Compare cars' }).getAttribute('href')!;
-    expect(compare).toMatch(/\/track\/go\/localrent\?/);
-    expect(screen.getByRole('link', { name: 'GetRentacar' }).getAttribute('href')).toMatch(/\/track\/go\/getrentacar\?/);
+    expect(compare).toMatch(/\/track\/go\/discovercars\?/);
+    expect(screen.getByRole('link', { name: 'Localrent' }).getAttribute('href')).toMatch(/\/track\/go\/localrent\?/);
   });
 
   it('offers tickets for the sights through Tiqets', () => {

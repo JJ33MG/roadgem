@@ -24,7 +24,7 @@ import { carForGroup } from '@/lib/cars';
 import { OnTheRoad } from '@/components/trip/OnTheRoad';
 import { ExplorerGems } from '@/components/trip/ExplorerGems';
 import { ShareTrip } from '@/components/trip/ShareTrip';
-import { editKeyFor, sendEdit, type TripEdit } from '@/lib/tripEdits';
+import { editKeyFor, retryDays, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
 import { TripMapImage } from '@/components/map/TripMapImage';
@@ -143,6 +143,30 @@ export function TripResultsPage() {
     }
   }, [tripId]);
 
+  // Day by day: the trip opens with its route first and the day texts arrive one by one.
+  const planning = trip?.planner?.planning === true;
+  useEffect(() => {
+    if (!planning || !tripId) return;
+    let stop = false;
+    const tick = setInterval(() => {
+      tripsApi
+        .getById(tripId)
+        .then((res) => { if (!stop) setTrip(res.data as unknown as GeneratedTrip); })
+        .catch(() => undefined);
+    }, 2500);
+    return () => { stop = true; clearInterval(tick); };
+  }, [planning, tripId]);
+  async function retry() {
+    if (!tripId || !trip) return;
+    setEditError(null);
+    try {
+      await retryDays(tripId);
+      setTrip({ ...trip, planner: { ...trip.planner!, planning: true, failedDays: [] } });
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Could not start again.');
+    }
+  }
+
   const stops = trip?.stops ?? [];
   // Where the traveller sleeps after each day: the plan's own overnight town when it names one,
   // else the next stop; days past the last stop stay at the destination.
@@ -159,7 +183,7 @@ export function TripResultsPage() {
   const legTo = stops[toIdx];
   const start = trip?.startDate ? new Date(trip.startDate) : null;
   // Consecutive nights in the same town are one stay: booked from the first night to the last.
-  const nights = Math.max(1, (trip?.itinerary ?? []).length || trip?.days || 1);
+  const nights = Math.max(1, trip?.days || (trip?.itinerary ?? []).length || 1);
   let firstNight = activeDay;
   while (firstNight > 1 && nightIndex(firstNight - 1) === toIdx) firstNight--;
   let lastNight = activeDay;
@@ -204,7 +228,9 @@ export function TripResultsPage() {
   }
 
   const days = (trip.itinerary ?? []).slice(0, trip.days ?? undefined);
-  const day = days.find((d) => d.day === activeDay) ?? days[0];
+  const failedDays = planner?.failedDays ?? [];
+  const day = days.find((d) => d.day === activeDay) ?? (planning || failedDays.includes(activeDay) ? undefined : days[0]);
+  const dayNumbers = Array.from({ length: trip.days || days.length || 1 }, (_, i) => i + 1);
   const from = town(stops[0]?.location) || 'Start';
   const to = town(stops[stops.length - 1]?.location) || trip.destination;
   // The free plan shows three gems per trip (the server already holds the rest back).
@@ -212,7 +238,7 @@ export function TripResultsPage() {
   const allGems = (isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3)).filter((g) => !g.placeId || !hiddenIds.includes(g.placeId));
   const lockedGems = isPremium ? 0 : (trip.lockedGems ?? Math.max(0, (trip.hiddenGems ?? []).length - 3));
   // Each gem belongs to the one day whose road passes closest to it.
-  const dayCount = (trip.itinerary ?? []).length || trip.days || 1;
+  const dayCount = trip.days || (trip.itinerary ?? []).length || 1;
   const legOf = (d: number) => [stops[d === 1 ? 0 : nightIndex(d - 1)], stops[nightIndex(d)]] as const;
   const dayOfGem = (g: Pt) => {
     let best = 0;
@@ -331,18 +357,21 @@ export function TripResultsPage() {
       )}
 
       <nav aria-label="Days" className="mt-32 flex gap-8 overflow-x-auto pb-4">
-        {days.map((d) => (
-          <button
-            key={d.day}
-            type="button"
-            aria-current={d.day === activeDay ? 'step' : undefined}
-            onClick={() => setActiveDay(d.day)}
-            className={`min-h-[48px] shrink-0 rounded-btn border px-20 text-[17px] ${d.day === activeDay ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`}
-            style={{ fontWeight: 500 }}
-          >
-            Day {d.day}
-          </button>
-        ))}
+        {dayNumbers.map((n) => {
+          const ready = days.some((d) => d.day === n);
+          return (
+            <button
+              key={n}
+              type="button"
+              aria-current={n === activeDay ? 'step' : undefined}
+              onClick={() => setActiveDay(n)}
+              className={`min-h-[48px] shrink-0 rounded-btn border px-20 text-[17px] ${n === activeDay ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'} ${ready ? '' : 'opacity-60'}`}
+              style={{ fontWeight: 500 }}
+            >
+              Day {n}
+            </button>
+          );
+        })}
       </nav>
       {!wide && <div className="mt-16">{tripMap}</div>}
 
@@ -402,6 +431,17 @@ export function TripResultsPage() {
               </button>
             )}
 
+            {!day && planning && (
+              <p className="mt-24 text-[17px] text-muted" role="status">{`Writing day ${activeDay}. It appears here in a few seconds.`}</p>
+            )}
+            {!day && !planning && failedDays.includes(activeDay) && (
+              <div className="mt-24" role="alert">
+                <p className="text-[17px]">{`Day ${activeDay} could not be written.`}</p>
+                {canEdit && (
+                  <button type="button" onClick={() => void retry()} className="btn-primary mt-12">Try again</button>
+                )}
+              </div>
+            )}
             {day && (
               <div className="mt-24">
                 <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>The day</h3>

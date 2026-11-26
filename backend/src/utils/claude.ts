@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
+import { dayPrompt, parseDay, parseSkeleton, type PlannedDay, type Skeleton } from './dayByDay';
 
 dotenv.config();
 
@@ -58,18 +59,8 @@ export function plannerPrompt(p: PlannerOptions, transportType: string): string 
   return lines.join('\n');
 }
 
-export async function generateTripItinerary(
-  startLocation: string,
-  destination: string,
-  days: number,
-  budget: number,
-  travelStyle: string,
-  priorities: string[],
-  transportType: string = 'own_car',
-  planner: PlannerOptions = { kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'], filters: [] }
-) {
-  const plannerRules = plannerPrompt(planner, transportType);
-  const transportNote =
+export function transportNoteFor(transportType: string): string {
+  return (
     transportType === 'rental_car'
       ? 'The traveler will RENT a car — include car rental pickup/dropoff considerations and mention rental-friendly stops. For each stop include "transit": null.'
       : transportType === 'public'
@@ -81,7 +72,22 @@ CRITICAL RULES for public transport trips:
 3. In the itinerary, the first activity of each day should be arriving/settling in — mention the train arrival.
 4. Suggest buying tickets in advance for high-speed trains.
 Example transit object: { "mode": "train", "operator": "ICE / Deutsche Bahn", "duration": "1h 55min", "from": "Cologne Hbf", "to": "Frankfurt Hbf", "notes": "Runs every 30 min, book 2+ weeks ahead for best fares" }`
-      : 'The traveler uses their OWN CAR — focus on road trip routes and parking tips. For each stop include "transit": null.';
+      : 'The traveler uses their OWN CAR — focus on road trip routes and parking tips. For each stop include "transit": null.'
+  );
+}
+
+export async function generateTripItinerary(
+  startLocation: string,
+  destination: string,
+  days: number,
+  budget: number,
+  travelStyle: string,
+  priorities: string[],
+  transportType: string = 'own_car',
+  planner: PlannerOptions = { kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'], filters: [] }
+) {
+  const plannerRules = plannerPrompt(planner, transportType);
+  const transportNote = transportNoteFor(transportType);
 
   const prompt = `You are a travel planning assistant. Create a road trip itinerary starting from "${startLocation}" and traveling to/around "${destination}", lasting ${days} days, with a total budget of €${budget}. The traveler's style is "${travelStyle}" and their priorities are: ${priorities.join(', ')}.
 
@@ -147,4 +153,59 @@ Respond with ONLY a single JSON object (no markdown, no commentary) matching thi
   }
 
   return JSON.parse(jsonMatch[0]);
+}
+
+/** The quick first answer: stops and where each night is (no day texts), so the trip page opens in seconds. */
+export async function generateTripSkeleton(
+  startLocation: string,
+  destination: string,
+  days: number,
+  budget: number,
+  travelStyle: string,
+  priorities: string[],
+  transportType: string,
+  planner: PlannerOptions,
+): Promise<Skeleton> {
+  const prompt = `You are a travel planning assistant. Plan the ROUTE of a road trip from "${startLocation}" to/around "${destination}", ${days} days, total budget €${budget}, style "${travelStyle}", priorities: ${priorities.join(', ')}.
+
+Transport: ${transportNoteFor(transportType)}
+
+Every place must be in or near "${destination}" or on the way from "${startLocation}". The "stops" array begins with "${startLocation}" and lists the stops in travel order, at most ${Math.min(15, days + 1)} stops.
+
+${plannerPrompt(planner, transportType)}
+
+Give ONLY the route now (the day-by-day texts are written later). Keep text short: "reason" and "description" under 20 words, at most 3 "activities" and 3 "localSpecialties", "highlights" and "tips" at most 5 items under 15 words.
+
+Respond with ONLY one JSON object:
+{
+  "stops": [{ "location": string, "reason": string, "description": string, "latitude": number, "longitude": number, "activities": [string], "bestTimeOfDay": string, "estimatedDuration": string, "localSpecialties": [string], "transit": object | null }],
+  "overnights": [string],  // exactly ${days} entries: where the traveller sleeps after day 1, 2, ... written exactly as in stops[].location
+  "totalCost": number,
+  "highlights": [string],
+  "tips": [string]
+}`;
+  const message = await client.messages.create({ model: MODEL, max_tokens: 4000, messages: [{ role: 'user', content: prompt }] });
+  const content = message.content[0];
+  return parseSkeleton(content.type === 'text' ? content.text : '', days);
+}
+
+/** One day's morning, afternoon and evening. */
+export async function generateTripDay(i: {
+  day: number;
+  from: string;
+  to: string;
+  destination: string;
+  travelStyle: string;
+  priorities: string[];
+  transportType: string;
+  planner: PlannerOptions;
+}): Promise<PlannedDay> {
+  const rules = `${transportNoteFor(i.transportType)}\n${plannerPrompt(i.planner, i.transportType)}`;
+  const message = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1500,
+    messages: [{ role: 'user', content: dayPrompt({ day: i.day, from: i.from, to: i.to, destination: i.destination, rules, style: i.travelStyle, priorities: i.priorities }) }],
+  });
+  const content = message.content[0];
+  return parseDay(content.type === 'text' ? content.text : '', i.day, i.to);
 }

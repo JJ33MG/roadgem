@@ -38,3 +38,14 @@ export async function sendEdit(tripId: string, edit: TripEdit): Promise<Generate
     throw new Error(msg || 'The change could not be saved. Try again.');
   }
 }
+
+/** Write the days that failed (or were cut short) again. */
+export async function retryDays(tripId: string): Promise<void> {
+  const key = editKeyFor(tripId);
+  try {
+    await apiClient.post(`/trips/${tripId}/days/retry`, {}, { headers: key ? { 'x-edit-key': key } : {} });
+  } catch (err) {
+    const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: string } | undefined)?.error : null;
+    throw new Error(msg || 'Could not start again. Try once more in a minute.');
+  }
+}

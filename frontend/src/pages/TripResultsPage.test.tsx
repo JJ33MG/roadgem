@@ -8,7 +8,7 @@ const sub = vi.hoisted(() => ({ isPremium: false }));
 vi.mock('@/hooks/useSubscription', () => ({ useSubscription: () => ({ isPremium: sub.isPremium }) }));
 vi.mock('@/components/map/GlobeMap', () => ({ GlobeMap: () => <div role="region" aria-label="Map of the route, the nights and the gems" /> }));
 const edits = vi.hoisted(() => ({ key: null as string | null, sendEdit: vi.fn() }));
-vi.mock('@/lib/tripEdits', () => ({ editKeyFor: () => edits.key, sendEdit: edits.sendEdit }));
+vi.mock('@/lib/tripEdits', () => ({ editKeyFor: () => edits.key, sendEdit: edits.sendEdit, retryDays: vi.fn() }));
 const stays = vi.hoisted(() => ({ list: [] as unknown[] }));
 vi.mock('@/hooks/useAccommodations', () => ({ useAccommodations: () => ({ accommodations: stays.list, isLoading: false }) }));
 
@@ -42,6 +42,25 @@ function renderTrip(t: GeneratedTrip) {
 const base = { kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'] as const, filters: [] };
 
 describe('TripResultsPage', () => {
+  it('shows a tab for a day still being written, with a note instead of its text', () => {
+    const t = trip({ ...base, planning: true });
+    t.itinerary = t.itinerary.slice(0, 1);
+    renderTrip(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Writing day 2');
+    expect(screen.queryByText('Drive north')).not.toBeInTheDocument();
+  });
+
+  it('offers to try again for a day that could not be written', () => {
+    edits.key = 'k';
+    const t = trip({ ...base, planning: false, failedDays: [2] });
+    t.itinerary = t.itinerary.slice(0, 1);
+    renderTrip(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect(within(screen.getByRole('alert')).getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    edits.key = null;
+  });
+
   it('shows the route and the first day by its towns', () => {
     renderTrip(trip({ ...base, stayTypes: ['campsite', 'hotel'] }));
     expect(screen.getByRole('heading', { level: 1, name: 'Madrid to Brussels' })).toBeInTheDocument();

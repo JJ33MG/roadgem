@@ -322,6 +322,10 @@ export interface GeneratedTrip {
     travellers?: number;
     /** A Trip pass was bought for this trip. */
     pass?: boolean;
+    /** The day texts are still being written; the page polls until this is false. */
+    planning?: boolean;
+    /** Days whose text could not be written (the page offers to try again). */
+    failedDays?: number[];
     /** Road legs stop to stop, with kilometres per country. */
     legs?: { km: number; hours: number; countries: { code: string; km: number }[] }[];
   };

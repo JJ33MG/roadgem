@@ -1,5 +1,8 @@
 import { Router, Response, NextFunction } from 'express';
-import { generateTripItinerary } from '../utils/claude';
+import { generateTripDay, generateTripSkeleton } from '../utils/claude';
+import { editKeyMatches } from '../utils/edits';
+import { planningState } from '../utils/dayByDay';
+import { missingDays } from '../utils/dayByDay';
 import { calculateRoute } from '../utils/googleMaps';
 import { getWeather } from '../utils/weather';
 import { findNearbyPlaces } from '../utils/places';
@@ -8,7 +11,7 @@ import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { generateLimit, limit } from '../middleware/limits';
 import { gemsFor } from '../utils/gems';
-import { findRouteGems, overnightsFrom, routeLine, type RoadLeg } from '../utils/routeGems';
+import { findRouteGems, routeLine, type RoadLeg } from '../utils/routeGems';
 import { costsOfPlanner } from '../costs/costs';
 import { hasPlus, tripUnlocked } from '../utils/billing';
 import { candidatesAt, libraryDeps } from '../gems/library';
@@ -78,7 +81,9 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     // Weather needs only the destination and dates: fetched while Claude writes the plan.
     const t0 = Date.now();
     const weatherP = getWeather(destination, startDate, endDate).catch(() => []);
-    const tripData = await generateTripItinerary(
+    // First only the route (stops and where each night is): the trip page opens in seconds and the
+    // day texts are written afterwards, one per day, in parallel (fillDays below).
+    const tripData = await generateTripSkeleton(
       startLocation,
       destination,
       days,
@@ -91,7 +96,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
 
     // The page follows each day's overnight town as the plan names it.
     const editKey = newEditKey();
-    const savedPlanner: typeof planner & { overnights: string[]; route?: string; legs?: RoadLeg[]; hiddenGems?: string[]; alt?: { route: string; legs: RoadLeg[]; tollFree: boolean } } = { ...planner, overnights: overnightsFrom(tripData.itinerary, days) };
+    const savedPlanner: typeof planner & { overnights: string[]; planning?: boolean; transportType?: string; route?: string; legs?: RoadLeg[]; hiddenGems?: string[]; alt?: { route: string; legs: RoadLeg[]; tollFree: boolean } } = { ...planner, transportType: transportType || 'own_car', overnights: tripData.overnights, planning: true };
 
     const tPlan = Date.now();
 
@@ -135,26 +140,10 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
         weather: JSON.stringify(weather),
         hiddenGems: JSON.stringify(hiddenGems),
         planner: JSON.stringify({ ...savedPlanner, editKeyHash: editKey.hash }),
-        itineraryDays: {
-          create: (tripData.itinerary || []).slice(0, days).map((day: any) => ({
-            day: day.day,
-            activities: {
-              create: (['morning', 'afternoon', 'evening'] as const)
-                .filter((slot) => day[slot])
-                .map((slot) => ({
-                  slot,
-                  time: day[slot].time ?? '',
-                  activity: day[slot].activity ?? '',
-                  location: day[slot].location ?? '',
-                  description: day[slot].description ?? '',
-                  estimatedCost: day[slot].estimatedCost ?? 0,
-                  notes: day[slot].notes ?? '',
-                })),
-            },
-          })),
-        },
       },
     });
+    // The days are written now, after the answer: the page shows each one as it arrives.
+    void fillDays(saved.id).catch((err) => console.error('[generate] fillDays', err));
 
     const trip = {
       tripId: saved.id,
@@ -163,7 +152,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       endDate,
       days,
       stops: tripData.stops,
-      itinerary: tripData.itinerary,
+      itinerary: [],
       totalCost: tripData.totalCost,
       totalDistance,
       highlights: tripData.highlights,
@@ -183,6 +172,56 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
 });
 
 /** What the browser gets for a saved trip (the edit key's hash never leaves the server). */
+/** Writes every day of a trip that has no text yet (4 at a time) and marks the plan as finished. */
+export async function fillDays(tripId: string): Promise<void> {
+  const trip = await prisma.trip.findUnique({ where: { id: tripId }, include: { itineraryDays: { select: { day: true } } } });
+  if (!trip) return;
+  const planner = JSON.parse(trip.planner || '{}');
+  const stops = JSON.parse(trip.stops || '[]') as { location: string }[];
+  const overnights: string[] = planner.overnights ?? [];
+  const todo = missingDays(trip.days, trip.itineraryDays.map((d) => d.day));
+  const failed: number[] = [];
+  const queue = [...todo];
+  const work = async () => {
+    for (let d = queue.shift(); d !== undefined; d = queue.shift()) {
+      const from = d === 1 ? stops[0]?.location ?? trip.destination : overnights[d - 2] ?? trip.destination;
+      const to = overnights[d - 1] ?? trip.destination;
+      try {
+        const day = await generateTripDay({
+          day: d, from, to, destination: trip.destination, travelStyle: trip.travelStyle,
+          priorities: JSON.parse(trip.priorities || '[]'), transportType: planner.transportType ?? 'own_car', planner,
+        });
+        await prisma.tripDay.create({
+          data: {
+            tripId,
+            day: d,
+            activities: {
+              create: (['morning', 'afternoon', 'evening'] as const)
+                .filter((slot) => day[slot])
+                .map((slot) => ({
+                  slot,
+                  time: day[slot]!.time ?? '',
+                  activity: day[slot]!.activity ?? '',
+                  location: day[slot]!.location ?? '',
+                  description: day[slot]!.description ?? '',
+                  estimatedCost: day[slot]!.estimatedCost ?? 0,
+                  notes: day[slot]!.notes ?? '',
+                })),
+            },
+          },
+        });
+      } catch (err) {
+        console.error(`[fillDays] trip ${tripId} day ${d}`, err);
+        failed.push(d);
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, todo.length) }, work));
+  const fresh = await prisma.trip.findUnique({ where: { id: tripId } });
+  const p = JSON.parse(fresh?.planner || '{}');
+  await prisma.trip.update({ where: { id: tripId }, data: { planner: JSON.stringify({ ...p, planning: false, failedDays: failed }) } });
+}
+
 async function readTrip(tripId: string, userId?: string) {
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },
@@ -205,7 +244,11 @@ async function readTrip(tripId: string, userId?: string) {
     }
     return day;
   });
-  const { editKeyHash: _hidden, ...planner } = JSON.parse(trip.planner || '{}');
+  const { editKeyHash: _hidden, ...stored } = JSON.parse(trip.planner || '{}');
+  const planner = stored.planning === undefined ? stored : {
+    ...stored,
+    ...planningState({ planning: stored.planning, createdAt: trip.createdAt, now: new Date(), days: trip.days, have: itinerary.map((d) => Number(d.day)), failed: stored.failedDays }),
+  };
   return {
     tripId: trip.id,
     destination: trip.destination,
@@ -237,6 +280,25 @@ router.get('/:tripId', optionalAuth, async (req: AuthRequest, res: Response, nex
 });
 
 // Change a planned trip: the signed-in owner, or whoever holds the edit key handed out when it was made.
+// Days that could not be written (or a plan cut short by a restart): write the missing ones again.
+router.post('/:tripId/days/retry', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const trip = await prisma.trip.findUnique({ where: { id: req.params.tripId } });
+    if (!trip) return res.status(404).json({ error: 'Trip not found.' });
+    const planner = JSON.parse(trip.planner || '{}');
+    const owner = Boolean(trip.userId && req.userId && trip.userId === req.userId);
+    const key = typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined;
+    if (!owner && !editKeyMatches(planner.editKeyHash, key)) return res.status(403).json({ error: 'Only whoever planned this trip can do this.' });
+    // A plan still being written (less than 5 minutes old) is left alone.
+    if (planner.planning === true && Date.now() - trip.createdAt.getTime() < 5 * 60_000) return res.status(409).json({ error: 'Still writing your days.' });
+    await prisma.trip.update({ where: { id: trip.id }, data: { planner: JSON.stringify({ ...planner, planning: true, failedDays: [] }) } });
+    void fillDays(trip.id).catch((err) => console.error('[retry] fillDays', err));
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.patch('/:tripId/plan', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const key = typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined;

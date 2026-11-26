@@ -26,6 +26,8 @@ export async function editTrip(db: Db, input: { tripId: string; edit: Edit; user
     const planner = JSON.parse(trip.planner || '{}') as Record<string, unknown> & { overnights?: string[]; editKeyHash?: string };
     const owner = Boolean(trip.userId && input.userId && trip.userId === input.userId);
     if (!owner && !editKeyMatches(planner.editKeyHash, input.key)) throw denied();
+    // The day texts are still being written (fillDays): a change now would mix old and new days.
+    if (planner.planning === true) throw Object.assign(new EditError('Your days are still being written. Try again in a few seconds.'), { status: 409 });
     if (input.edit?.type === 'route' && !input.premium && !tripUnlocked(planner)) throw Object.assign(new EditError('The cheapest route comes with Plus.'), { status: 403 });
 
     const stops = (JSON.parse(trip.stops || '[]') as { location: string }[]).map((s) => s.location);

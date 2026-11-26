@@ -1,5 +1,6 @@
 import { dayCost, euros } from '@/lib/costs';
 import type { TripCosts } from '@/types';
+import { DayBlock } from './DayBlock';
 
 const FUEL_LABEL: Record<string, string> = { car: 'Petrol', ev: 'Charging', campervan: 'Diesel', caravan: 'Diesel' };
 const NIGHT_LABEL: Record<string, string> = { campsite: 'Campsite tonight', hotel: 'Hotel tonight', holiday_home: 'Holiday home tonight' };
@@ -12,15 +13,14 @@ type Props = { day: number; costs: TripCosts; fromLeg: number; toLeg: number; wi
 export function DayCosts({ day, costs, fromLeg, toLeg, withNight, vehicle = 'car', stay = 'hotel' }: Props) {
   const c = dayCost(costs, fromLeg, toLeg, withNight);
   const row = (label: string, value: number) => (
-    <div key={label} className="flex items-baseline justify-between gap-12 border-t border-rule py-8">
+    <div key={label} className="flex items-baseline justify-between gap-12 border-t border-rule py-8 first:border-t-0">
       <span>{label}</span>
       <span className="num text-ink" style={{ fontWeight: 500 }}>{euros(value)}</span>
     </div>
   );
   return (
-    <section aria-label={`Costs of day ${day}`} className="mt-24 rounded-card border border-rule bg-paper p-16">
-      <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>What today costs</h3>
-      <div className="mt-8">
+    <DayBlock kind="cost" id="day-cost" title="Costs today" label={`Costs of day ${day}`} meta="Estimate">
+      <div>
         {c.fuel > 0 && row(FUEL_LABEL[vehicle] ?? 'Fuel', c.fuel)}
         {c.tolls > 0 && row('Tolls', c.tolls)}
         {c.vignettes.map((v) => row(v.label, v.price))}
@@ -31,11 +31,11 @@ export function DayCosts({ day, costs, fromLeg, toLeg, withNight, vehicle = 'car
         </div>
       </div>
       {c.warnings.length > 0 && (
-        <ul className="mt-8 grid gap-4 p-0" style={{ listStyle: 'none' }}>
-          {c.warnings.map((w) => <li key={w} className="text-[16px] text-ink-2">{w}</li>)}
+        <ul className="grid gap-8 p-0" style={{ listStyle: 'none' }}>
+          {c.warnings.map((w) => <li key={w} className="rounded-part bg-paper-2 px-12 py-8 text-[16px] text-ink-2">{w}</li>)}
         </ul>
       )}
-      <p className="mt-8 text-[15px] text-muted">{`Estimate, prices of ${dateLabel(costs.updated)}`}</p>
-    </section>
+      <p className="text-[15px] text-muted">{`Estimate, prices of ${dateLabel(costs.updated)}`}</p>
+    </DayBlock>
   );
 }

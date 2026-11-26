@@ -96,3 +96,29 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 @media (max-width: 1023px) { .rt-map { height: 340px; } }
 .rt-map .maplibregl-popup-content { font-family: var(--font-body); font-size: 16px; line-height: 1.4; display: grid; gap: var(--space-2xs); color: var(--color-ink); }
 .rt-map .maplibregl-popup-content a { color: var(--color-accent); }
+
+/* Trip day blocks: one colour per kind of information, as a stripe, an icon tile and a jump chip. */
+.kind-drive { --kind: var(--color-kind-drive); --kind-soft: var(--color-kind-drive-soft); }
+.kind-gems { --kind: var(--color-accent); --kind-soft: var(--color-accent-soft); }
+.kind-plan { --kind: var(--color-kind-plan); --kind-soft: var(--color-kind-plan-soft); }
+.kind-cost { --kind: var(--color-kind-cost); --kind-soft: var(--color-kind-cost-soft); }
+.kind-sleep { --kind: var(--color-kind-sleep); --kind-soft: var(--color-kind-sleep-soft); }
+.day-block { margin-top: var(--space-lg); border: var(--rule-hair) solid var(--color-rule); border-left: 4px solid var(--kind); border-radius: var(--radius-card); background: var(--color-paper); scroll-margin-top: var(--space-md); }
+.day-block-head { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.day-block-icon { width: 32px; height: 32px; border-radius: var(--radius-part); display: grid; place-items: center; background: var(--kind-soft); color: var(--kind); flex: none; }
+.day-block-meta { margin-left: auto; color: var(--color-muted); font-size: 15px; text-align: right; }
+.day-block-body { padding: var(--space-md); display: grid; gap: var(--space-md); min-width: 0; }
+.day-glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: var(--space-md); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper-2); }
+.day-glance > div { padding: var(--space-sm); display: grid; gap: var(--space-3xs); min-width: 0; }
+.day-glance > div + div { border-left: var(--rule-hair) solid var(--color-rule); }
+.day-glance-k { font-size: 15px; color: var(--color-muted); font-weight: 500; }
+.day-glance-v { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .day-glance { grid-template-columns: repeat(2, minmax(0, 1fr)); } .day-glance > div:nth-child(3) { border-left: 0; } .day-glance > div:nth-child(n+3) { border-top: var(--rule-hair) solid var(--color-rule); } }
+.day-jump { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-md); }
+.day-jump a { display: inline-flex; align-items: center; gap: var(--space-2xs); font-size: 15px; font-weight: 500; color: var(--color-ink); text-decoration: none; padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-pill); background: var(--kind-soft); }
+.day-jump a svg { color: var(--kind); }
+.stay-tag { display: inline-block; font-size: 14px; font-weight: 500; padding: var(--space-3xs) var(--space-2xs); border-radius: var(--radius-part); background: var(--color-kind-sleep-soft); color: var(--color-kind-sleep); margin-right: var(--space-2xs); vertical-align: 2px; }
+.drive-line { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 0 var(--space-sm); align-items: center; }
+.drive-line .stop { width: 10px; height: 10px; border-radius: var(--radius-pill); border: 2px solid var(--color-ink); justify-self: center; }
+.drive-line .gem { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--color-accent); justify-self: center; }
+.drive-line .link { width: 2px; height: 18px; background: var(--color-rule); justify-self: center; grid-column: 1; }

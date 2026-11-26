@@ -1,6 +1,6 @@
 import { apiClient, getAuthToken } from '@/lib/apiClient';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import { Fragment, useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
 import { tripsApi } from '@/lib/api';
@@ -11,7 +11,8 @@ import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
 import { DayCosts } from '@/components/trip/DayCosts';
 import { GemProof } from '@/components/trip/GemProof';
 import { CheaperRoute } from '@/components/trip/CheaperRoute';
-import { euros, tripTotal } from '@/lib/costs';
+import { dayCost, euros, tripTotal } from '@/lib/costs';
+import { BlockIcon, DayBlock } from '@/components/trip/DayBlock';
 const GlobeMap = lazy(() => import('@/components/map/GlobeMap').then((m) => ({ default: m.GlobeMap })));
 import { Button, Panel } from '@/components/ui';
 import { useAccommodations } from '@/hooks/useAccommodations';
@@ -31,6 +32,9 @@ import { MapBoundary } from '@/components/map/MapBoundary';
 import { TripMapImage } from '@/components/map/TripMapImage';
 
 const town = (location?: string) => (location ?? '').split(',')[0].trim();
+const STAY_TAG: Record<string, string> = { hotel: 'Hotel', campsite: 'Campsite', airbnb: 'Holiday home', hostel: 'Hostel' };
+/** 2.6 hours as "2 h 36", under an hour as "45 min". */
+const hoursLabel = (h: number) => (h < 1 ? `${Math.round(h * 60)} min` : `${Math.floor(h)} h ${String(Math.round((h % 1) * 60)).padStart(2, '0')}`);
 
 /** Booking links per stay type: Booking.com lists hotels and campsites, Vrbo the holiday homes. */
 export function stayUrl(type: StayType, place: string, checkin?: string, checkout?: string, adults = 2): string {
@@ -261,6 +265,15 @@ export function TripResultsPage() {
   // The three best-rated real places to sleep tonight (searches like "Airbnb stays in" stay in the full list).
   const tonight = accommodations.filter((o) => o.type !== 'airbnb').sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 3);
   const weather = trip.weather?.find((w) => w.day === activeDay);
+  // This day's road: the legs from last night's stop to tonight's.
+  const dayLegs = planner?.legs?.slice(fromIdx, Math.max(fromIdx, toIdx)) ?? [];
+  const dayKm = dayLegs.reduce((n, l) => n + l.km, 0);
+  const dayHours = dayLegs.reduce((n, l) => n + l.hours, 0);
+  const costToday = trip.costs ? dayCost(trip.costs, fromIdx, toIdx, activeDay < dayCount).total : null;
+  const dayStops = [legFrom, ...showGems, legTo]
+    .filter((p): p is NonNullable<typeof p> => !!p && !!p.latitude && !!p.longitude)
+    .map((p) => ({ lat: p.latitude, lng: p.longitude, label: 'location' in p ? (p as { location: string }).location : (p as { name: string }).name }));
+  const dayMapsUrl = buildGoogleMapsRouteUrl(dayStops);
   const sketchStops = stops.filter((s) => s.latitude && s.longitude).map((s) => ({ lat: s.latitude, lng: s.longitude, label: s.location }));
   const mapsUrl = buildGoogleMapsRouteUrl(sketchStops);
   const globe = (
@@ -381,86 +394,126 @@ export function TripResultsPage() {
             <h2 id="day-head" className="mt-4 font-display text-[32px] text-ink md:text-[40px]" style={head}>
               {onRoad ? `${town(legFrom?.location)} to ${sleepTown}` : `A day in ${sleepTown}`}
             </h2>
-            {weather && <p className="mt-8 text-[17px]">{`${weather.condition}, ${Math.round(weather.temp)}°`}</p>}
+            <div className="day-glance" role="region" aria-label={`Day ${activeDay} at a glance`}>
+              <div><span className="day-glance-k">Drive</span><span className="day-glance-v">{onRoad && dayKm > 0 ? `${Math.round(dayKm).toLocaleString('en')} km` : 'No long drive'}</span></div>
+              <div><span className="day-glance-k">Time</span><span className="day-glance-v">{onRoad && dayHours > 0 ? hoursLabel(dayHours) : '–'}</span></div>
+              <div><span className="day-glance-k">Weather</span><span className="day-glance-v">{weather ? `${Math.round(weather.temp)}°, ${weather.condition}` : '–'}</span></div>
+              <div><span className="day-glance-k">Cost today</span><span className="day-glance-v">{costToday !== null ? euros(costToday) : '–'}</span></div>
+            </div>
+            <nav className="day-jump" aria-label="Jump to">
+              {onRoad && <a href="#day-drive" className="kind-drive"><BlockIcon kind="drive" size={16} />Drive</a>}
+              {showGems.length > 0 && <a href="#day-gems" className="kind-gems"><BlockIcon kind="gems" size={16} />{`${showGems.length} gem${showGems.length === 1 ? '' : 's'}`}</a>}
+              <a href="#day-plan" className="kind-plan"><BlockIcon kind="plan" size={16} />The day</a>
+              {trip.costs && <a href="#day-cost" className="kind-cost"><BlockIcon kind="cost" size={16} />Costs</a>}
+              <a href="#day-sleep" className="kind-sleep"><BlockIcon kind="sleep" size={16} />Sleep</a>
+            </nav>
 
-            {showGems.length > 0 && (
-              <div className="mt-24">
-                <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>Gems on the way</h3>
-                <ul className="mt-12 grid gap-12 p-0" style={{ listStyle: 'none' }}>
+            {onRoad && (
+              <DayBlock kind="drive" id="day-drive" title="The drive" meta={dayKm > 0 ? `${Math.round(dayKm).toLocaleString('en')} km · ${hoursLabel(dayHours)}` : undefined}>
+                <div className="drive-line">
+                  <span className="stop" /><span>{town(legFrom?.location)}</span><span />
                   {showGems.map((g) => (
-                    <li key={g.placeId ?? g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
-                      {g.photoUrl && (
-                        <img src={`${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                      )}
-                      <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
-                      <GemProof placeId={g.placeId} rating={g.rating} reviews={g.reviews} />
-                      {/* Real gems carry their rating as the description: the proof line already says it. */}
-                      {!(g.rating && g.description?.startsWith('Rated ')) && <span>{g.description}</span>}
-                      {g.address && <span className="text-[16px] text-muted">{g.address}</span>}
-                      <a className="text-[17px] text-ink" href={g.mapsUrl ?? `https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
-                        Open in Google Maps
-                      </a>
-                      {g.placeId && (
-                        <Link
-                          className="text-[17px] text-ink"
-                          to={`/community/post?${new URLSearchParams({ placeId: g.placeId, name: g.name, lat: String(g.latitude), lng: String(g.longitude), address: g.address ?? '' })}`}
-                        >
-                          Post a photo here
-                        </Link>
-                      )}
-                      {canEdit && g.placeId && (
-                        <button type="button" disabled={saving} aria-label={`Hide ${g.name}`} onClick={() => void change({ type: 'hideGem', placeId: g.placeId! })} className="min-h-[48px] justify-self-start text-[17px] text-muted underline">
-                          Hide
-                        </button>
-                      )}
-                    </li>
+                    <Fragment key={`dl-${g.placeId ?? g.name}`}>
+                      <span className="link" /><span /><span />
+                      <span className="gem" /><span>{g.name}</span><span className="text-[14px] text-muted">gem</span>
+                    </Fragment>
                   ))}
-                </ul>
-              </div>
+                  <span className="link" /><span /><span />
+                  <span className="stop" /><span>{sleepTown}</span><span className="text-[14px] text-muted">tonight</span>
+                </div>
+                <div className="flex flex-wrap gap-8">
+                  <a href={dayMapsUrl} target="_blank" rel="noopener noreferrer" className="btn-primary no-underline">Navigate in Google Maps</a>
+                  {legTo?.latitude && legTo?.longitude && (
+                    <a href={`https://waze.com/ul?ll=${legTo.latitude},${legTo.longitude}&navigate=yes`} target="_blank" rel="noopener noreferrer" className="btn-header no-underline">Waze</a>
+                  )}
+                </div>
+              </DayBlock>
             )}
 
-            {trip.tripId && showGems.length > 0 && <OnTheRoad tripId={trip.tripId} gems={showGems} signedIn={!!getAuthToken()} />}
-
-            {canEdit && hiddenIds.length > 0 && (
-              <button type="button" disabled={saving} onClick={() => hiddenIds.reduce((p, id) => p.then(() => change({ type: 'showGem', placeId: id })), Promise.resolve())} className="mt-12 min-h-[48px] text-[17px] text-ink underline">
-                {`Show ${hiddenIds.length} hidden gem${hiddenIds.length === 1 ? '' : 's'}`}
-              </button>
-            )}
-
-            {!day && planning && (
-              <p className="mt-24 text-[17px] text-muted" role="status">{`Writing day ${activeDay}. It appears here in a few seconds.`}</p>
-            )}
-            {!day && !planning && failedDays.includes(activeDay) && (
-              <div className="mt-24" role="alert">
-                <p className="text-[17px]">{`Day ${activeDay} could not be written.`}</p>
-                {canEdit && (
-                  <button type="button" onClick={() => void retry()} className="btn-primary mt-12">Try again</button>
+            {(showGems.length > 0 || (canEdit && hiddenIds.length > 0)) && (
+              <DayBlock kind="gems" id="day-gems" title="Gems on the way" meta="Checked on Google">
+                {showGems.length > 0 && (
+                  <div>
+                    <ul className="grid gap-12 p-0 sm:grid-cols-2" style={{ listStyle: 'none' }}>
+                      {showGems.map((g) => (
+                        <li key={g.placeId ?? g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
+                          {g.photoUrl && (
+                            <img src={`${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          )}
+                          <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
+                          <GemProof placeId={g.placeId} rating={g.rating} reviews={g.reviews} />
+                          {/* Real gems carry their rating as the description: the proof line already says it. */}
+                          {!(g.rating && g.description?.startsWith('Rated ')) && <span>{g.description}</span>}
+                          {g.address && <span className="text-[16px] text-muted">{g.address}</span>}
+                          <a className="text-[17px] text-ink" href={g.mapsUrl ?? `https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`} target="_blank" rel="noopener noreferrer">
+                            Open in Google Maps
+                          </a>
+                          {g.placeId && (
+                            <Link
+                              className="text-[17px] text-ink"
+                              to={`/community/post?${new URLSearchParams({ placeId: g.placeId, name: g.name, lat: String(g.latitude), lng: String(g.longitude), address: g.address ?? '' })}`}
+                            >
+                              Post a photo here
+                            </Link>
+                          )}
+                          {canEdit && g.placeId && (
+                            <button type="button" disabled={saving} aria-label={`Hide ${g.name}`} onClick={() => void change({ type: 'hideGem', placeId: g.placeId! })} className="min-h-[48px] justify-self-start text-[17px] text-muted underline">
+                              Hide
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
-              </div>
-            )}
-            {day && (
-              <div className="mt-24">
-                <h3 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>The day</h3>
-                <ol className="mt-8 p-0" style={{ listStyle: 'none' }}>
-                  {(['morning', 'afternoon', 'evening'] as const).filter((s) => day[s]).map((s) => (
-                    <li key={s} className="grid grid-cols-[96px_minmax(0,1fr)] gap-16 border-t border-rule py-16">
-                      <span className="text-[16px] text-muted">{day[s].time || s}</span>
-                      <span>
-                        <span className="block text-ink" style={{ fontWeight: 500 }}>{day[s].activity}</span>
-                        <span className="block">{day[s].description}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
+
+                {trip.tripId && showGems.length > 0 && <OnTheRoad tripId={trip.tripId} gems={showGems} signedIn={!!getAuthToken()} />}
+
+                {canEdit && hiddenIds.length > 0 && (
+                  <button type="button" disabled={saving} onClick={() => hiddenIds.reduce((p, id) => p.then(() => change({ type: 'showGem', placeId: id })), Promise.resolve())} className="mt-12 min-h-[48px] text-[17px] text-ink underline">
+                    {`Show ${hiddenIds.length} hidden gem${hiddenIds.length === 1 ? '' : 's'}`}
+                  </button>
+                )}
+
+              </DayBlock>
             )}
 
-            <a href={go(`https://www.getyourguide.com/s/?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-16 inline-block text-[17px] text-ink">
-              {`Things to do in ${sleepTown}`}
-            </a>
-            <a href={go(`https://www.tiqets.com/en/search?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-8 block text-[17px] text-ink">
-              {`Tickets for sights in ${sleepTown}`}
-            </a>
+            <DayBlock kind="plan" id="day-plan" title="The day">
+                {!day && planning && (
+                  <p className="text-[17px] text-muted" role="status">{`Writing day ${activeDay}. It appears here in a few seconds.`}</p>
+                )}
+                {!day && !planning && failedDays.includes(activeDay) && (
+                  <div role="alert">
+                    <p className="text-[17px]">{`Day ${activeDay} could not be written.`}</p>
+                    {canEdit && (
+                      <button type="button" onClick={() => void retry()} className="btn-primary mt-12">Try again</button>
+                    )}
+                  </div>
+                )}
+                {day && (
+                  <div>
+                    <ol className="p-0" style={{ listStyle: 'none' }}>
+                      {(['morning', 'afternoon', 'evening'] as const).filter((s) => day[s]).map((s) => (
+                        <li key={s} className="grid grid-cols-[96px_minmax(0,1fr)] gap-16 border-t border-rule py-16">
+                          <span className="text-[16px] text-muted">{day[s].time || s}</span>
+                          <span>
+                            <span className="block text-ink" style={{ fontWeight: 500 }}>{day[s].activity}</span>
+                            <span className="block">{day[s].description}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                <a href={go(`https://www.getyourguide.com/s/?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="inline-block text-[17px] text-ink">
+                  {`Things to do in ${sleepTown}`}
+                </a>
+                <a href={go(`https://www.tiqets.com/en/search?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="block text-[17px] text-ink">
+                  {`Tickets for sights in ${sleepTown}`}
+                </a>
+
+            </DayBlock>
 
             {trip.costs && (
               <DayCosts
@@ -474,58 +527,57 @@ export function TripResultsPage() {
               />
             )}
 
-            <Panel className="mt-24">
-              <h3 className="font-display text-[26px] text-ink" style={head}>Sleep in {sleepTown}</h3>
-              {picked[activeDay] && <p className="mt-6">Your choice: {picked[activeDay].name}</p>}
-              {tonight.length > 0 && (
-                <ul aria-label="Stays tonight" className="mt-16 grid gap-12 p-0" style={{ listStyle: 'none' }}>
-                  {tonight.map((o) => (
-                    <li key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-16 gap-y-4 rounded-part border border-rule bg-paper p-16">
-                      <span className="text-[18px] text-ink" style={{ fontWeight: 500 }}>{o.name}</span>
-                      <span className="num text-[18px] text-ink" style={{ fontWeight: 500 }}>{`About €${Math.round(o.pricePerNight)} a night`}</span>
-                      <span className="text-[16px] text-muted">{o.rating ? `Rated ${o.rating.toFixed(1)} on Google` : STAY_LABELS[o.type === 'airbnb' ? 'holiday_home' : o.type === 'campsite' ? 'campsite' : 'hotel']}</span>
-                      <a href={go(o.affiliateUrl)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Check prices for ${o.name}`} className="justify-self-end text-[17px] text-ink">
-                        Check prices
+            <DayBlock kind="sleep" id="day-sleep" title={`Sleep in ${sleepTown}`}>
+                  {picked[activeDay] && <p className="mt-6">Your choice: {picked[activeDay].name}</p>}
+                  {tonight.length > 0 && (
+                    <ul aria-label="Stays tonight" className="mt-16 grid gap-12 p-0" style={{ listStyle: 'none' }}>
+                      {tonight.map((o) => (
+                        <li key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-16 gap-y-4 rounded-part border border-rule bg-paper p-16">
+                          <span className="text-[18px] text-ink" style={{ fontWeight: 500 }}><span className="stay-tag">{STAY_TAG[o.type] ?? 'Stay'}</span>{o.name}</span>
+                          <span className="num text-[18px] text-ink" style={{ fontWeight: 500 }}>{`About €${Math.round(o.pricePerNight)} a night`}</span>
+                          <span className="text-[16px] text-muted">{o.rating ? `Rated ${o.rating.toFixed(1)} on Google` : STAY_LABELS[o.type === 'airbnb' ? 'holiday_home' : o.type === 'campsite' ? 'campsite' : 'hotel']}</span>
+                          <a href={go(o.affiliateUrl)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Check prices for ${o.name}`} className="justify-self-end text-[17px] text-ink">
+                            Check prices
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {tonight.length > 0 && <p className="mt-8 text-[15px] text-muted">Prices are estimates from the place's price level. The booking site shows the real price for your dates.</p>}
+                  <div className="mt-16 flex flex-wrap gap-12">
+                    {stayTypes.map((s) => (
+                      <a key={s} href={go(stayUrl(s, sleepTown, checkin, checkout, travellers))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
+                        {STAY_LABELS[s]}
                       </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {tonight.length > 0 && <p className="mt-8 text-[15px] text-muted">Prices are estimates from the place's price level. The booking site shows the real price for your dates.</p>}
-              <div className="mt-16 flex flex-wrap gap-12">
-                {stayTypes.map((s) => (
-                  <a key={s} href={go(stayUrl(s, sleepTown, checkin, checkout, travellers))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header no-underline">
-                    {STAY_LABELS[s]}
-                  </a>
-                ))}
-                <Button variant="primary" onClick={() => setStaysOpen(true)}>{tonight.length ? 'More stays' : 'Stays nearby'}</Button>
-              </div>
-              {stayTypes.includes('campsite') && pitchupSlug && (
-                <a href={go(`https://www.pitchup.com/campsites/${pitchupSlug}/`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-12 inline-block text-[17px] text-ink">
-                  {`Campsites in ${COUNTRY_NAME[nightCountry!]} on Pitchup`}
-                </a>
-              )}
-              {canEdit && (
-                <div className="mt-20 grid gap-12 border-t border-rule pt-16 sm:grid-cols-2">
-                  <label className="flex flex-col gap-[6px] text-[16px] text-muted" style={{ fontWeight: 500 }}>
-                    Move tonight's stop
-                    <select
-                      disabled={saving}
-                      value={toIdx}
-                      onChange={(e) => void change({ type: 'night', day: activeDay, stopIndex: Number(e.target.value) })}
-                      className="h-[52px] rounded-input border border-rule bg-paper px-12 text-[18px] text-ink"
-                    >
-                      {stops.map((st, i) => (i === 0 ? null : <option key={`${st.location}-${i}`} value={i}>{town(st.location)}</option>))}
-                    </select>
-                  </label>
-                  <Button type="button" disabled={saving || dayCount >= 30} className="self-end" onClick={() => void change({ type: 'restDay', afterDay: activeDay })}>
-                    Add a rest day here
-                  </Button>
-                </div>
-              )}
-              {editError && <p className="mt-12 text-error" role="alert">{editError}</p>}
-              {saving && <p className="mt-12 text-[16px] text-muted" role="status">Saving the change</p>}
-            </Panel>
+                    ))}
+                    <Button variant="primary" onClick={() => setStaysOpen(true)}>{tonight.length ? 'More stays' : 'Stays nearby'}</Button>
+                  </div>
+                  {stayTypes.includes('campsite') && pitchupSlug && (
+                    <a href={go(`https://www.pitchup.com/campsites/${pitchupSlug}/`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-12 inline-block text-[17px] text-ink">
+                      {`Campsites in ${COUNTRY_NAME[nightCountry!]} on Pitchup`}
+                    </a>
+                  )}
+                  {canEdit && (
+                    <div className="mt-20 grid gap-12 border-t border-rule pt-16 sm:grid-cols-2">
+                      <label className="flex flex-col gap-[6px] text-[16px] text-muted" style={{ fontWeight: 500 }}>
+                        Move tonight's stop
+                        <select
+                          disabled={saving}
+                          value={toIdx}
+                          onChange={(e) => void change({ type: 'night', day: activeDay, stopIndex: Number(e.target.value) })}
+                          className="h-[52px] rounded-input border border-rule bg-paper px-12 text-[18px] text-ink"
+                        >
+                          {stops.map((st, i) => (i === 0 ? null : <option key={`${st.location}-${i}`} value={i}>{town(st.location)}</option>))}
+                        </select>
+                      </label>
+                      <Button type="button" disabled={saving || dayCount >= 30} className="self-end" onClick={() => void change({ type: 'restDay', afterDay: activeDay })}>
+                        Add a rest day here
+                      </Button>
+                    </div>
+                  )}
+                  {editError && <p className="mt-12 text-error" role="alert">{editError}</p>}
+                  {saving && <p className="mt-12 text-[16px] text-muted" role="status">Saving the change</p>}
+            </DayBlock>
           </section>
         </div>
 

@@ -1,0 +1,282 @@
+<title>Routify Day Layout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: one trip day as clearly labelled blocks (drive, gems, plan, costs, sleep) beside a quiet trip column. */
+:root {
+  --paper: oklch(98.2% 0.008 82); --paper-2: oklch(95.8% 0.011 82); --rule: oklch(89.5% 0.011 82);
+  --ink: oklch(18% 0.006 80); --muted: oklch(47% 0.012 80);
+  --accent: oklch(44% 0.075 190); --accent-soft: oklch(92% 0.028 190); --on-accent: oklch(98% 0.006 85);
+  --drive: oklch(30% 0.008 80); --gem: oklch(44% 0.075 190); --plan: oklch(48% 0.09 280);
+  --cost: oklch(55% 0.12 65); --sleep: oklch(45% 0.11 250);
+  --drive-soft: oklch(93% 0.006 80); --gem-soft: oklch(93% 0.03 190); --plan-soft: oklch(94% 0.03 280);
+  --cost-soft: oklch(94.5% 0.045 75); --sleep-soft: oklch(94% 0.03 250);
+  --display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --body: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: oklch(19% 0.01 200); --paper-2: oklch(23% 0.012 200); --rule: oklch(32% 0.012 200);
+  --ink: oklch(94% 0.008 85); --muted: oklch(72% 0.01 85);
+  --accent: oklch(72% 0.09 190); --accent-soft: oklch(30% 0.04 190); --on-accent: oklch(18% 0.01 200);
+  --drive: oklch(85% 0.006 85); --gem: oklch(74% 0.09 190); --plan: oklch(76% 0.08 280);
+  --cost: oklch(80% 0.11 75); --sleep: oklch(76% 0.08 250);
+  --drive-soft: oklch(26% 0.008 200); --gem-soft: oklch(27% 0.035 190); --plan-soft: oklch(27% 0.035 280);
+  --cost-soft: oklch(28% 0.04 75); --sleep-soft: oklch(27% 0.035 250);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: oklch(19% 0.01 200); --paper-2: oklch(23% 0.012 200); --rule: oklch(32% 0.012 200);
+  --ink: oklch(94% 0.008 85); --muted: oklch(72% 0.01 85);
+  --accent: oklch(72% 0.09 190); --accent-soft: oklch(30% 0.04 190); --on-accent: oklch(18% 0.01 200);
+  --drive: oklch(85% 0.006 85); --gem: oklch(74% 0.09 190); --plan: oklch(76% 0.08 280);
+  --cost: oklch(80% 0.11 75); --sleep: oklch(76% 0.08 250);
+  --drive-soft: oklch(26% 0.008 200); --gem-soft: oklch(27% 0.035 190); --plan-soft: oklch(27% 0.035 280);
+  --cost-soft: oklch(28% 0.04 75); --sleep-soft: oklch(27% 0.035 250);
+  color-scheme: dark; }
+
+body { background: var(--paper); color: var(--ink); font: 17px/1.5 var(--body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+.note { background: var(--accent-soft); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 15px; margin-bottom: 24px; }
+.eyebrow { font-size: 15px; color: var(--muted); font-weight: 500; }
+.trip-head h1 { font-size: clamp(30px, 5vw, 44px); margin-top: 4px; }
+.trip-facts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 8px; color: var(--muted); font-size: 16px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.days { display: flex; gap: 8px; overflow-x: auto; margin-top: 24px; padding-bottom: 4px; }
+.days button { font: 500 16px var(--body); min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); cursor: pointer; white-space: nowrap; }
+.days button[aria-current="step"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.days button:focus-visible, .jump a:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; margin-top: 28px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.day-head h2 { font-size: clamp(28px, 4.5vw, 38px); margin-top: 2px; }
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper-2); }
+.summary div { padding: 12px 14px; display: grid; gap: 2px; }
+.summary div + div { border-left: 1px solid var(--rule); }
+.summary .k { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.summary .v { font-family: var(--display); font-size: 20px; font-weight: 500; }
+@media (max-width: 560px) { .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .summary div:nth-child(3) { border-left: 0; } .summary div:nth-child(n+3) { border-top: 1px solid var(--rule); } }
+
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.jump a { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; padding: 6px 12px; border-radius: 999px; background: var(--c-soft); }
+.jump a svg { color: var(--c); }
+
+.block { margin-top: 20px; border: 1px solid var(--rule); border-left: 4px solid var(--c); border-radius: 14px; background: var(--paper); }
+.block > header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--rule); }
+.block > header .ic { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--c-soft); color: var(--c); flex: none; }
+.block > header h3 { font-size: 20px; }
+.block > header .meta { margin-left: auto; color: var(--muted); font-size: 15px; text-align: right; }
+.block .body { padding: 16px 18px; display: grid; gap: 14px; }
+.drive { --c: var(--drive); --c-soft: var(--drive-soft); }
+.gems { --c: var(--gem); --c-soft: var(--gem-soft); }
+.plan { --c: var(--plan); --c-soft: var(--plan-soft); }
+.cost { --c: var(--cost); --c-soft: var(--cost-soft); }
+.sleep { --c: var(--sleep); --c-soft: var(--sleep-soft); }
+
+.route { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.route .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--drive); }
+.route .line { grid-column: 1; justify-self: center; width: 2px; height: 22px; background: var(--rule); }
+.route .gemdot { width: 8px; height: 8px; border-radius: 50%; background: var(--gem); justify-self: center; }
+.route small { color: var(--muted); font-size: 14px; }
+
+.gem-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .gem-list { grid-template-columns: minmax(0, 1fr); } }
+.gem { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; display: grid; }
+.gem .ph { aspect-ratio: 16/10; max-width: 100%; }
+.gem .t { padding: 10px 12px; display: grid; gap: 4px; }
+.gem .t b { font-family: var(--display); font-weight: 500; font-size: 17px; }
+.proof { color: var(--accent); font-size: 14px; display: flex; gap: 4px; align-items: center; }
+.gem .t span:last-child { color: var(--muted); font-size: 14px; }
+
+.slots { display: grid; gap: 0; }
+.slot { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+.slot:first-child { border-top: 0; padding-top: 0; }
+.slot .when { color: var(--muted); font-size: 15px; }
+.slot b { font-weight: 500; display: block; }
+
+.costs { width: 100%; border-collapse: collapse; font-size: 16px; }
+.costs td { padding: 8px 0; border-top: 1px solid var(--rule); }
+.costs tr:first-child td { border-top: 0; }
+.costs td:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
+.costs .sub { color: var(--muted); font-size: 14px; display: block; }
+.costs tfoot td { border-top: 2px solid var(--ink); font-weight: 600; padding-top: 10px; }
+.warn { display: flex; gap: 8px; background: var(--cost-soft); border-radius: 8px; padding: 10px 12px; font-size: 15px; }
+.warn svg { color: var(--cost); flex: none; margin-top: 2px; }
+
+.stays { display: grid; gap: 10px; }
+.stay { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 10px; }
+.stay b { font-weight: 500; }
+.stay .p { font-variant-numeric: tabular-nums; font-weight: 500; text-align: right; }
+.stay .s { color: var(--muted); font-size: 14px; }
+.stay a { grid-column: 2; justify-self: end; font-size: 15px; color: var(--accent); font-weight: 500; }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--sleep-soft); color: var(--sleep); margin-right: 6px; vertical-align: 2px; }
+.row-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; background: var(--paper); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+aside { display: grid; gap: 16px; position: sticky; top: max(16px, env(safe-area-inset-top, 0px)); }
+@media (max-width: 860px) { aside { position: static; } }
+.card { border: 1px solid var(--rule); border-radius: 14px; padding: 16px; display: grid; gap: 10px; background: var(--paper); }
+.card h3 { font-size: 18px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.map { aspect-ratio: 4/3; max-width: 100%; border-radius: 14px; border: 1px solid var(--rule); background: var(--paper-2); overflow: hidden; }
+.map svg { width: 100%; height: 100%; display: block; }
+.trip-total { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 15px; }
+.trip-total span:nth-child(even) { text-align: right; font-variant-numeric: tabular-nums; }
+.trip-total .all { font-weight: 600; border-top: 1px solid var(--rule); padding-top: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+@media (prefers-reduced-motion: no-preference) { .jump a, .btn { transition: background .15s; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/></symbol>
+  <symbol id="i-gem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 4h12l4 5-10 11L2 9z"/><path d="M2 9h20M9 4l3 16 3-16"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-euro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 6a7 7 0 1 0 0 12"/><path d="M4 10h9M4 14h9"/></symbol>
+  <symbol id="i-bed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18V6M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-8v5"/><circle cx="6.5" cy="10.5" r="1.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></symbol>
+</svg>
+
+<div class="wrap">
+  <p class="note">Mockup with example content. This is how one day of a planned trip would look. Colours and fonts are Routify's own.</p>
+
+  <header class="trip-head">
+    <p class="eyebrow">Your road trip</p>
+    <h1>Ghent to Budapest</h1>
+    <div class="trip-facts num"><span>7 days</span><span>1,410 km</span><span>2 travellers</span><span>About €1,180 in total</span></div>
+  </header>
+
+  <nav class="days" aria-label="Days">
+    <button type="button">Day 1</button><button type="button">Day 2</button><button type="button">Day 3</button><button type="button">Day 4</button>
+    <button type="button" aria-current="step">Day 5</button><button type="button">Day 6</button><button type="button">Day 7</button>
+  </nav>
+
+  <div class="grid">
+    <main>
+      <div class="day-head">
+        <p class="eyebrow">Day 5, Tuesday 12 January</p>
+        <h2>Győr to Budapest</h2>
+      </div>
+
+      <div class="summary num" aria-label="This day at a glance">
+        <div><span class="k">Drive</span><span class="v">125 km</span></div>
+        <div><span class="k">Time</span><span class="v">1 h 35</span></div>
+        <div><span class="k">Weather</span><span class="v">−4°, cloudy</span></div>
+        <div><span class="k">Cost today</span><span class="v">€131</span></div>
+      </div>
+
+      <nav class="jump" aria-label="Jump to">
+        <a href="#drive" class="drive" style="--c:var(--drive);--c-soft:var(--drive-soft)"><svg width="16" height="16"><use href="#i-car"/></svg>Drive</a>
+        <a href="#gems" style="--c:var(--gem);--c-soft:var(--gem-soft)"><svg width="16" height="16"><use href="#i-gem"/></svg>3 gems</a>
+        <a href="#plan" style="--c:var(--plan);--c-soft:var(--plan-soft)"><svg width="16" height="16"><use href="#i-clock"/></svg>Day plan</a>
+        <a href="#cost" style="--c:var(--cost);--c-soft:var(--cost-soft)"><svg width="16" height="16"><use href="#i-euro"/></svg>Costs</a>
+        <a href="#sleep" style="--c:var(--sleep);--c-soft:var(--sleep-soft)"><svg width="16" height="16"><use href="#i-bed"/></svg>Sleep</a>
+      </nav>
+
+      <section id="drive" class="block drive" aria-labelledby="h-drive">
+        <header><span class="ic"><svg width="18" height="18"><use href="#i-car"/></svg></span><h3 id="h-drive">The drive</h3><span class="meta num">125 km · 1 h 35 · M1 motorway</span></header>
+        <div class="body">
+          <div class="route">
+            <span class="dot"></span><span>Győr, leave 9:30</span><small></small>
+            <span class="line"></span><span></span><span></span>
+            <span class="gemdot"></span><span>Pannonhalma Archabbey</span><small class="num">+20 min detour</small>
+            <span class="line"></span><span></span><span></span>
+            <span class="gemdot"></span><span>Tata, Lake Öreg</span><small class="num">+10 min</small>
+            <span class="line"></span><span></span><span></span>
+            <span class="dot"></span><span>Budapest, arrive about 14:00</span><small></small>
+          </div>
+          <div class="row-btns"><a class="btn primary" href="#drive">Navigate in Google Maps</a><a class="btn" href="#drive">Waze</a></div>
+        </div>
+      </section>
+
+      <section id="gems" class="block gems" aria-labelledby="h-gems">
+        <header><span class="ic"><svg width="18" height="18"><use href="#i-gem"/></svg></span><h3 id="h-gems">Gems on the way</h3><span class="meta">Checked on Google</span></header>
+        <div class="body">
+          <div class="gem-list">
+            <article class="gem">
+              <svg class="ph" viewBox="0 0 160 100" role="img" aria-label="Photo placeholder: abbey on a hill"><rect width="160" height="100" fill="var(--gem-soft)"/><path d="M0 80 Q40 50 80 62 T160 58 V100 H0z" fill="var(--gem)" opacity=".35"/><rect x="66" y="34" width="28" height="28" fill="var(--gem)" opacity=".55"/><rect x="77" y="20" width="6" height="16" fill="var(--gem)" opacity=".55"/></svg>
+              <div class="t"><b>Pannonhalma Archabbey</b><span class="proof"><svg width="14" height="14"><use href="#i-check"/></svg>Real place, 4.8 by 9,412 reviewers</span><span>A 1,000-year-old abbey on a hill, World Heritage.</span></div>
+            </article>
+            <article class="gem">
+              <svg class="ph" viewBox="0 0 160 100" role="img" aria-label="Photo placeholder: lake"><rect width="160" height="100" fill="var(--gem-soft)"/><path d="M0 64 H160 V100 H0z" fill="var(--gem)" opacity=".3"/><path d="M20 64 L50 40 L80 64z M70 64 L105 36 L140 64z" fill="var(--gem)" opacity=".5"/></svg>
+              <div class="t"><b>Lake Öreg, Tata</b><span class="proof"><svg width="14" height="14"><use href="#i-check"/></svg>Real place, 4.7 by 6,110 reviewers</span><span>Walk around the lake to the castle.</span></div>
+            </article>
+            <article class="gem">
+              <svg class="ph" viewBox="0 0 160 100" role="img" aria-label="Photo placeholder: chairlift"><rect width="160" height="100" fill="var(--gem-soft)"/><path d="M0 90 L160 20" stroke="var(--gem)" stroke-width="2" opacity=".6"/><rect x="62" y="54" width="14" height="12" fill="var(--gem)" opacity=".55"/><rect x="108" y="34" width="14" height="12" fill="var(--gem)" opacity=".55"/></svg>
+              <div class="t"><b>Zugliget Chairlift</b><span class="proof"><svg width="14" height="14"><use href="#i-check"/></svg>Real place, 4.7 by 8,301 reviewers</span><span>Up into the Buda hills, views over the city.</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="plan" class="block plan" aria-labelledby="h-plan">
+        <header><span class="ic"><svg width="18" height="18"><use href="#i-clock"/></svg></span><h3 id="h-plan">The day</h3></header>
+        <div class="body">
+          <div class="slots">
+            <div class="slot"><span class="when num">Morning</span><span><b>Pannonhalma Archabbey</b>Guided tour of the library and the basilica.</span></div>
+            <div class="slot"><span class="when num">Afternoon</span><span><b>Arrive in Budapest</b>Check in, then the Zugliget Chairlift before sunset.</span></div>
+            <div class="slot"><span class="when num">Evening</span><span><b>Dinner in the Jewish Quarter</b>Goulash and lángos around Kazinczy utca.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cost" class="block cost" aria-labelledby="h-cost">
+        <header><span class="ic"><svg width="18" height="18"><use href="#i-euro"/></svg></span><h3 id="h-cost">Costs today</h3><span class="meta">Estimates</span></header>
+        <div class="body">
+          <table class="costs">
+            <tbody>
+              <tr><td>Fuel<span class="sub num">125 km at 6.5 l/100 km, €1.62 a litre</span></td><td class="num">€13</td></tr>
+              <tr><td>Hungary motorway vignette<span class="sub">10 days, buy online before the border</span></td><td class="num">€16</td></tr>
+              <tr><td>Tolls<span class="sub">None on this road</span></td><td class="num">€0</td></tr>
+              <tr><td>Parking in Budapest<span class="sub">Hotel garage, one night</span></td><td class="num">€18</td></tr>
+              <tr><td>Tonight's stay<span class="sub">Cheapest of the three below</span></td><td class="num">€84</td></tr>
+            </tbody>
+            <tfoot><tr><td>Total for day 5</td><td class="num">€131</td></tr></tfoot>
+          </table>
+          <p class="warn"><svg width="16" height="16"><use href="#i-alert"/></svg><span>Budapest has no low-emission zone, but parking in the centre is paid on weekdays from 8:00 to 22:00.</span></p>
+        </div>
+      </section>
+
+      <section id="sleep" class="block sleep" aria-labelledby="h-sleep">
+        <header><span class="ic"><svg width="18" height="18"><use href="#i-bed"/></svg></span><h3 id="h-sleep">Sleep in Budapest</h3><span class="meta">Night 5 of 6</span></header>
+        <div class="body">
+          <div class="stays">
+            <div class="stay"><span><span class="tag">Hotel</span><b>Hotel Moments Budapest</b></span><span class="p num">€84 a night</span><span class="s">Rated 4.7 on Google · garage</span><a href="#sleep">Check prices</a></div>
+            <div class="stay"><span><span class="tag">Campsite</span><b>Haller Camping</b></span><span class="p num">€38 a night</span><span class="s">Rated 4.3 on Google · open all year</span><a href="#sleep">Check prices</a></div>
+            <div class="stay"><span><span class="tag">Holiday home</span><b>Apartments near Andrássy út</b></span><span class="p num">from €70</span><span class="s">On Vrbo</span><a href="#sleep">See homes</a></div>
+          </div>
+          <div class="row-btns"><a class="btn" href="#sleep">All hotels on Booking.com</a><a class="btn" href="#sleep">Campsites</a><a class="btn" href="#sleep">Move tonight's stop</a></div>
+        </div>
+      </section>
+    </main>
+
+    <aside aria-label="The whole trip">
+      <div class="map">
+        <svg viewBox="0 0 320 240" role="img" aria-label="Route sketch from Ghent to Budapest with today's leg highlighted">
+          <rect width="320" height="240" fill="var(--paper-2)"/>
+          <path d="M30 70 L90 95 L140 120 L190 140 L240 150 L285 172" fill="none" stroke="var(--rule)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M240 150 L285 172" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
+          <g fill="var(--paper)" stroke="var(--ink)" stroke-width="2"><circle cx="30" cy="70" r="5"/><circle cx="90" cy="95" r="4"/><circle cx="140" cy="120" r="4"/><circle cx="190" cy="140" r="4"/><circle cx="240" cy="150" r="5"/><circle cx="285" cy="172" r="5"/></g>
+          <g font-family="Figtree, sans-serif" font-size="12" fill="var(--ink)"><text x="20" y="58">Ghent</text><text x="222" y="138">Győr</text><text x="248" y="196">Budapest</text></g>
+        </svg>
+      </div>
+      <div class="card">
+        <h3>Trip costs</h3>
+        <div class="trip-total num"><span>Fuel</span><span>€142</span><span>Tolls and vignettes</span><span>€61</span><span>Stays, 6 nights</span><span>€520</span><span>Parking</span><span>€46</span><span class="all">All 7 days</span><span class="all">€769</span></div>
+      </div>
+      <div class="card">
+        <h3>Rental car</h3>
+        <p>No car of your own? Compare rentals from Ghent.</p>
+        <div class="row-btns"><a class="btn primary" href="#sleep">Compare cars</a><a class="btn" href="#sleep">Localrent</a></div>
+      </div>
+      <div class="card">
+        <h3>Colours in this plan</h3>
+        <div class="legend"><span><i style="background:var(--drive)"></i>Drive</span><span><i style="background:var(--gem)"></i>Gems</span><span><i style="background:var(--plan)"></i>Day plan</span><span><i style="background:var(--cost)"></i>Costs</span><span><i style="background:var(--sleep)"></i>Sleep</span></div>
+      </div>
+    </aside>
+  </div>
+</div>

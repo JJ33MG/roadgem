@@ -41,6 +41,41 @@ function renderTrip(t: GeneratedTrip) {
 
 const base = { kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'] as const, filters: [] };
 
+describe('TripResultsPage: each day in clear blocks (Jarne, 26 Nov: the day felt hectic)', () => {
+  const costed = () => {
+    const t = trip({ ...base, legs: [{ km: 245, hours: 2.6, countries: [{ code: 'ES', km: 245 }] }, { km: 600, hours: 6, countries: [{ code: 'FR', km: 600 }] }] } as never);
+    t.weather = [{ day: 1, condition: 'Sunny', temp: 21 } as never];
+    t.costs = { updated: '2026-11-22', overnight: 35, legs: [{ fuel: 41, tolls: 0, vignettes: [], warnings: [], total: 41 }, { fuel: 80, tolls: 22, vignettes: [], warnings: [], total: 102 }] };
+    return t;
+  };
+
+  it('opens the day with a one-line summary: distance, time, weather and the cost of the day', () => {
+    renderTrip(costed());
+    const glance = screen.getByRole('region', { name: 'Day 1 at a glance' });
+    expect(glance).toHaveTextContent('245 km');
+    expect(glance).toHaveTextContent('2 h 36');
+    expect(glance).toHaveTextContent('21°, Sunny');
+    expect(glance).toHaveTextContent('€76');
+  });
+
+  it('splits the day into labelled blocks, each reachable from a jump link', () => {
+    renderTrip(costed());
+    for (const name of ['The drive', 'Gems on the way', 'The day', 'Costs today', 'Sleep in Burgos']) {
+      expect(screen.getByRole('heading', { level: 3, name })).toBeInTheDocument();
+    }
+    const jump = screen.getByRole('navigation', { name: 'Jump to' });
+    expect(within(jump).getByRole('link', { name: /Costs/ })).toHaveAttribute('href', '#day-cost');
+    expect(within(jump).getByRole('link', { name: /1 gem/ })).toHaveAttribute('href', '#day-gems');
+  });
+
+  it('labels each place to sleep as hotel, campsite or holiday home', () => {
+    stays.list = [{ id: 'c1', name: 'Camping Burgos', type: 'campsite', rating: 4.6, pricePerNight: 32, imageUrl: null, address: 'Burgos', latitude: 42.3, longitude: -3.7, affiliateUrl: 'https://www.booking.com/y?aid=1' }];
+    renderTrip(costed());
+    expect(within(screen.getByRole('list', { name: 'Stays tonight' })).getByText('Campsite')).toBeInTheDocument();
+    stays.list = [];
+  });
+});
+
 describe('TripResultsPage', () => {
   it('hides a gem photo that fails to load instead of showing a broken image', () => {
     const t = trip({ ...base });
@@ -95,7 +130,8 @@ describe('TripResultsPage', () => {
     t.hiddenGems = Array.from({ length: 6 }, (_, i) => ({ name: `Gem ${i}`, description: 'Nice.', address: 'Lerma', latitude: 42 + i / 100, longitude: -3.7, category: 'historic' }));
     t.lockedGems = 4;
     renderTrip(t);
-    expect(screen.getAllByText(/^Gem \d$/).length).toBeLessThanOrEqual(3);
+    const gemBlock = screen.getByRole('region', { name: 'Gems on the way' });
+    expect(within(gemBlock).getAllByText(/^Gem \d$/).length).toBeLessThanOrEqual(3);
     expect(screen.getByText('4 more gems on this trip with Plus.')).toBeInTheDocument();
   });
 
@@ -120,9 +156,10 @@ describe('TripResultsPage', () => {
     const t = trip({ ...base });
     t.hiddenGems = [{ name: 'Burgos gem', description: 'x', address: 'x', latitude: 42.4, longitude: -3.65, category: 'nature' }];
     renderTrip(t);
-    const day1 = screen.queryAllByText('Burgos gem').length;
+    const inGems = () => { const b = screen.queryByRole('region', { name: 'Gems on the way' }); return b ? within(b).queryAllByText('Burgos gem').length : 0; };
+    const day1 = inGems();
     fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
-    const day2 = screen.queryAllByText('Burgos gem').length;
+    const day2 = inGems();
     expect(day1 + day2).toBe(1);
   });
 

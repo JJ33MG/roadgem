@@ -25,3 +25,11 @@
   --shadow-card: none;
   --tracking-display: -0.035em; --display-weight: 400;
 }
+
+/* Trip day blocks: one colour per kind of information (drive, gems, day plan, costs, sleep). */
+:root {
+  --color-kind-drive: oklch(30% 0.008 80); --color-kind-drive-soft: oklch(93% 0.006 80);
+  --color-kind-plan: oklch(48% 0.09 280); --color-kind-plan-soft: oklch(94% 0.03 280);
+  --color-kind-cost: oklch(52% 0.12 65); --color-kind-cost-soft: oklch(94.5% 0.045 75);
+  --color-kind-sleep: oklch(45% 0.11 250); --color-kind-sleep-soft: oklch(94% 0.03 250);
+}

@@ -8,9 +8,13 @@ type Partner = {
   param?: { env: string; name: string };
   /** Or wraps the link in the network's deep link, with {url} for the target (default name <PARTNER>_DEEPLINK). */
   deeplinkEnv?: string;
-  /** Or, until a deep link is set, the partner's own tracked link (Travelpayouts short link: its home page). */
-  link?: string;
+  /** Or a built-in deep link with {url} (Travelpayouts); the <PARTNER>_DEEPLINK variable still wins. */
+  deeplink?: string;
 };
+
+// Routify's Travelpayouts account: marker (partner) and trs (project). These are in every link a visitor clicks.
+const travelpayouts = (campaign: number, program: number) =>
+  `https://tp.media/r?campaign_id=${campaign}&marker=649342&p=${program}&trs=607287&u={url}`;
 
 export const PARTNERS: Record<string, Partner> = {
   booking: { hosts: ['booking.com'], param: { env: 'BOOKING_AFFILIATE_ID', name: 'aid' } },
@@ -24,12 +28,12 @@ export const PARTNERS: Record<string, Partner> = {
   // DiscoverCars' own programme: the username is the affiliate id, sent as a_aid.
   discovercars: { hosts: ['discovercars.com'], param: { env: 'DISCOVERCARS_AFFILIATE_ID', name: 'a_aid' } },
   airbnb: { hosts: ['airbnb.com'] },
-  // Travelpayouts (approved 26 Nov). Short links land on the home page; TIQETS_DEEPLINK etc. adds the town page.
-  tiqets: { hosts: ['tiqets.com'], link: 'https://tiqets.tp.st/kodpfFz2' },
-  klook: { hosts: ['klook.com'], link: 'https://klook.tp.st/EF7WH2wH' },
-  localrent: { hosts: ['localrent.com'], link: 'https://localrent.tp.st/OhHm6Uij' },
-  getrentacar: { hosts: ['getrentacar.com'], link: 'https://getrentacar.tp.st/C7CqluG0' },
-  airalo: { hosts: ['airalo.com'], link: 'https://airalo.tp.st/UEfImg7J' },
+  // Travelpayouts (approved 26 Nov): campaign_id and programme number per partner.
+  tiqets: { hosts: ['tiqets.com'], deeplink: travelpayouts(89, 2074) },
+  klook: { hosts: ['klook.com'], deeplink: travelpayouts(137, 4110) },
+  localrent: { hosts: ['localrent.com'], deeplink: travelpayouts(87, 2043) },
+  getrentacar: { hosts: ['getrentacar.com'], deeplink: travelpayouts(222, 5996) },
+  airalo: { hosts: ['airalo.com'], deeplink: travelpayouts(541, 8310) },
 };
 
 const onHost = (url: URL, hosts: string[]) => url.protocol === 'https:' && hosts.some((h) => url.hostname === h || url.hostname.endsWith(`.${h}`));
@@ -47,7 +51,7 @@ export function partnerTarget(partner: string, target: string): string | null {
   const id = p.param && process.env[p.param.env];
   if (p.param && id) url.searchParams.set(p.param.name, id);
   // Every partner may also come through a network (CJ, Awin, Travelpayouts, Stay22): <PARTNER>_DEEPLINK.
-  const deeplink = process.env[p.deeplinkEnv ?? `${partner.toUpperCase()}_DEEPLINK`];
+  const deeplink = process.env[p.deeplinkEnv ?? `${partner.toUpperCase()}_DEEPLINK`] || p.deeplink;
   if (deeplink && deeplink.includes('{url}')) return deeplink.replace('{url}', encodeURIComponent(url.toString()));
-  return p.link ?? url.toString();
+  return url.toString();
 }

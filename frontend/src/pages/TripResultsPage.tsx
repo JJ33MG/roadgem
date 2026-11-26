@@ -551,8 +551,8 @@ export function TripResultsPage() {
             </p>
             <p className="mt-6 text-ink" style={{ fontWeight: 500 }}>{`${carForGroup(travellers).label} for ${travellers} ${travellers === 1 ? 'traveller' : 'travellers'}.`}</p>
             <div className="mt-16 grid gap-8">
-              {/* Travelpayouts partners: their tracked links open the home page, where the traveller enters the places and dates. */}
-              <a href={go('https://localrent.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
+              {/* Travelpayouts partners: the traveller enters the places and dates on their site. */}
+              <a href={go('https://localrent.com/en')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
               <a href={go('https://getrentacar.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">GetRentacar</a>
             </div>
           </Panel>

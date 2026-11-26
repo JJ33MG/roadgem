@@ -43,17 +43,19 @@ describe('partner links', () => {
   });
 });
 
-describe('Travelpayouts partners (Jarne, 26 Nov): their own tracked link until a deep link is set', () => {
-  it('sends a rental or eSIM click to the tracked Travelpayouts link', () => {
-    expect(partnerTarget('localrent', 'https://localrent.com/')).toBe('https://localrent.tp.st/OhHm6Uij');
-    expect(partnerTarget('getrentacar', 'https://getrentacar.com/')).toBe('https://getrentacar.tp.st/C7CqluG0');
-    expect(partnerTarget('airalo', 'https://www.airalo.com/')).toBe('https://airalo.tp.st/UEfImg7J');
+describe('Travelpayouts partners (Jarne, 26 Nov): every click carries the Routify marker and opens the exact page', () => {
+  const tp = (campaign: number, program: number, url: string) =>
+    `https://tp.media/r?campaign_id=${campaign}&marker=649342&p=${program}&trs=607287&u=${encodeURIComponent(url)}`;
+
+  it('opens the Tiqets page of tonight\'s town', () => {
+    expect(partnerTarget('tiqets', 'https://www.tiqets.com/en/search?q=Burgos')).toBe(tp(89, 2074, 'https://www.tiqets.com/en/search?q=Burgos'));
   });
 
-  it('uses the deep link (with the town page) once it is set', () => {
-    process.env.TIQETS_DEEPLINK = 'https://tp.media/r?u={url}';
-    expect(partnerTarget('tiqets', 'https://www.tiqets.com/en/search?q=Burgos')).toBe(`https://tp.media/r?u=${encodeURIComponent('https://www.tiqets.com/en/search?q=Burgos')}`);
-    delete process.env.TIQETS_DEEPLINK;
+  it('knows each programme number', () => {
+    expect(partnerTarget('localrent', 'https://localrent.com/en')).toBe(tp(87, 2043, 'https://localrent.com/en'));
+    expect(partnerTarget('getrentacar', 'https://getrentacar.com/')).toBe(tp(222, 5996, 'https://getrentacar.com/'));
+    expect(partnerTarget('airalo', 'https://www.airalo.com/')).toBe(tp(541, 8310, 'https://www.airalo.com/'));
+    expect(partnerTarget('klook', 'https://www.klook.com/')).toBe(tp(137, 4110, 'https://www.klook.com/'));
   });
 
   it('still refuses other websites', () => {

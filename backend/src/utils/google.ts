@@ -75,7 +75,9 @@ export async function searchText(query: string, key: string, opts: { europe?: bo
 /** All photo names of one place. */
 export async function placePhotos(id: string, key: string): Promise<string[]> {
   const res = await axios.get(`${PLACES}/places/${encodeURIComponent(id)}`, { headers: headers(key, 'photos'), timeout: 8000 });
-  return ((res.data?.photos ?? []) as { name?: string }[]).map((p) => p.name).filter((n): n is string => !!n);
+  const names = ((res.data?.photos ?? []) as { name?: string }[]).map((p) => p.name).filter((n): n is string => !!n);
+  if (!names.length) console.warn(`[google] no photos for ${id}: ${JSON.stringify(res.data).slice(0, 300)}`);
+  return names;
 }
 
 /** City suggestions while typing, Europe first. */

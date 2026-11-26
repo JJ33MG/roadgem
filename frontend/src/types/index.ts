@@ -306,6 +306,8 @@ export interface GeneratedTrip {
   hiddenGems: HiddenGem[];
   /** Gems held back from the free plan (the server sends the first three). */
   lockedGems?: number;
+  /** The viewer sees everything Plus gives on this trip (Plus, a Trip pass, or the preview). */
+  viewerPlus?: boolean;
   costs?: TripCosts | null;
   /** Handed out once when the trip is made: lets this browser change the plan later. */
   editKey?: string;

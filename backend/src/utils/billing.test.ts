@@ -80,3 +80,15 @@ describe('Stripe events', () => {
     expect(d.user.update.mock.calls[0][0].data.subscriptionExpires.toISOString()).toBe('2027-01-01T12:00:00.000Z');
   });
 });
+
+describe('hasPlus on the preview: everyone has Plus there (Jarne, 26 Nov: the preview shows everything)', () => {
+  it('opens Plus for every visitor, also without an account, only when PREVIEW_PLUS_FOR_ALL is true', () => {
+    process.env.PREVIEW_PLUS_FOR_ALL = 'true';
+    expect(hasPlus(null)).toBe(true);
+    expect(hasPlus({ subscriptionTier: 'free', subscriptionExpires: null })).toBe(true);
+    process.env.PREVIEW_PLUS_FOR_ALL = 'false';
+    expect(hasPlus(null)).toBe(false);
+    delete process.env.PREVIEW_PLUS_FOR_ALL;
+    expect(hasPlus({ subscriptionTier: 'free', subscriptionExpires: null })).toBe(false);
+  });
+});

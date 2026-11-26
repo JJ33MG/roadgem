@@ -113,13 +113,15 @@ export function TripResultsPage() {
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [staysOpen, setStaysOpen] = useState(false);
+  const [kindFilter, setKindFilter] = useState<string[]>([]);
+  const [whoFilter, setWhoFilter] = useState<string[]>([]);
   const [picked, setPicked] = useState<Record<number, AccommodationOption>>({});
   const { isPremium: hasPlus } = useSubscription();
   const [passBusy, setPassBusy] = useState(false);
   const [passError, setPassError] = useState<string | null>(null);
   const wide = useWide();
   // Plus, or a Trip pass bought for this trip: every gem, the cheapest route and the PDF.
-  const isPremium = hasPlus || trip?.planner?.pass === true;
+  const isPremium = hasPlus || trip?.planner?.pass === true || trip?.viewerPlus === true;
   usePageTitle(trip?.stops?.length ? `${town(trip.stops[0].location)} to ${town(trip.stops[trip.stops.length - 1].location) || trip.destination}` : trip?.destination);
   const contentRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
@@ -263,6 +265,10 @@ export function TripResultsPage() {
   // Only gems on this day's road; older trips whose gems have no coordinates show the first few.
   const placed = allGems.some((g) => g.latitude && g.longitude);
   const showGems = !gemsOn ? [] : perDay ? allGems.filter((g) => g.day === activeDay) : placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3);
+  // Plus: filter the day's gems by kind and by who they suit (OR inside a group, AND between groups).
+  const kindOptions = [...new Set(allGems.map((g) => g.category).filter((c) => GEM_KIND[c]))];
+  const whoOptions = [...new Set(allGems.flatMap((g) => g.audience ?? []).filter((a) => AUDIENCE[a]))];
+  const shownGems = showGems.filter((g) => (!kindFilter.length || kindFilter.includes(g.category)) && (!whoFilter.length || (g.audience ?? []).some((a) => whoFilter.includes(a))));
   const sleepTown = town(legTo?.location) || trip.destination;
   // Tonight's country: where the road of the leg into tonight's stop ends.
   const legIn = toIdx > 0 ? planner?.legs?.[toIdx - 1] : undefined;
@@ -441,8 +447,36 @@ export function TripResultsPage() {
               <DayBlock kind="gems" id="day-gems" title="Gems on the way" meta="Checked on Google">
                 {showGems.length > 0 && (
                   <div>
+                    {(kindOptions.length > 1 || whoOptions.length > 0) && (
+                      <div className="mb-16 grid gap-8" aria-label="Filter gems">
+                        <div className="flex flex-wrap gap-6">
+                          {[...kindOptions.map((k) => ['kind', k, GEM_KIND[k]] as const), ...whoOptions.map((a) => ['who', a, AUDIENCE[a]] as const)].map(([group, value, label]) => {
+                            const on = (group === 'kind' ? kindFilter : whoFilter).includes(value);
+                            return (
+                              <button
+                                key={`${group}-${value}`}
+                                type="button"
+                                aria-pressed={on}
+                                disabled={!isPremium}
+                                onClick={() => (group === 'kind' ? setKindFilter : setWhoFilter)((f) => (on ? f.filter((x) => x !== value) : [...f, value]))}
+                                className={`gem-filter ${on ? 'is-on' : ''}`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {!isPremium && <Link to="/pricing" className="text-[15px] text-ink">Filter gems with Plus</Link>}
+                      </div>
+                    )}
+                    {shownGems.length === 0 && (
+                      <p className="text-[16px] text-muted">
+                        No gems like that today.{' '}
+                        <button type="button" className="text-ink underline" onClick={() => { setKindFilter([]); setWhoFilter([]); }}>Clear filters</button>
+                      </p>
+                    )}
                     <ul className="grid gap-12 p-0 sm:grid-cols-2" style={{ listStyle: 'none' }}>
-                      {showGems.map((g) => (
+                      {shownGems.map((g) => (
                         <li key={g.placeId ?? g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
                           {g.photoUrl && (
                             <img src={g.photoUrl.startsWith('http') ? g.photoUrl : `${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />

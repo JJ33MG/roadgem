@@ -76,12 +76,45 @@ describe('TripResultsPage: each day in clear blocks (Jarne, 26 Nov: the day felt
   });
 });
 
+describe('TripResultsPage: filter gems by kind and who they suit (Plus, 26 Nov)', () => {
+  const withGems = (plus: boolean) => {
+    const t = trip({ ...base });
+    t.hiddenGems = [
+      { name: 'Beer Spa', description: 'x', address: 'x', latitude: 42.02, longitude: -3.75, category: 'experience', day: 1, audience: ['couples'] },
+      { name: 'Zoo Day', description: 'x', address: 'x', latitude: 42.03, longitude: -3.75, category: 'family', day: 1, audience: ['family'] },
+      { name: 'Ridge Walk', description: 'x', address: 'x', latitude: 42.04, longitude: -3.75, category: 'hike', day: 1 },
+    ] as never;
+    (t as { viewerPlus?: boolean }).viewerPlus = plus;
+    return t;
+  };
+
+  it('lets a Plus traveller show only the gems for couples, and clear it again', () => {
+    renderTrip(withGems(true));
+    const block = () => within(screen.getByRole('region', { name: 'Gems on the way' }));
+    fireEvent.click(block().getByRole('button', { name: 'Couples' }));
+    expect(block().getByRole('button', { name: 'Couples' })).toHaveAttribute('aria-pressed', 'true');
+    expect(block().getByText('Beer Spa')).toBeInTheDocument();
+    expect(block().queryByText('Zoo Day')).toBeNull();
+    fireEvent.click(block().getByRole('button', { name: 'Hike' }));
+    expect(block().getByText('No gems like that today.')).toBeInTheDocument();
+    fireEvent.click(block().getByRole('button', { name: 'Clear filters' }));
+    expect(block().getByText('Zoo Day')).toBeInTheDocument();
+  });
+
+  it('shows the filters to a free traveller as a Plus feature', () => {
+    renderTrip(withGems(false));
+    const block = within(screen.getByRole('region', { name: 'Gems on the way' }));
+    expect(block.getByRole('button', { name: 'Couples' })).toBeDisabled();
+    expect(block.getByRole('link', { name: 'Filter gems with Plus' })).toHaveAttribute('href', '/pricing');
+  });
+});
+
 describe('TripResultsPage: gems for every day (26 Nov)', () => {
   it('labels a gem with its kind and who it suits', () => {
     const t = trip({ ...base });
     t.hiddenGems = [{ name: 'Beer Spa Bernard', description: 'Bathe in warm beer', address: 'x', latitude: 42.02, longitude: -3.75, category: 'experience', day: 1, audience: ['couples', 'friends'] } as never];
     renderTrip(t);
-    const card = within(screen.getByRole('region', { name: 'Gems on the way' }));
+    const card = within(within(screen.getByRole('region', { name: 'Gems on the way' })).getByRole('listitem'));
     expect(card.getByText('Experience')).toBeInTheDocument();
     expect(card.getByText('Couples')).toBeInTheDocument();
     expect(card.getByText('Friends')).toBeInTheDocument();

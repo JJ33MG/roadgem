@@ -63,7 +63,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     } = parsed.value;
     const planner = { kmPerDay, gemsPerDay, gemsEnabled, stayTypes, filters, vehicle, travellers };
 
-    let isPremium = false;
+    let isPremium = hasPlus(null); // true only on the preview (PREVIEW_PLUS_FOR_ALL)
     if (req.userId) {
       const user = await prisma.user.findUnique({ where: { id: req.userId } });
       isPremium = hasPlus(user);
@@ -165,6 +165,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       highlights: tripData.highlights,
       tips: tripData.tips,
       weather,
+      viewerPlus: isPremium,
       ...gemsFor<(typeof hiddenGems)[number]>(hiddenGems, isPremium),
       planner: savedPlanner,
       costs: costsOfPlanner(savedPlanner),
@@ -324,6 +325,8 @@ async function readTrip(tripId: string, userId?: string) {
     planner,
     costs: costsOfPlanner(planner),
     yours: Boolean(trip.userId && userId && trip.userId === userId),
+    /** Whoever opens this trip sees everything Plus gives (Plus, a Trip pass, or the preview). */
+    viewerPlus: viewerIsPremium,
   };
 }
 

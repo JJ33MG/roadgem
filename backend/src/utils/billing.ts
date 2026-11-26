@@ -8,7 +8,11 @@ export const TRIP_PASS_CENTS = 499;
 const GRACE_DAYS = 3;
 
 /** Plus while the paid period runs, plus bonus days from invites (kept apart so a renewal does not wipe them). */
+/** Only on the preview (Railway variable on routify-preview, never on the live site): everyone has Plus. */
+export const previewPlusForAll = () => process.env.PREVIEW_PLUS_FOR_ALL === 'true';
+
 export function hasPlus(user: { subscriptionTier: string; subscriptionExpires: Date | null; plusBonusDays?: number | null } | null, now = new Date()): boolean {
+  if (previewPlusForAll()) return true;
   if (!user || user.subscriptionTier !== 'premium') return false;
   if (!user.subscriptionExpires) return true; // set by hand (testing): no end date
   const bonus = (user.plusBonusDays ?? 0) * 86_400_000;

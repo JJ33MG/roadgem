@@ -10,7 +10,7 @@ import { Button, Panel } from '@/components/ui';
 const FREE = [
   'A full trip: days, stays and the route',
   'Real costs per day: fuel, tolls and vignettes',
-  'Three checked gems per trip',
+  'The best checked gem of every day',
   'Change the plan: move a night, add a rest day',
   'The route in Google Maps in one tap',
   'Collect gems on the road in your trip passport',
@@ -20,6 +20,7 @@ const FREE = [
 const PASS = [
   'Everything in Free, for one trip',
   'Every gem on the route',
+  'Filter gems: hikes, food, experiences, for family, couples or friends',
   'The cheapest route, without toll roads',
   'A printable PDF of the trip',
   'Yours to keep, no subscription',
@@ -27,6 +28,7 @@ const PASS = [
 const PLUS = [
   'Unlimited trips',
   'Every gem on the route',
+  'Filter gems: hikes, food, experiences, for family, couples or friends',
   'The cheapest route, without toll roads',
   'A printable PDF of the trip',
   'Explorer gems: rare places travellers found',

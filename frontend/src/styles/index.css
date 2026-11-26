@@ -124,3 +124,6 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 .drive-line .link { width: 2px; height: 18px; background: var(--color-rule); justify-self: center; grid-column: 1; }
 .gem-chip { display: inline-block; font-size: 14px; font-weight: 500; padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-accent-soft); color: var(--color-accent); }
 .gem-chip-who { background: var(--color-paper-2); color: var(--color-ink-2); }
+.gem-filter { min-height: 40px; padding: 0 var(--space-sm); border-radius: var(--radius-pill); border: var(--rule-hair) solid var(--color-rule); background: var(--color-paper); color: var(--color-ink); font-size: 15px; font-weight: 500; }
+.gem-filter.is-on { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+.gem-filter:disabled { color: var(--color-muted); cursor: not-allowed; }

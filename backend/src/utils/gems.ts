@@ -3,6 +3,12 @@ export const FREE_GEMS = 3;
 
 export function gemsFor<T>(gems: T[], isPremium: boolean): { hiddenGems: T[]; lockedGems: number } {
   if (isPremium) return { hiddenGems: gems, lockedGems: 0 };
+  // Gems per day (since 26 Nov): the free plan shows the best gem of every day.
+  if (gems.some((g) => typeof (g as { day?: unknown }).day === 'number')) {
+    const seen = new Set<number>();
+    const free = gems.filter((g) => { const d = (g as { day?: number }).day ?? 0; if (seen.has(d)) return false; seen.add(d); return true; });
+    return { hiddenGems: free, lockedGems: gems.length - free.length };
+  }
   if (gems.length <= FREE_GEMS) return { hiddenGems: gems, lockedGems: 0 };
   // Gems come in route order: give one at the start, one in the middle and one near the end.
   const picks = [0, Math.floor((gems.length - 1) / 2), gems.length - 1];

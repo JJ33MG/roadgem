@@ -12,7 +12,8 @@ import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { generateLimit, limit } from '../middleware/limits';
 import { gemsFor } from '../utils/gems';
-import { findRouteGems, routeLine, type RoadLeg } from '../utils/routeGems';
+import { routeLine, type RoadLeg } from '../utils/routeGems';
+import { findDayGems, nightIndexes } from '../utils/dayGems';
 import { costsOfPlanner } from '../costs/costs';
 import { hasPlus, tripUnlocked } from '../utils/billing';
 import { candidatesAt, libraryDeps } from '../gems/library';
@@ -112,11 +113,13 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     }
 
     // At the same time: the toll-free road (when the fastest pays tolls; Plus can switch) and real
-    // gems along the road from the gem library (Google only for stretches not searched yet).
+    // gems for every day from the gem library (Google only for stretches not searched yet).
     const paysTolls = Boolean(costsOfPlanner(savedPlanner)?.legs.some((l) => l.tolls > 0));
     const [free, hiddenGems, weather] = await Promise.all([
       paysTolls ? routeLine(roadStops, { avoidTolls: true }).catch(() => null) : Promise.resolve(null),
-      gemsEnabled ? findRouteGems(road, Math.max(3, gemsPerDay * days), 2, gemSource).catch(() => []) : Promise.resolve([]),
+      gemsEnabled
+        ? findDayGems({ road, stops: roadStops, nights: nightIndexes(tripData.stops || [], tripData.overnights || [], days), perDay: Math.max(1, gemsPerDay), at: gemSource }).catch(() => [])
+        : Promise.resolve([]),
       weatherP,
     ]);
     if (free?.legs.length) savedPlanner.alt = { route: free.encoded, legs: free.legs, tollFree: true };

@@ -236,7 +236,9 @@ export function TripResultsPage() {
   const to = town(stops[stops.length - 1]?.location) || trip.destination;
   // The free plan shows three gems per trip (the server already holds the rest back).
   const hiddenIds = planner?.hiddenGems ?? [];
-  const allGems = (isPremium ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3)).filter((g) => !g.placeId || !hiddenIds.includes(g.placeId));
+  // Gems per day (since 26 Nov) come already chosen by the server for the plan; older trips: three for free.
+  const perDay = (trip.hiddenGems ?? []).some((g) => typeof g.day === 'number');
+  const allGems = (isPremium || perDay ? (trip.hiddenGems ?? []) : (trip.hiddenGems ?? []).slice(0, 3)).filter((g) => !g.placeId || !hiddenIds.includes(g.placeId));
   const lockedGems = isPremium ? 0 : (trip.lockedGems ?? Math.max(0, (trip.hiddenGems ?? []).length - 3));
   // Each gem belongs to the one day whose road passes closest to it.
   const dayCount = trip.days || (trip.itinerary ?? []).length || 1;
@@ -255,7 +257,7 @@ export function TripResultsPage() {
   const legGems = gemsOn && onRoad ? gemsForLeg(allGems, legFrom, legTo).filter((g) => dayOfGem(g) === activeDay) : [];
   // Only gems on this day's road; older trips whose gems have no coordinates show the first few.
   const placed = allGems.some((g) => g.latitude && g.longitude);
-  const showGems = gemsOn ? (placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3)) : [];
+  const showGems = !gemsOn ? [] : perDay ? allGems.filter((g) => g.day === activeDay) : placed ? legGems : allGems.slice(0, planner?.gemsPerDay ?? 3);
   const sleepTown = town(legTo?.location) || trip.destination;
   // Tonight's country: where the road of the leg into tonight's stop ends.
   const legIn = toIdx > 0 ? planner?.legs?.[toIdx - 1] : undefined;

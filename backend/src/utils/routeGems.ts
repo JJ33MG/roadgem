@@ -19,6 +19,8 @@ export interface PlaceCandidate {
 }
 
 export interface RouteGem {
+  /** The trip day this gem belongs to (since 26 Nov). */
+  day?: number;
   name: string;
   description: string;
   address: string;
@@ -38,7 +40,11 @@ const MAX_REVIEWS = 15000; // more than this is a famous sight, not a gem
 const ALLOWED = new Set([
   'tourist_attraction', 'park', 'museum', 'natural_feature', 'church', 'place_of_worship', 'art_gallery',
   'zoo', 'aquarium', 'campground', 'library', 'town_square',
+  // Places (New) kinds (26 Nov: more than sights: views, hikes, nature, days out)
+  'national_park', 'hiking_area', 'historical_landmark', 'observation_deck', 'botanical_garden', 'beach', 'amusement_park',
 ]);
+/** What Routify asks Google for along the road: sights, views, hikes, nature and days out. */
+export const GEM_TYPES = ['tourist_attraction', 'park', 'national_park', 'hiking_area', 'museum', 'historical_landmark', 'observation_deck', 'botanical_garden', 'beach', 'zoo', 'aquarium', 'amusement_park'];
 const BLOCKED = new Set(['lodging', 'gas_station', 'car_rental', 'store', 'shopping_mall', 'supermarket', 'travel_agency', 'parking', 'bank', 'real_estate_agency']);
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -134,6 +140,8 @@ export function pickGems(cands: PlaceCandidate[], limit: number): PlaceCandidate
 }
 
 const CATEGORY: [string, string][] = [
+  ['hiking_area', 'hike'], ['national_park', 'nature'], ['observation_deck', 'viewpoint'], ['beach', 'nature'], ['botanical_garden', 'nature'],
+  ['amusement_park', 'family'], ['zoo', 'family'], ['aquarium', 'family'], ['historical_landmark', 'historic'],
   ['natural_feature', 'nature'], ['park', 'nature'], ['campground', 'nature'], ['museum', 'culture'],
   ['art_gallery', 'culture'], ['church', 'historic'], ['place_of_worship', 'historic'], ['tourist_attraction', 'viewpoint'],
 ];
@@ -147,7 +155,8 @@ export function toGem(c: PlaceCandidate): RouteGem {
     latitude: c.lat,
     longitude: c.lng,
     category: categoryOf(c.types),
-    photoUrl: c.photoRef ? `/api/photos/image/${encodeURIComponent(c.photoRef)}` : undefined,
+    // New photo names stream directly; older saved references are looked up again by place (Places New).
+    photoUrl: c.photoRef?.startsWith('places/') ? `/api/photos/image/${encodeURIComponent(c.photoRef)}` : c.photoRef ? `/api/photos/place/${encodeURIComponent(c.placeId)}` : undefined,
     placeId: c.placeId,
     rating: c.rating,
     reviews: c.reviews,
@@ -162,7 +171,7 @@ async function nearby(p: LatLng, key: string): Promise<PlaceCandidate[]> {
   const cacheKey = `${p.lat.toFixed(2)},${p.lng.toFixed(2)}`;
   const hit = nearbyCache.get(cacheKey);
   if (hit && Date.now() - hit.at < 7 * DAY_MS) return hit.cands;
-  const cands: PlaceCandidate[] = (await searchNearby(p, 15000, ['tourist_attraction'], key))
+  const cands: PlaceCandidate[] = (await searchNearby(p, 15000, GEM_TYPES, key))
     .filter((r) => r.open)
     .map((r) => ({ placeId: r.id, name: r.name, rating: r.rating, reviews: r.reviews, address: r.address, lat: r.lat, lng: r.lng, types: r.types, photoRef: r.photo }));
   // Never cache an empty answer (project rule).

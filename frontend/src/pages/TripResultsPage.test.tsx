@@ -76,6 +76,22 @@ describe('TripResultsPage: each day in clear blocks (Jarne, 26 Nov: the day felt
   });
 });
 
+describe('TripResultsPage: gems for every day (26 Nov)', () => {
+  it('shows the gems the server gave each day, also on a day spent in one town', () => {
+    const t = trip({ ...base, overnights: ['Burgos', 'Burgos'] } as never);
+    t.hiddenGems = [
+      { name: 'Road gem', description: 'x', address: 'x', latitude: 41, longitude: -3.7, category: 'nature', day: 1 } as never,
+      { name: 'Town gem', description: 'x', address: 'x', latitude: 42.34, longitude: -3.7, category: 'historic', day: 2 } as never,
+    ];
+    renderTrip(t);
+    const gems = () => screen.queryByRole('region', { name: 'Gems on the way' });
+    expect(within(gems()!).getByText('Road gem')).toBeInTheDocument();
+    expect(within(gems()!).queryByText('Town gem')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Day 2' }));
+    expect(within(gems()!).getByText('Town gem')).toBeInTheDocument();
+  });
+});
+
 describe('TripResultsPage', () => {
   it('hides a gem photo that fails to load instead of showing a broken image', () => {
     const t = trip({ ...base });

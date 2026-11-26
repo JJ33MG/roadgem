@@ -205,6 +205,8 @@ export interface GeneratedWeatherDay {
 }
 
 export interface HiddenGem {
+  /** The trip day this gem belongs to (trips planned since 26 Nov). */
+  day?: number;
   name: string;
   description: string;
   address: string;

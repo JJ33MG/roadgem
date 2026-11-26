@@ -14,6 +14,7 @@ import { generateLimit, limit } from '../middleware/limits';
 import { gemsFor } from '../utils/gems';
 import { routeLine, type RoadLeg } from '../utils/routeGems';
 import { findDayGems, nightIndexes } from '../utils/dayGems';
+import { commonsPhotoNear } from '../utils/commonsPhoto';
 import { costsOfPlanner } from '../costs/costs';
 import { hasPlus, tripUnlocked } from '../utils/billing';
 import { candidatesAt, libraryDeps } from '../gems/library';
@@ -118,7 +119,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     const [free, hiddenGems, weather] = await Promise.all([
       paysTolls ? routeLine(roadStops, { avoidTolls: true }).catch(() => null) : Promise.resolve(null),
       gemsEnabled
-        ? findDayGems({ road, stops: roadStops, nights: nightIndexes(tripData.stops || [], tripData.overnights || [], days), perDay: Math.max(1, gemsPerDay), at: gemSource }).catch(() => [])
+        ? findDayGems({ road, stops: roadStops, nights: nightIndexes(tripData.stops || [], tripData.overnights || [], days), perDay: Math.max(1, gemsPerDay), at: gemSource, photo: (c) => commonsPhotoNear(c.lat, c.lng, c.name) }).catch(() => [])
         : Promise.resolve([]),
       weatherP,
     ]);

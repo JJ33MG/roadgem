@@ -19,7 +19,7 @@ const nearest = (line: LatLng[], p: LatLng) => line.reduce((best, q, i) => (kmBe
 /** Points around a town (the town and four about 10 km away), for a day spent there. */
 const around = (p: LatLng): LatLng[] => [p, { lat: p.lat + 0.09, lng: p.lng }, { lat: p.lat - 0.09, lng: p.lng }, { lat: p.lat, lng: p.lng + 0.13 }, { lat: p.lat, lng: p.lng - 0.13 }];
 
-type DayGem = RouteGem & { day: number };
+type DayGem = RouteGem & { day: number; photoCredit?: string };
 
 export async function findDayGems(o: {
   road: RoadLine;
@@ -28,7 +28,14 @@ export async function findDayGems(o: {
   nights: number[];
   perDay: number;
   at: (p: LatLng) => Promise<PlaceCandidate[]>;
+  /** A photo for a place Google gave none for (Wikimedia Commons); null when there is none. */
+  photo?: (c: PlaceCandidate) => Promise<string | null>;
 }): Promise<DayGem[]> {
+  const photoOf = async (c: PlaceCandidate): Promise<{ photoUrl?: string; photoCredit?: string } | null> => {
+    if (c.photoRef?.startsWith('places/')) return { photoUrl: toGem(c).photoUrl };
+    const url = (await o.photo?.(c).catch(() => null)) ?? null;
+    return url ? { photoUrl: url, photoCredit: 'Wikimedia Commons' } : null;
+  };
   const used = new Set<string>();
   const out: DayGem[] = [];
   const line = o.road.points.length > 1 ? o.road.points : o.stops;
@@ -46,16 +53,18 @@ export async function findDayGems(o: {
       points = samplePoints(segment, 40, 8);
     }
     const found = (await Promise.all(points.map((p) => o.at(p).catch(() => [] as PlaceCandidate[])))).flat();
-    const fresh = found.filter((c) => c.photoRef && !used.has(c.placeId));
-    // Close to the road (or the town) first; wider when that gives too few.
-    let picks = pickGems(nearLine(fresh, segment, driving ? 15 : 20), o.perDay);
-    if (picks.length < o.perDay) {
-      const more = pickGems(nearLine(fresh, segment, 35).filter((c) => !picks.some((p) => p.placeId === c.placeId)), o.perDay - picks.length);
-      picks = [...picks, ...more];
-    }
-    for (const c of picks) {
+    const fresh = found.filter((c) => !used.has(c.placeId));
+    // Close to the road (or the town) first, then wider; each needs a photo (Google's, else Commons).
+    const ranked = [...pickGems(nearLine(fresh, segment, driving ? 15 : 20), o.perDay * 4), ...pickGems(nearLine(fresh, segment, 35), o.perDay * 4)];
+    let taken = 0;
+    for (const c of ranked) {
+      if (taken >= o.perDay) break;
+      if (used.has(c.placeId)) continue;
+      const pic = await photoOf(c);
+      if (!pic) continue;
       used.add(c.placeId);
-      out.push({ ...toGem(c), day: d });
+      out.push({ ...toGem(c), ...pic, day: d });
+      taken++;
     }
   }
   return out;

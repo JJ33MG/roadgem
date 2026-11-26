@@ -207,6 +207,8 @@ export interface GeneratedWeatherDay {
 export interface HiddenGem {
   /** The trip day this gem belongs to (trips planned since 26 Nov). */
   day?: number;
+  /** Where the photo comes from when it is not Google's ("Wikimedia Commons"). */
+  photoCredit?: string;
   name: string;
   description: string;
   address: string;

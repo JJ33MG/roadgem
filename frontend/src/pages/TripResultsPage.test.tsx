@@ -77,6 +77,14 @@ describe('TripResultsPage: each day in clear blocks (Jarne, 26 Nov: the day felt
 });
 
 describe('TripResultsPage: gems for every day (26 Nov)', () => {
+  it('shows a Wikimedia photo as it is, with its credit', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = [{ name: 'Lerma', description: 'x', address: 'x', latitude: 42.02, longitude: -3.75, category: 'historic', day: 1, photoUrl: 'https://upload.wikimedia.org/l.jpg', photoCredit: 'Wikimedia Commons' } as never];
+    renderTrip(t);
+    expect(screen.getByRole('img', { name: 'Lerma' })).toHaveAttribute('src', 'https://upload.wikimedia.org/l.jpg');
+    expect(screen.getByText('Photo: Wikimedia Commons')).toBeInTheDocument();
+  });
+
   it('shows the gems the server gave each day, also on a day spent in one town', () => {
     const t = trip({ ...base, overnights: ['Burgos', 'Burgos'] } as never);
     t.hiddenGems = [

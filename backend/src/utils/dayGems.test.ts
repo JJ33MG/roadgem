@@ -37,9 +37,16 @@ describe('findDayGems', () => {
   });
 
   it('never picks a place without a photo', async () => {
-    const gems = await findDayGems({ road, stops, nights: [1, 1], perDay: 5, at });
+    const gems = await findDayGems({ road, stops, nights: [1, 1], perDay: 5, at, photo: async () => null });
     expect(gems.some((g) => g.placeId === 'nophoto')).toBe(false);
     expect(gems.every((g) => g.photoUrl)).toBe(true);
+  });
+
+  it('finds a photo elsewhere (Wikimedia Commons) when Google has none, and credits it', async () => {
+    const gems = await findDayGems({ road, stops, nights: [1, 1], perDay: 5, at, photo: async (c) => (c.placeId === 'nophoto' ? 'https://upload.wikimedia.org/x.jpg' : null) });
+    const g = gems.find((x) => x.placeId === 'nophoto')!;
+    expect(g.photoUrl).toBe('https://upload.wikimedia.org/x.jpg');
+    expect(g.photoCredit).toBe('Wikimedia Commons');
   });
 });
 

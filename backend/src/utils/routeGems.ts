@@ -117,23 +117,24 @@ export function samplePoints(line: LatLng[], everyKm = 75, cap = 16): LatLng[] {
 
 /** Proven but quiet places, best first, one per place, at most `limit`. */
 /** A real, proven but quiet place of a kind worth a stop. */
-export function qualifies(c: PlaceCandidate): boolean {
+export function qualifies(c: PlaceCandidate, allowFamous = false): boolean {
   return (
     c.rating >= MIN_RATING &&
     c.reviews >= MIN_REVIEWS &&
-    c.reviews <= MAX_REVIEWS &&
+    (allowFamous || c.reviews <= MAX_REVIEWS) &&
     c.types.some((t) => ALLOWED.has(t)) &&
     !c.types.some((t) => BLOCKED.has(t))
   );
 }
 
-export function pickGems(cands: PlaceCandidate[], limit: number): PlaceCandidate[] {
+/** `allowFamous`: on a day spent in one town its famous sights count too (Prague, 26 Nov). */
+export function pickGems(cands: PlaceCandidate[], limit: number, allowFamous = false): PlaceCandidate[] {
   const seen = new Set<string>();
   return cands
     .filter((c) => {
       if (seen.has(c.placeId)) return false;
       seen.add(c.placeId);
-      return qualifies(c);
+      return qualifies(c, allowFamous);
     })
     .sort((a, b) => Math.round(b.rating * 10) - Math.round(a.rating * 10) || b.reviews - a.reviews)
     .slice(0, limit);

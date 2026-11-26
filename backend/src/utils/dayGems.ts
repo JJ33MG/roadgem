@@ -55,7 +55,7 @@ export async function findDayGems(o: {
     const found = (await Promise.all(points.map((p) => o.at(p).catch(() => [] as PlaceCandidate[])))).flat();
     const fresh = found.filter((c) => !used.has(c.placeId));
     // Close to the road (or the town) first, then wider; each needs a photo (Google's, else Commons).
-    const ranked = [...pickGems(nearLine(fresh, segment, driving ? 15 : 20), o.perDay * 4), ...pickGems(nearLine(fresh, segment, 35), o.perDay * 4)];
+    const ranked = [...pickGems(nearLine(fresh, segment, driving ? 15 : 20), o.perDay * 4, !driving), ...pickGems(nearLine(fresh, segment, 35), o.perDay * 4, !driving)];
     let taken = 0;
     for (const c of ranked) {
       if (taken >= o.perDay) break;

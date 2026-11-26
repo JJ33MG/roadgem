@@ -50,6 +50,15 @@ describe('findDayGems', () => {
   });
 });
 
+describe('findDayGems on a day spent in a big city', () => {
+  it('lets the famous sights of that town count (a road gem must stay quiet)', async () => {
+    const famous = { ...place('castle', 49.2, 16.61), reviews: 60000 };
+    const stops = [{ lat: 49.2, lng: 16.6 }, { lat: 49.2, lng: 16.6 }];
+    const gems = await findDayGems({ road: { points: [], encoded: '', legs: [] }, stops, nights: [1], perDay: 1, at: async () => [famous] });
+    expect(gems.map((g) => g.placeId)).toEqual(['castle']);
+  });
+});
+
 describe('gemsFor with gems per day: the free plan shows the best gem of every day', () => {
   it('keeps one gem per day for free and counts the rest as locked', () => {
     const g = [{ day: 1, n: 'a' }, { day: 1, n: 'b' }, { day: 2, n: 'c' }, { day: 3, n: 'd' }, { day: 3, n: 'e' }];

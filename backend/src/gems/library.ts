@@ -24,7 +24,8 @@ export async function candidatesAt(deps: LibraryDeps, p: LatLng, source: 'trip' 
   const cell = cellOf(p);
   if (await deps.searched(cell)) return { cands: await deps.near(p, RADIUS_KM), calledGoogle: false };
   const found = await deps.google(p);
-  const keep = found.filter(qualifies);
+  // Famous places too: a day spent in a town may show them (road gems still skip them when picking).
+  const keep = found.filter((c) => qualifies(c, true));
   if (keep.length) await deps.save(keep);
   // Marked even when empty (sea, mountains); a Google error throws above and leaves the cell for later.
   await deps.markSearched(cell, source, keep.length);

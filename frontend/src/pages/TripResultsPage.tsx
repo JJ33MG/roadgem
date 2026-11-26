@@ -395,7 +395,7 @@ export function TripResultsPage() {
               {onRoad ? `${town(legFrom?.location)} to ${sleepTown}` : `A day in ${sleepTown}`}
             </h2>
             <div className="day-glance" role="region" aria-label={`Day ${activeDay} at a glance`}>
-              <div><span className="day-glance-k">Drive</span><span className="day-glance-v">{onRoad && dayKm > 0 ? `${Math.round(dayKm).toLocaleString('en')} km` : 'No long drive'}</span></div>
+              <div><span className="day-glance-k">Drive</span><span className="day-glance-v">{!onRoad ? 'No long drive' : dayKm > 0 ? `${Math.round(dayKm).toLocaleString('en')} km` : '–'}</span></div>
               <div><span className="day-glance-k">Time</span><span className="day-glance-v">{onRoad && dayHours > 0 ? hoursLabel(dayHours) : '–'}</span></div>
               <div><span className="day-glance-k">Weather</span><span className="day-glance-v">{weather ? `${Math.round(weather.temp)}°, ${weather.condition}` : '–'}</span></div>
               <div><span className="day-glance-k">Cost today</span><span className="day-glance-v">{costToday !== null ? euros(costToday) : '–'}</span></div>
@@ -494,7 +494,7 @@ export function TripResultsPage() {
                   <div>
                     <ol className="p-0" style={{ listStyle: 'none' }}>
                       {(['morning', 'afternoon', 'evening'] as const).filter((s) => day[s]).map((s) => (
-                        <li key={s} className="grid grid-cols-[96px_minmax(0,1fr)] gap-16 border-t border-rule py-16">
+                        <li key={s} className="grid grid-cols-[96px_minmax(0,1fr)] gap-16 border-t border-rule py-16 first:border-t-0 first:pt-0">
                           <span className="text-[16px] text-muted">{day[s].time || s}</span>
                           <span>
                             <span className="block text-ink" style={{ fontWeight: 500 }}>{day[s].activity}</span>

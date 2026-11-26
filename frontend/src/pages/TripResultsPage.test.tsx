@@ -301,7 +301,24 @@ describe('TripResultsPage booking clicks', () => {
     expect(panel).toHaveTextContent('Pick up in Madrid on 4 June, drop off in Brussels on 6 June.');
     expect(panel).toHaveTextContent('A 7-seater');
     const compare = screen.getByRole('link', { name: 'Compare cars' }).getAttribute('href')!;
-    expect(compare).toMatch(/\/track\/go\/discovercars\?/);
+    expect(compare).toMatch(/\/track\/go\/localrent\?/);
+    expect(screen.getByRole('link', { name: 'GetRentacar' }).getAttribute('href')).toMatch(/\/track\/go\/getrentacar\?/);
+  });
+
+  it('offers tickets for the sights through Tiqets', () => {
+    renderTrip(trip({ ...base }));
+    expect(screen.getByRole('link', { name: 'Tickets for sights in Burgos' }).getAttribute('href')).toMatch(/\/track\/go\/tiqets\?/);
+  });
+
+  it('suggests mobile data only when the road leaves free EU roaming', () => {
+    const legs = (codes: string[]) => codes.map((code) => ({ km: 300, hours: 3, countries: [{ code, km: 300 }] }));
+    const { unmount } = renderTrip(trip({ ...base, legs: legs(['ES', 'FR']) }));
+    expect(screen.queryByRole('heading', { name: 'Mobile data' })).not.toBeInTheDocument();
+    unmount();
+    renderTrip(trip({ ...base, legs: legs(['FR', 'CH']) }));
+    expect(screen.getByRole('heading', { name: 'Mobile data' })).toBeInTheDocument();
+    expect(screen.getByText(/Switzerland/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'eSIM from Airalo' }).getAttribute('href')).toMatch(/\/track\/go\/airalo\?/);
   });
 
   it('books the last nights of a trip in the same town as one stay too', () => {

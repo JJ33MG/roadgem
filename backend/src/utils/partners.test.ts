@@ -42,3 +42,21 @@ describe('partner links', () => {
     expect(partnerTarget('nobody', 'https://www.booking.com/')).toBeNull();
   });
 });
+
+describe('Travelpayouts partners (Jarne, 26 Nov): their own tracked link until a deep link is set', () => {
+  it('sends a rental or eSIM click to the tracked Travelpayouts link', () => {
+    expect(partnerTarget('localrent', 'https://localrent.com/')).toBe('https://localrent.tp.st/OhHm6Uij');
+    expect(partnerTarget('getrentacar', 'https://getrentacar.com/')).toBe('https://getrentacar.tp.st/C7CqluG0');
+    expect(partnerTarget('airalo', 'https://www.airalo.com/')).toBe('https://airalo.tp.st/UEfImg7J');
+  });
+
+  it('uses the deep link (with the town page) once it is set', () => {
+    process.env.TIQETS_DEEPLINK = 'https://tp.media/r?u={url}';
+    expect(partnerTarget('tiqets', 'https://www.tiqets.com/en/search?q=Burgos')).toBe(`https://tp.media/r?u=${encodeURIComponent('https://www.tiqets.com/en/search?q=Burgos')}`);
+    delete process.env.TIQETS_DEEPLINK;
+  });
+
+  it('still refuses other websites', () => {
+    expect(partnerTarget('klook', 'https://evil.example/')).toBeNull();
+  });
+});

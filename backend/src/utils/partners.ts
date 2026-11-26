@@ -8,6 +8,8 @@ type Partner = {
   param?: { env: string; name: string };
   /** Or wraps the link in the network's deep link, with {url} for the target (default name <PARTNER>_DEEPLINK). */
   deeplinkEnv?: string;
+  /** Or, until a deep link is set, the partner's own tracked link (Travelpayouts short link: its home page). */
+  link?: string;
 };
 
 export const PARTNERS: Record<string, Partner> = {
@@ -22,6 +24,12 @@ export const PARTNERS: Record<string, Partner> = {
   // DiscoverCars' own programme: the username is the affiliate id, sent as a_aid.
   discovercars: { hosts: ['discovercars.com'], param: { env: 'DISCOVERCARS_AFFILIATE_ID', name: 'a_aid' } },
   airbnb: { hosts: ['airbnb.com'] },
+  // Travelpayouts (approved 26 Nov). Short links land on the home page; TIQETS_DEEPLINK etc. adds the town page.
+  tiqets: { hosts: ['tiqets.com'], link: 'https://tiqets.tp.st/kodpfFz2' },
+  klook: { hosts: ['klook.com'], link: 'https://klook.tp.st/EF7WH2wH' },
+  localrent: { hosts: ['localrent.com'], link: 'https://localrent.tp.st/OhHm6Uij' },
+  getrentacar: { hosts: ['getrentacar.com'], link: 'https://getrentacar.tp.st/C7CqluG0' },
+  airalo: { hosts: ['airalo.com'], link: 'https://airalo.tp.st/UEfImg7J' },
 };
 
 const onHost = (url: URL, hosts: string[]) => url.protocol === 'https:' && hosts.some((h) => url.hostname === h || url.hostname.endsWith(`.${h}`));
@@ -41,5 +49,5 @@ export function partnerTarget(partner: string, target: string): string | null {
   // Every partner may also come through a network (CJ, Awin, Travelpayouts, Stay22): <PARTNER>_DEEPLINK.
   const deeplink = process.env[p.deeplinkEnv ?? `${partner.toUpperCase()}_DEEPLINK`];
   if (deeplink && deeplink.includes('{url}')) return deeplink.replace('{url}', encodeURIComponent(url.toString()));
-  return url.toString();
+  return p.link ?? url.toString();
 }

@@ -24,6 +24,7 @@ import { carForGroup } from '@/lib/cars';
 import { OnTheRoad } from '@/components/trip/OnTheRoad';
 import { ExplorerGems } from '@/components/trip/ExplorerGems';
 import { ShareTrip } from '@/components/trip/ShareTrip';
+import { outsideRoaming } from '@/lib/roaming';
 import { editKeyFor, retryDays, sendEdit, type TripEdit } from '@/lib/tripEdits';
 import type { AccommodationOption, AccommodationType, GeneratedTrip, HiddenGem } from '@/types';
 import { MapBoundary } from '@/components/map/MapBoundary';
@@ -41,10 +42,6 @@ export function stayUrl(type: StayType, place: string, checkin?: string, checkou
   const p = new URLSearchParams({ ss: place, group_adults: String(adults), no_rooms: String(Math.ceil(adults / 2)), group_children: '0', ...(checkin ? { checkin } : {}), ...(checkout ? { checkout } : {}) });
   if (type === 'campsite') p.set('nflt', 'ht_id=214');
   return `https://www.booking.com/searchresults.html?${p}`;
-}
-
-function rentalUrl(pickup: string, dropoff: string, from: string, to: string) {
-  return `https://www.rentalcars.com/en/?pickup-location=${encodeURIComponent(pickup)}&dropoff-location=${encodeURIComponent(dropoff)}&pickup-date=${from}&dropoff-date=${to}`;
 }
 
 /** Gems near one day's leg: inside the leg's box (with a little margin), else none. */
@@ -284,10 +281,9 @@ export function TripResultsPage() {
   const tripMap = trip.tripId ? (
     <TripMapImage tripId={trip.tripId} from={fromIdx} to={toIdx} version={mapVersion} href={mapsUrl} fallback={globe} />
   ) : globe;
-  const endStr = trip.endDate ? format(new Date(trip.endDate), 'yyyy-MM-dd') : '';
-  const startStr = start ? format(start, 'yyyy-MM-dd') : '';
 
   const go = (href: string) => goLink(href, trip!.tripId);
+  const roamingOut = outsideRoaming(planner?.legs);
 
   async function buyPass() {
     setPassBusy(true);
@@ -462,6 +458,9 @@ export function TripResultsPage() {
             <a href={go(`https://www.getyourguide.com/s/?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-16 inline-block text-[17px] text-ink">
               {`Things to do in ${sleepTown}`}
             </a>
+            <a href={go(`https://www.tiqets.com/en/search?q=${encodeURIComponent(sleepTown)}`)} target="_blank" rel="noopener noreferrer sponsored" className="mt-8 block text-[17px] text-ink">
+              {`Tickets for sights in ${sleepTown}`}
+            </a>
 
             {trip.costs && (
               <DayCosts
@@ -552,13 +551,18 @@ export function TripResultsPage() {
             </p>
             <p className="mt-6 text-ink" style={{ fontWeight: 500 }}>{`${carForGroup(travellers).label} for ${travellers} ${travellers === 1 ? 'traveller' : 'travellers'}.`}</p>
             <div className="mt-16 grid gap-8">
-              {/* DiscoverCars' date parameters are only in its affiliate panel: the town page for now. */}
-              <a href={go('https://www.discovercars.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
-              <a href={go(rentalUrl(stops[0]?.location ?? from, stops[stops.length - 1]?.location ?? to, startStr, endStr))} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">
-                Rentalcars.com
-              </a>
+              {/* Travelpayouts partners: their tracked links open the home page, where the traveller enters the places and dates. */}
+              <a href={go('https://localrent.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-primary w-full no-underline">Compare cars</a>
+              <a href={go('https://getrentacar.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-header w-full no-underline">GetRentacar</a>
             </div>
           </Panel>
+          )}
+          {roamingOut.length > 0 && (
+            <Panel>
+              <h3 className="font-display text-[24px] text-ink" style={head}>Mobile data</h3>
+              <p className="mt-6">{`EU roaming does not cover ${roamingOut.join(', ')}. Data there can cost extra on a plan from home; a travel eSIM is often cheaper.`}</p>
+              <a href={go('https://www.airalo.com/')} target="_blank" rel="noopener noreferrer sponsored" className="btn-header mt-16 w-full no-underline">eSIM from Airalo</a>
+            </Panel>
           )}
           {trip.tripId && <ExplorerGems tripId={trip.tripId} />}
           {gemsOn && !isPremium && (

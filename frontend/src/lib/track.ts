@@ -12,6 +12,11 @@ const PARTNERS: [RegExp, string][] = [
   [/roadsurfer\.com/, 'roadsurfer'],
   [/indiecampers\.com/, 'indiecampers'],
   [/discovercars\.com/, 'discovercars'],
+  [/tiqets\.com/, 'tiqets'],
+  [/klook\.com/, 'klook'],
+  [/localrent\.com/, 'localrent'],
+  [/getrentacar\.com/, 'getrentacar'],
+  [/airalo\.com/, 'airalo'],
 ];
 
 /** The affiliate partner behind a link, or null for other links. */

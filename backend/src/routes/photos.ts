@@ -31,6 +31,12 @@ router.get('/image/:photoReference', async (req: Request, res: Response, next: N
     res.set('Cache-Control', 'public, max-age=86400');
     response.data.pipe(res);
   } catch (err) {
+    // Google refusing one photo (expired reference, key without permission) is not a server error: no photo.
+    const status = (err as { response?: { status?: number } }).response?.status;
+    if (status && status >= 400 && status < 500) {
+      console.warn(`[photos] Google answered ${status} for a photo`);
+      return res.status(404).json({ error: 'Photo not available' });
+    }
     next(err);
   }
 });

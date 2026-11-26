@@ -30,3 +30,23 @@ describe('server errors the Brain reports', () => {
     expect(r.lastError!.at).toBe(new Date(t - 3_600_000).toISOString());
   });
 });
+
+import { logLine } from './errors';
+
+describe('logLine: server logs never carry an API key (an Axios error printed the Google key, 26 Nov)', () => {
+  it('keeps the message and the upstream status, without the key', () => {
+    const err = Object.assign(new Error('Request failed with status code 403'), {
+      isAxiosError: true,
+      config: { url: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=abc&key=AIzaSECRET123' },
+      response: { status: 403 },
+    });
+    const line = logLine(err);
+    expect(line).toContain('403');
+    expect(line).toContain('maps.googleapis.com/maps/api/place/photo');
+    expect(line).not.toContain('AIzaSECRET123');
+  });
+
+  it('redacts keys in plain error messages too', () => {
+    expect(logLine(new Error('bad url ...&key=AIzaXYZ&x=1'))).not.toContain('AIzaXYZ');
+  });
+});

@@ -29,6 +29,7 @@ export function AccommodationCard({ accommodation, selected, onSelect }: Accommo
           alt={accommodation.name}
           loading="lazy"
           className="h-[100px] w-full object-cover"
+          onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
         />
       ) : (
         <div aria-hidden className="h-[100px] w-full bg-gradient-to-br from-mercury-blue/30 via-plum/20 to-deep-space" />

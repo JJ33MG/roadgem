@@ -20,7 +20,7 @@ const HOUR = 60 * 60_000;
 import path from 'path';
 import { routeRouter } from './routes/route';
 import playRouter from './routes/play';
-import { errorHandler } from './middleware/errors';
+import { errorHandler, logLine } from './middleware/errors';
 
 dotenv.config();
 
@@ -100,7 +100,7 @@ app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 
   // Fill the gem library in the background when a seeding budget is set (GEM_SEED_BUDGET).
-  import('./gems/seedRun').then((m) => m.runGemSeed()).catch((err) => console.error('[gems] seed failed:', err));
+  import('./gems/seedRun').then((m) => m.runGemSeed()).catch((err) => console.error('[gems] seed failed:', logLine(err)));
 
   // Start agent scheduler (only when Redis is available)
   if (process.env.REDIS_URL) {

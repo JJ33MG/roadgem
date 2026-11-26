@@ -2,6 +2,7 @@ import { Router, Response, NextFunction } from 'express';
 import { generateTripDay, generateTripSkeleton } from '../utils/claude';
 import { editKeyMatches } from '../utils/edits';
 import { planningState } from '../utils/dayByDay';
+import { logLine } from '../middleware/errors';
 import { missingDays } from '../utils/dayByDay';
 import { calculateRoute } from '../utils/googleMaps';
 import { getWeather } from '../utils/weather';
@@ -143,7 +144,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       },
     });
     // The days are written now, after the answer: the page shows each one as it arrives.
-    void fillDays(saved.id).catch((err) => console.error('[generate] fillDays', err));
+    void fillDays(saved.id).catch((err) => console.error('[generate] fillDays', logLine(err)));
 
     const trip = {
       tripId: saved.id,
@@ -211,7 +212,7 @@ export async function fillDays(tripId: string): Promise<void> {
           },
         });
       } catch (err) {
-        console.error(`[fillDays] trip ${tripId} day ${d}`, err);
+        console.error(`[fillDays] trip ${tripId} day ${d}`, logLine(err));
         failed.push(d);
       }
     }
@@ -292,7 +293,7 @@ router.post('/:tripId/days/retry', optionalAuth, async (req: AuthRequest, res: R
     // A plan still being written (less than 5 minutes old) is left alone.
     if (planner.planning === true && Date.now() - trip.createdAt.getTime() < 5 * 60_000) return res.status(409).json({ error: 'Still writing your days.' });
     await prisma.trip.update({ where: { id: trip.id }, data: { planner: JSON.stringify({ ...planner, planning: true, failedDays: [] }) } });
-    void fillDays(trip.id).catch((err) => console.error('[retry] fillDays', err));
+    void fillDays(trip.id).catch((err) => console.error('[retry] fillDays', logLine(err)));
     res.json({ ok: true });
   } catch (err) {
     next(err);

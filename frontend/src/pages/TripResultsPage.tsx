@@ -390,7 +390,7 @@ export function TripResultsPage() {
                   {showGems.map((g) => (
                     <li key={g.placeId ?? g.name} className="grid gap-4 rounded-part border border-rule bg-paper p-16">
                       {g.photoUrl && (
-                        <img src={`${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" />
+                        <img src={`${import.meta.env.VITE_BACKEND_URL ?? ''}${g.photoUrl}`} alt={g.name} loading="lazy" width={640} height={400} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                       )}
                       <span className="font-display text-[22px] text-ink" style={head}>{g.name}</span>
                       <GemProof placeId={g.placeId} rating={g.rating} reviews={g.reviews} />

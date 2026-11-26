@@ -31,8 +31,17 @@ export function recentErrors(now = Date.now()) {
   return { errors24h: recent.length, lastError: last ? { at: new Date(last.at).toISOString(), message: last.message } : null };
 }
 
+const redact = (text: string) => text.replace(/([?&](?:key|api_key|apikey|token)=)[^&\s'"]+/gi, '$1[hidden]');
+
+/** One log line for an error: message, upstream status and URL for API errors, stack for our own; never a key. */
+export function logLine(err: unknown): string {
+  const e = (err ?? {}) as { message?: string; stack?: string; isAxiosError?: boolean; config?: { url?: string }; response?: { status?: number } };
+  if (e.isAxiosError) return redact(`${e.message ?? 'Request failed'} (${e.response?.status ?? 'no response'}) ${e.config?.url ?? ''}`.trim());
+  return redact(e.stack || e.message || String(err));
+}
+
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
-  console.error('Error:', err);
+  console.error('Error:', logLine(err));
   const { status, body } = errorResponse(err);
   if (status >= 500) recordServerError(err);
   res.status(status).json(body);

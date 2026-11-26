@@ -42,6 +42,15 @@ function renderTrip(t: GeneratedTrip) {
 const base = { kmPerDay: 350, gemsPerDay: 3, gemsEnabled: true, stayTypes: ['campsite', 'hotel'] as const, filters: [] };
 
 describe('TripResultsPage', () => {
+  it('hides a gem photo that fails to load instead of showing a broken image', () => {
+    const t = trip({ ...base });
+    t.hiddenGems = [{ ...t.hiddenGems![0], photoUrl: '/api/photos/image/x' }];
+    renderTrip(t);
+    const img = screen.getByRole('img', { name: 'Lerma' });
+    fireEvent.error(img);
+    expect(img).not.toBeVisible();
+  });
+
   it('shows a tab for a day still being written, with a note instead of its text', () => {
     const t = trip({ ...base, planning: true });
     t.itinerary = t.itinerary.slice(0, 1);

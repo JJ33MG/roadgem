@@ -64,7 +64,7 @@ export function CommunityPage() {
           <ul className="-mx-16 mt-16 flex snap-x gap-12 overflow-x-auto px-16 pb-8 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4" style={{ listStyle: 'none' }}>
             {week.map((g) => (
               <li key={g.placeId} className="grid w-[260px] shrink-0 snap-start content-start gap-4 rounded-part border border-rule bg-paper p-16 sm:w-auto">
-                {g.photoUrl && <img src={photoSrc(g.photoUrl)} alt={g.name} loading="lazy" width={480} height={300} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" />}
+                {g.photoUrl && <img src={photoSrc(g.photoUrl)} alt={g.name} loading="lazy" width={480} height={300} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
                 <span className="text-ink" style={{ fontWeight: 500 }}>{g.name}</span>
                 <span className="text-[16px] text-muted">{g.address}</span>
                 <span className="text-[16px]">{`Rated ${g.rating.toFixed(1)} by ${g.reviews.toLocaleString('en')} Google reviewers`}</span>

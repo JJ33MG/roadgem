@@ -1,6 +1,6 @@
 // Runs against Postgres when TEST_DATABASE_URL is set.
 import { PrismaClient } from '@prisma/client';
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { captionFor, seedTeamMoments } from './seed';
 
 const url = process.env.TEST_DATABASE_URL;
@@ -31,8 +31,11 @@ describe.skipIf(!url)('filling the feed with team moments', () => {
     await place(1, 'Italy');
     await place(2, 'Austria');
     await place(3, 'Croatia');
-    expect(await seedTeamMoments(db, { fetchPhoto: photo })).toEqual({ created: 3 });
-    expect(await seedTeamMoments(db, { fetchPhoto: photo })).toEqual({ created: 0 });
+    const pause = vi.fn(async () => undefined);
+    expect(await seedTeamMoments(db, { fetchPhoto: photo, pause })).toEqual({ created: 3 });
+    // Wikimedia throttles bursts: a pause between places.
+    expect(pause).toHaveBeenCalledTimes(3);
+    expect(await seedTeamMoments(db, { fetchPhoto: photo, pause })).toEqual({ created: 0 });
     const posts = await db.post.findMany({ include: { user: true } });
     expect(posts).toHaveLength(3);
     expect(posts.every((p) => p.status === 'public' && p.credit !== '' && p.user.isTeam)).toBe(true);
@@ -41,7 +44,7 @@ describe.skipIf(!url)('filling the feed with team moments', () => {
   it('skips a gem without a usable photo and stops at the target', async () => {
     for (let i = 1; i <= 4; i++) await place(i, i % 2 ? 'Italy' : 'Austria');
     const someMissing = async (g: { placeId: string }) => (g.placeId === 'seed-1' ? null : photo());
-    expect(await seedTeamMoments(db, { fetchPhoto: someMissing, target: 2 })).toEqual({ created: 2 });
+    expect(await seedTeamMoments(db, { fetchPhoto: someMissing, target: 2, pause: async () => undefined })).toEqual({ created: 2 });
     expect(await db.post.count({ where: { gem: { placeId: 'seed-1' } } })).toBe(0);
   });
 });

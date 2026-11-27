@@ -31,6 +31,9 @@ export function pickWikipediaPhoto(pages: { title: string; thumbnail?: { source?
   return pages.find((p) => p.thumbnail?.source && names(p.title, name))?.thumbnail?.source ?? null;
 }
 
+/** Wikimedia asks every client for a name and a contact; anonymous-looking clients get throttled. */
+export const WIKI_UA = 'RoamGem/1.0 (https://roamgem.com; hello@roamgem.com)';
+
 const cache = new Map<string, string | null>();
 
 /** Up to 30 geotagged Commons photos within 400 m, nearest first. */
@@ -43,7 +46,7 @@ export async function commonsPhotoNear(lat: number, lng: number, name: string): 
         action: 'query', format: 'json', generator: 'geosearch', ggsnamespace: 6, ggsradius: 400, ggslimit: 30,
         ggscoord: `${lat}|${lng}`, prop: 'imageinfo', iiprop: 'url|mime', iiurlwidth: 800,
       },
-      headers: { 'User-Agent': 'RoamGem/1.0 (road trip planner)' },
+      headers: { 'User-Agent': WIKI_UA },
       timeout: 6000,
     });
     const pages = Object.values((res.data?.query?.pages ?? {}) as Record<string, CommonsPage>);
@@ -52,7 +55,7 @@ export async function commonsPhotoNear(lat: number, lng: number, name: string): 
       // No photo that names the place: the lead image of the Wikipedia article about it, if there is one.
       const wiki = await axios.get('https://en.wikipedia.org/w/api.php', {
         params: { action: 'query', format: 'json', generator: 'geosearch', ggsradius: 1000, ggslimit: 20, ggscoord: `${lat}|${lng}`, prop: 'pageimages', piprop: 'thumbnail', pithumbsize: 1200 },
-        headers: { 'User-Agent': 'RoamGem/1.0 (road trip planner)' },
+        headers: { 'User-Agent': WIKI_UA },
         timeout: 6000,
       }).catch(() => null);
       url = pickWikipediaPhoto(Object.values((wiki?.data?.query?.pages ?? {}) as Record<string, { title: string; thumbnail?: { source?: string } }>), name);

@@ -4,7 +4,7 @@ import { randomBytes } from 'node:crypto';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import type { PrismaClient } from '@prisma/client';
-import { commonsPhotoNear } from '../utils/commonsPhoto';
+import { commonsPhotoNear, WIKI_UA } from '../utils/commonsPhoto';
 
 type Place = { placeId: string; name: string; lat: number; lng: number; address: string; rating: number; reviews: number; types: string };
 type Photo = { bytes: Buffer; type: string; credit: string };
@@ -51,7 +51,7 @@ export function creditFrom(meta: Meta): string | null {
   return artist && licence ? `Photo: ${artist}, ${licence}, via Wikimedia Commons` : null;
 }
 
-const UA = { 'User-Agent': 'RoamGem/1.0 (road trip planner)' };
+const UA = { 'User-Agent': WIKI_UA };
 
 async function creditOf(url: string): Promise<string | null> {
   const f = fileOf(url);
@@ -73,8 +73,14 @@ export const commonsPhoto: FetchPhoto = async (place) => {
   return { bytes: Buffer.from(res.data), type, credit };
 };
 
-export async function seedTeamMoments(db: PrismaClient, opts: { fetchPhoto?: FetchPhoto; target?: number } = {}): Promise<{ created: number }> {
+export async function seedTeamMoments(
+  db: PrismaClient,
+  opts: { fetchPhoto?: FetchPhoto; target?: number; pause?: () => Promise<void>; maxTries?: number } = {},
+): Promise<{ created: number }> {
   const fetchPhoto = opts.fetchPhoto ?? commonsPhoto;
+  // Wikimedia throttles bursts: one place every 2 seconds, and at most 150 places per run.
+  const pause = opts.pause ?? (() => new Promise<void>((r) => setTimeout(r, 2000)));
+  let tries = opts.maxTries ?? 150;
   const target = opts.target ?? 50;
   const team = await db.user.upsert({
     where: { email: TEAM_EMAIL },
@@ -89,6 +95,8 @@ export async function seedTeamMoments(db: PrismaClient, opts: { fetchPhoto?: Fet
   for (const p of places) {
     if (have >= target) break;
     if (done.has(p.placeId)) continue;
+    if (tries-- <= 0) break;
+    await pause();
     const photo = await fetchPhoto(p).catch(() => null);
     if (!photo) continue;
     const gem = await db.gem.upsert({

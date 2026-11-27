@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button, Panel } from '@/components/ui';
-import { challenge as loadChallenge, sendPost, type GemChallenge, type GemRef } from '@/lib/community';
+import { challenge as loadChallenge, nearby as loadNearby, sendPost, type GemChallenge, type GemRef, type NearbyGem } from '@/lib/community';
 import { whereAmI } from '@/lib/geo';
 import { shrinkPhoto } from '@/lib/photo';
 
@@ -17,8 +17,128 @@ function refFrom(q: URLSearchParams): GemRef | null {
   return { placeId, name, lat, lng, address: q.get('address') ?? '' };
 }
 
-/** At a gem: take the photo, do the challenge if you like, send. Location is checked when it is sent. */
+/** Post a moment: from a gem in a trip (with its challenge), or from anywhere, tagged to a gem nearby. */
 export function PostPhotoPage() {
+  const [q] = useSearchParams();
+  return refFrom(q) || q.get('gemId') ? <PostAtGem /> : <PostMoment />;
+}
+
+const nearRef = (g: NearbyGem): GemRef => (g.gemId ? { gemId: g.gemId } : { placeId: g.placeId!, name: g.name, lat: g.lat, lng: g.lng, address: g.address });
+
+function Thanks({ again }: { again: () => void }) {
+  return (
+    <section className="mx-auto max-w-[640px] px-16 py-[64px]">
+      <h1 className="font-display text-[40px] text-ink" style={head}>Thank you</h1>
+      <p className="mt-12 text-[19px]">We are checking your photo. It appears in the feed in a minute, and your points count from then on.</p>
+      <div className="mt-24 flex flex-wrap gap-12">
+        <Link to="/community" className="btn-primary no-underline">Open the feed</Link>
+        <Button onClick={again}>Post another moment</Button>
+      </div>
+    </section>
+  );
+}
+
+/** Anywhere on the road: a photo, a line, and the gem it is near (within 5 km). */
+function PostMoment() {
+  const ids = { photo: useId(), caption: useId(), near: useId() };
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [caption, setCaption] = useState('');
+  const [here, setHere] = useState<{ lat: number; lng: number } | null>(null);
+  const [gems, setGems] = useState<NearbyGem[] | null>(null);
+  const [chosen, setChosen] = useState(0);
+  const [busy, setBusy] = useState<'' | 'photo' | 'where' | 'sending'>('');
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  async function pick(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setBusy('photo');
+    try {
+      setPhoto(await shrinkPhoto(file));
+      setBusy('where');
+      const at = await whereAmI();
+      setHere({ lat: at.lat, lng: at.lng });
+      setGems(await loadNearby({ lat: at.lat, lng: at.lng }));
+      setChosen(0);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function send() {
+    const gem = gems?.[chosen];
+    if (!photo || !here || !gem) return;
+    setError(null);
+    setBusy('sending');
+    try {
+      await sendPost({ gem: nearRef(gem), at: here, photo, caption: caption.trim(), challenge: false });
+      setSent(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  if (sent) return <Thanks again={() => { setSent(false); setPhoto(null); setCaption(''); setGems(null); }} />;
+
+  return (
+    <section className="mx-auto max-w-[560px] px-16 py-40 md:py-[64px]">
+      <Link to="/community" className="text-[16px]">Back to the community</Link>
+      <h1 className="mt-12 font-display text-[40px] leading-[1.06] text-ink md:text-[52px]" style={head}>Post a moment</h1>
+      <p className="mt-8 text-[18px]">The view, your group at the lake, your camper at the camping nearby: any photo, tagged to a gem within 5 km.</p>
+      <div className="mt-24 grid gap-16">
+        <label htmlFor={ids.photo} className="btn-header min-h-[56px] cursor-pointer justify-center text-[18px]">
+          {photo ? 'Choose another photo' : 'Choose a photo'}
+        </label>
+        <input id={ids.photo} aria-label="Choose a photo" type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+        {busy === 'photo' && <p role="status">Preparing the photo</p>}
+        {busy === 'where' && <p role="status">Finding gems near you</p>}
+        {photo && <img src={photo} alt="Your photo, ready to post" className="aspect-[4/3] w-full rounded-card object-cover" />}
+
+        {photo && (
+          <label htmlFor={ids.caption} className="flex flex-col gap-[6px] text-[15px] text-ink" style={{ fontWeight: 600 }}>
+            Say something
+            <textarea id={ids.caption} maxLength={280} rows={2} className="rounded-input border border-rule bg-paper p-12 text-[17px] text-ink" style={{ fontWeight: 400 }} value={caption} onChange={(e) => setCaption(e.target.value)} />
+          </label>
+        )}
+
+        {gems && (
+          <fieldset className="grid gap-8 border-0 p-0">
+            <legend className="mb-8 text-[15px] text-ink" style={{ fontWeight: 600 }}>Which gem is this near?</legend>
+            {gems.length === 0 && <p className="text-[16px]">No checked gem within 5 km of here.</p>}
+            <div className="cm-opts">
+              {gems.map((g, i) => (
+                <label key={g.gemId ?? g.placeId} className="cm-opt">
+                  <input type="radio" name={ids.near} checked={chosen === i} onChange={() => setChosen(i)} />
+                  <span className="min-w-0">{g.name}</span>
+                  <span className="cm-opt-km">{`${g.distanceKm.toFixed(1)} km`}</span>
+                </label>
+              ))}
+              <Link to="/community/suggest" className="cm-opt no-underline">A new place, not on RoamGem yet</Link>
+            </div>
+          </fieldset>
+        )}
+
+        {gems && gems.length > 0 && (
+          <>
+            <p className="text-[15px] text-muted">We use your location only to find gems nearby; it is never shown. Every photo gets a quick automatic check.</p>
+            <Button variant="primary" className="w-full" onClick={send} disabled={busy !== ''}>
+              {busy === 'sending' ? 'Posting' : 'Post to the community'}
+            </Button>
+          </>
+        )}
+      </div>
+      {error && <p className="mt-16 text-error" role="alert">{error}</p>}
+    </section>
+  );
+}
+
+/** At a gem from a trip: the photo, the challenge if you like, send. Location is checked when it is sent. */
+function PostAtGem() {
   const [q] = useSearchParams();
   const ids = { photo: useId(), caption: useId(), done: useId() };
   const [gem, setGem] = useState<GemChallenge | null>(null);
@@ -66,18 +186,7 @@ export function PostPhotoPage() {
     }
   }
 
-  if (sent) {
-    return (
-      <section className="mx-auto max-w-[640px] px-16 py-[64px]">
-        <h1 className="font-display text-[40px] text-ink" style={head}>Thank you</h1>
-        <p className="mt-12 text-[19px]">Your photo appears in the feed after a quick check. Your points count from then on.</p>
-        <div className="mt-24 flex flex-wrap gap-12">
-          <Link to="/community" className="btn-primary no-underline">Open the feed</Link>
-          <Button onClick={() => { setSent(false); setPhoto(null); setCaption(''); setDidChallenge(false); }}>Post another photo</Button>
-        </div>
-      </section>
-    );
-  }
+  if (sent) return <Thanks again={() => { setSent(false); setPhoto(null); setCaption(''); setDidChallenge(false); }} />;
 
   return (
     <section className="mx-auto max-w-[640px] px-16 py-40 md:py-[64px]">

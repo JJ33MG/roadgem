@@ -21,6 +21,7 @@ import { CommunityPage } from '@/pages/community/CommunityPage';
 import { PostPhotoPage } from '@/pages/community/PostPhotoPage';
 import { SuggestGemPage } from '@/pages/community/SuggestGemPage';
 import { ModeratePage } from '@/pages/community/ModeratePage';
+import { ExplorersPage } from '@/pages/community/ExplorersPage';
 
 // Pages change without a transition: Ribbon keeps motion for state, not navigation.
 function AnimatedRoutes() {
@@ -39,6 +40,7 @@ function AnimatedRoutes() {
           <Route path="/destinations/:slug" element={<DestinationDetailPage />} />
 
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/community/explorers" element={<ExplorersPage />} />
 
           <Route path="/trips/:tripId" element={<TripResultsPage />} />
 

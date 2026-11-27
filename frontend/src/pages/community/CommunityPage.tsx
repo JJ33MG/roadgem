@@ -1,37 +1,57 @@
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Panel } from '@/components/ui';
-import { board as loadBoard, feed as loadFeed, like, mine, photoSrc, type BoardRow, type FeedItem, type MyPosts, monthly, gemsOfTheWeek, type WeekGem } from '@/lib/community';
+import { feed as loadFeed, like, type FeedItem, type FeedPeriod } from '@/lib/community';
+import { MomentCard } from '@/components/community/MomentCard';
+import { AddToTrip } from '@/components/community/AddToTrip';
 
 const head = { fontWeight: 400, letterSpacing: '-0.035em' } as const;
-type Tab = 'feed' | 'board';
+const TABS: { id: FeedPeriod; label: string }[] = [
+  { id: 'today', label: 'Today' },
+  { id: 'week', label: 'This week' },
+  { id: 'route', label: 'Along my route' },
+];
+const EMPTY: Record<FeedPeriod, string> = {
+  today: 'Nothing posted today yet. Look at this week, or post the first moment.',
+  week: 'No moments this week yet. Post the first one from your next stop.',
+  route: 'No moments along your trips yet. Plan a trip, or look at this week.',
+};
 
-/** The community: photos from gems with likes, and the explorers board. */
+/** The community feed: moments travellers posted near gems, the most liked first. */
 export function CommunityPage() {
-  usePageTitle('Explorers');
+  usePageTitle('Community');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('feed');
+  const [period, setPeriod] = useState<FeedPeriod>('week');
+  const [page, setPage] = useState(0);
   const [items, setItems] = useState<FeedItem[] | null>(null);
-  const [rows, setRows] = useState<BoardRow[] | null>(null);
-  const [me, setMe] = useState<MyPosts | null>(null);
+  const [more, setMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [month, setMonth] = useState<string | null>(null);
-  const [week, setWeek] = useState<WeekGem[]>([]);
+  const [adding, setAdding] = useState<FeedItem | null>(null);
 
   useEffect(() => {
-    loadFeed().then(setItems).catch((e: Error) => setError(e.message));
-    monthly().then((m) => setMonth(m.challenge)).catch(() => undefined);
-    gemsOfTheWeek().then(setWeek).catch(() => setWeek([]));
-  }, []);
-  useEffect(() => {
-    if (tab === 'board' && !rows) loadBoard().then(setRows).catch((e: Error) => setError(e.message));
-  }, [tab, rows]);
-  useEffect(() => {
-    if (user) mine().then(setMe).catch(() => setMe(null));
-  }, [user]);
+    if (period === 'route' && !user) {
+      setItems([]);
+      return;
+    }
+    let live = true;
+    setError(null);
+    loadFeed({ period, page })
+      .then((got) => {
+        if (!live) return;
+        setItems((all) => (page === 0 ? got : [...(all ?? []), ...got]));
+        setMore(got.length === 20);
+      })
+      .catch((e: Error) => live && setError(e.message));
+    return () => { live = false; };
+  }, [period, page, user]);
+
+  function choose(p: FeedPeriod) {
+    setPeriod(p);
+    setPage(0);
+    setItems(null);
+  }
 
   async function toggle(item: FeedItem) {
     if (!user) return navigate('/login?next=/community');
@@ -43,118 +63,51 @@ export function CommunityPage() {
     }
   }
 
-  const tabClass = (t: Tab) =>
-    `min-h-[48px] rounded-btn border px-20 text-[17px] ${tab === t ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`;
+  const add = useCallback((item: FeedItem) => {
+    if (!user) return navigate('/login?next=/community');
+    setAdding(item);
+  }, [user, navigate]);
 
   return (
-    <section className="mx-auto max-w-[1040px] px-16 py-40 md:px-40 md:py-[64px]">
+    <section className="mx-auto max-w-[1120px] px-16 py-40 md:px-40 md:py-[64px]">
       <div className="flex flex-wrap items-end justify-between gap-16">
         <div>
-          <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[60px]" style={head}>Explorers</h1>
-          <p className="mt-12 max-w-[46ch] text-[19px]">Photos from gems on the road. Take one on the spot, do the challenge, climb the board.</p>
+          <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[60px]" style={head}>Community</h1>
+          <p className="mt-12 max-w-[46ch] text-[19px]">Moments from travellers near real gems. Like the best, put a gem in your trip with one tap.</p>
         </div>
-        <Link to="/community/suggest" className="btn-primary no-underline">Suggest a new gem</Link>
+        <div className="flex flex-wrap gap-12">
+          <Link to="/community/explorers" className="btn-header no-underline">Top explorers</Link>
+          <Link to={user ? '/community/post' : '/login?next=/community/post'} className="btn-primary no-underline">Post a moment</Link>
+        </div>
       </div>
 
-      {week.length > 0 && (
-        <section aria-labelledby="week-head" className="mt-32">
-          <h2 id="week-head" className="font-display text-[28px] text-ink" style={head}>Gems of the week</h2>
-          <p className="mt-6 text-[17px] text-muted">Real places from RoamGem's gem library, each with its Google rating.</p>
-          {/* A row to swipe on a phone, a grid on wider screens. */}
-          <ul className="-mx-16 mt-16 flex snap-x gap-12 overflow-x-auto px-16 pb-8 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4" style={{ listStyle: 'none' }}>
-            {week.map((g) => (
-              <li key={g.placeId} className="grid w-[260px] shrink-0 snap-start content-start gap-4 rounded-part border border-rule bg-paper p-16 sm:w-auto">
-                {g.photoUrl && <img src={photoSrc(g.photoUrl)} alt={g.name} loading="lazy" width={480} height={300} className="mb-8 aspect-[16/10] w-full rounded-part object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
-                <span className="text-ink" style={{ fontWeight: 500 }}>{g.name}</span>
-                <span className="text-[16px] text-muted">{g.address}</span>
-                <span className="text-[16px]">{`Rated ${g.rating.toFixed(1)} by ${g.reviews.toLocaleString('en')} Google reviewers`}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {month && (
-        <Panel className="mt-24">
-          <h2 className="font-display text-[26px] text-ink" style={head}>Challenge of the month</h2>
-          <p className="mt-6 text-[19px] text-ink">{month}</p>
-          <p className="mt-6 text-[16px] text-muted">For Plus members: the best photo of the month wins a prize.</p>
-        </Panel>
-      )}
-
-      {me && (
-        <Panel className="mt-24 flex flex-wrap items-center justify-between gap-12">
-          <p className="text-[19px] text-ink" style={{ fontWeight: 500 }}>
-            {`You have ${me.points} points${me.rank ? `, place ${me.rank}` : ''}.`}
-          </p>
-          <span className="flex flex-wrap gap-12">
-            {me.posts.some((p) => p.status === 'pending') && <span className="text-[16px] text-muted">{`${me.posts.filter((p) => p.status === 'pending').length} photo waiting for a check`}</span>}
-            {me.moderator && <Link to="/community/moderate" className="text-ink">Check new photos</Link>}
-          </span>
-        </Panel>
-      )}
-
-      <div role="tablist" aria-label="Community" className="mt-32 flex gap-8">
-        <button role="tab" type="button" aria-selected={tab === 'feed'} className={tabClass('feed')} onClick={() => setTab('feed')}>Feed</button>
-        <button role="tab" type="button" aria-selected={tab === 'board'} className={tabClass('board')} onClick={() => setTab('board')}>Explorers board</button>
+      <div role="tablist" aria-label="Moments" className="cm-tabs mt-32">
+        {TABS.map((t) => (
+          <button key={t.id} role="tab" type="button" className="cm-tab" aria-selected={period === t.id} onClick={() => choose(t.id)}>{t.label}</button>
+        ))}
       </div>
       {error && <p className="mt-16 text-error" role="alert">{error}</p>}
 
-      {tab === 'feed' && (
-        <div role="tabpanel" aria-label="Feed" className="mt-24">
-          {items === null && !error && <p role="status">Loading the feed</p>}
-          {items?.length === 0 && (
-            <p className="text-[19px]">No photos yet. Open a trip, stop at a gem and be the first to post one.</p>
-          )}
-          <ul className="grid gap-24 p-0 md:grid-cols-2" style={{ listStyle: 'none' }}>
-            {items?.map((item) => (
-              <li key={item.id} className="card overflow-hidden p-0">
-                <img src={photoSrc(item.photoUrl)} alt={`${item.gem.name}, photo by ${item.by}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
-                <div className="grid gap-6 p-16">
-                  <h2 className="font-display text-[24px] text-ink" style={head}>{item.gem.name}</h2>
-                  {item.team ? (
-                    <p className="text-[16px] text-accent" style={{ fontWeight: 500 }}>RoamGem team</p>
-                  ) : (
-                    <p className="text-[16px] text-muted">{`By ${item.by}${item.gem.address ? `, ${item.gem.address}` : ''}`}</p>
-                  )}
-                  {item.caption && <p>{item.caption}</p>}
-                  <div className="mt-6 flex items-center justify-between gap-12">
-                    <span className="text-[16px] text-ink" style={{ fontWeight: 500 }}>{item.challenge ? 'Challenge done' : `${item.points} points`}</span>
-                    <button
-                      type="button"
-                      aria-pressed={item.likedByMe}
-                      aria-label={`${item.likedByMe ? 'Unlike' : 'Like'}, ${item.likes} likes`}
-                      onClick={() => toggle(item)}
-                      className={`min-h-[48px] rounded-btn border px-16 text-[17px] ${item.likedByMe ? 'border-accent bg-accent text-paper' : 'border-rule bg-paper text-ink'}`}
-                    >
-                      {`${item.likedByMe ? 'Liked' : 'Like'} ${item.likes}`}
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div role="tabpanel" aria-label={TABS.find((t) => t.id === period)?.label} className="mt-24">
+        {period === 'route' && !user && (
+          <p className="text-[19px]"><Link to="/login?next=/community">Sign in</Link> to see moments along the trips you planned.</p>
+        )}
+        {items === null && !error && <p role="status">Loading moments</p>}
+        {items?.length === 0 && (period !== 'route' || user) && <p className="text-[19px]">{EMPTY[period]}</p>}
+        <ul className="cm-feed">
+          {items?.map((item) => (
+            <li key={item.id}><MomentCard item={item} onLike={toggle} onAdd={add} /></li>
+          ))}
+        </ul>
+        {more && <button type="button" className="btn-header mt-32" onClick={() => setPage((p) => p + 1)}>Show more moments</button>}
+      </div>
 
-      {tab === 'board' && (
-        <div role="tabpanel" aria-label="Explorers board" className="mt-24">
-          {rows === null && !error && <p role="status">Loading the board</p>}
-          {rows?.length === 0 && <p className="text-[19px]">Nobody on the board yet. The first approved photo puts you on it.</p>}
-          <ol className="m-0 p-0" style={{ listStyle: 'none' }}>
-            {rows?.map((r) => (
-              <li key={r.userId} className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-baseline gap-16 border-t border-rule py-16">
-                <span className="num font-display text-[28px] text-ink" style={head}>{r.rank}</span>
-                <span>
-                  <span className="block text-[20px] text-ink" style={{ fontWeight: 500 }}>{r.name}</span>
-                  <span className="block text-[16px] text-muted">{`${r.photos} photos${r.gems ? `, ${r.gems} gems found` : ''}`}</span>
-                </span>
-                <span className="num text-[20px] text-ink" style={{ fontWeight: 500 }}>{`${r.points} points`}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-16 text-[16px] text-muted">Photo at a gem 10 points, done challenge 50, a gem you found that turns official 200.</p>
-        </div>
+      {adding && (
+        <AddToTrip
+          item={adding}
+          onClose={() => setAdding(null)}
+          onAdded={(inTrips) => setItems((all) => all?.map((x) => (x.gem.id === adding.gem.id ? { ...x, inTrips } : x)) ?? null)}
+        />
       )}
     </section>
   );

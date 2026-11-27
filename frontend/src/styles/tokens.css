@@ -33,3 +33,10 @@
   --color-kind-cost: oklch(52% 0.12 65); --color-kind-cost-soft: oklch(94.5% 0.045 75);
   --color-kind-sleep: oklch(45% 0.11 250); --color-kind-sleep-soft: oklch(94% 0.03 250);
 }
+
+/* Community (27 Nov): likes and the explorers' top 3. */
+:root {
+  --color-heart: oklch(54% 0.17 20);
+  --color-gold: oklch(62% 0.12 75); --color-gold-soft: oklch(94% 0.045 85);
+  --color-photo-scrim: oklch(18% 0.01 80 / 0.72); --color-photo-ink: oklch(98% 0.005 85);
+}

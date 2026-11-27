@@ -106,3 +106,12 @@ describe('planPricesFrom: Plus prices found from Stripe products (27 Nov: produc
     expect(planPricesFrom([])).toEqual({ monthly: undefined, yearly: undefined });
   });
 });
+
+describe('checkoutParams: the Trip pass carries a tax code (Stripe Managed Payments needs one, 27 Nov)', () => {
+  it('sells the pass as SaaS for private customers, VAT included', () => {
+    const p = checkoutParams({ kind: 'pass', tripId: 't1', frontendUrl: 'https://x' }, {});
+    const pd = p.line_items![0].price_data!;
+    expect(pd.product_data!.tax_code).toBe('txcd_10103000');
+    expect(pd.tax_behavior).toBe('inclusive');
+  });
+});

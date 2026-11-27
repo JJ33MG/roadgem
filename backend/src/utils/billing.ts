@@ -49,7 +49,9 @@ export function checkoutParams(i: CheckoutInput, prices: { monthly?: string; yea
         price_data: {
           currency: 'eur',
           unit_amount: TRIP_PASS_CENTS,
-          product_data: { name: 'Routify Trip pass', description: 'Every gem, the cheapest route and the printable PDF for one trip.' },
+          // €4.99 includes VAT; the tax code (SaaS for private customers) is required by Stripe Managed Payments.
+          tax_behavior: 'inclusive',
+          product_data: { name: 'Routify Trip pass', description: 'Every gem, the cheapest route and the printable PDF for one trip.', tax_code: 'txcd_10103000' },
         },
       },
     ],

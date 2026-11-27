@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, requireAuth, AuthRequest } from '../middleware/auth';
-import { PLUS_PRICES, applyStripeEvent, checkoutParams, planPricesFrom, plusPriceParams } from '../utils/billing';
+import { PLUS_PRICES, previewPlusForAll, applyStripeEvent, checkoutParams, planPricesFrom, plusPriceParams } from '../utils/billing';
 
 const frontendUrl = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 const set = (v?: string) => (v && !/YOUR/.test(v) ? v : undefined);
@@ -51,6 +51,8 @@ async function ensurePlusPrices(stripe: Stripe): Promise<{ monthly?: string; yea
 const router = Router();
 
 function getStripe(): Stripe {
+  // The preview gives everyone Plus: never take real money there (27 Nov: the live key sits on both services).
+  if (previewPlusForAll()) throw new Error('STRIPE_SECRET_KEY is not configured');
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || key.startsWith('sk_test_YOUR')) {
     throw new Error('STRIPE_SECRET_KEY is not configured');

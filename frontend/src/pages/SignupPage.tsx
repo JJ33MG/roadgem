@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/utility/AuthLayout';
+import { useTranslation } from 'react-i18next';
 
 export function SignupPage() {
-  usePageTitle('Sign up');
+  const { t } = useTranslation();
+  usePageTitle(t('nav.signUp'));
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { signup } = useAuth();
@@ -25,7 +27,7 @@ export function SignupPage() {
       await signup(email, password, name, invite);
       navigate(next && next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Making the account did not work. Please try again.');
+      setError(err instanceof Error ? err.message : t('auth.signupFailed'));
     } finally {
       setBusy(false);
     }
@@ -33,19 +35,19 @@ export function SignupPage() {
 
   return (
     <AuthLayout
-      title="Make an account"
-      intro={invite ? 'A friend gave you 2 weeks of Plus. Make your account to start.' : 'Free, and your first trip is saved for you.'}
+      title={t('auth.signupTitle')}
+      intro={invite ? t('auth.signupIntroInvite') : t('auth.signupIntro')}
       fields={[
-        { id: 'name', label: 'Your name', type: 'text', autoComplete: 'name', value: name, onChange: setName },
-        { id: 'email', label: 'Email', type: 'email', autoComplete: 'email', value: email, onChange: setEmail },
-        { id: 'password', label: 'Password, at least 8 characters', type: 'password', autoComplete: 'new-password', value: password, onChange: setPassword, minLength: 8 },
+        { id: 'name', label: t('auth.yourName'), type: 'text', autoComplete: 'name', value: name, onChange: setName },
+        { id: 'email', label: t('auth.email'), type: 'email', autoComplete: 'email', value: email, onChange: setEmail },
+        { id: 'password', label: t('auth.newPassword'), type: 'password', autoComplete: 'new-password', value: password, onChange: setPassword, minLength: 8 },
       ]}
-      submitLabel="Make my account"
-      busyLabel="Making your account"
+      submitLabel={t('auth.makeMyAccount')}
+      busyLabel={t('auth.makingAccount')}
       busy={busy}
       error={error}
       onSubmit={submit}
-      footer={<>Already have an account? <Link to="/login">Log in</Link></>}
+      footer={<>{t('auth.haveAccount')} <Link to="/login">{t('nav.logIn')}</Link></>}
     />
   );
 }

@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/utility/AuthLayout';
+import { useTranslation } from 'react-i18next';
 
 export function LoginPage() {
-  usePageTitle('Log in');
+  const { t } = useTranslation();
+  usePageTitle(t('nav.logIn'));
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get('next');
@@ -23,7 +25,7 @@ export function LoginPage() {
       await login(email, password);
       navigate(safeNext ?? '/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Logging in did not work. Check your email and password.');
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
       setBusy(false);
     }
@@ -31,18 +33,18 @@ export function LoginPage() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      intro="Log in to see your saved trips."
+      title={t('auth.loginTitle')}
+      intro={t('auth.loginIntro')}
       fields={[
-        { id: 'email', label: 'Email', type: 'email', autoComplete: 'email', value: email, onChange: setEmail },
-        { id: 'password', label: 'Password', type: 'password', autoComplete: 'current-password', value: password, onChange: setPassword },
+        { id: 'email', label: t('auth.email'), type: 'email', autoComplete: 'email', value: email, onChange: setEmail },
+        { id: 'password', label: t('auth.password'), type: 'password', autoComplete: 'current-password', value: password, onChange: setPassword },
       ]}
-      submitLabel="Log in"
-      busyLabel="Logging in"
+      submitLabel={t('nav.logIn')}
+      busyLabel={t('auth.loggingIn')}
       busy={busy}
       error={error}
       onSubmit={submit}
-      footer={<>New to RoamGem? <Link to={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : '/signup'}>Make an account</Link></>}
+      footer={<>{t('auth.newHere')} <Link to={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : '/signup'}>{t('auth.makeAccountLink')}</Link></>}
     />
   );
 }

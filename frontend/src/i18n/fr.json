@@ -12,5 +12,77 @@
     "main": "Menu principal",
     "language": "Langue : {{name}}",
     "chooseLanguage": "Choisis une langue"
+  },
+  "footer": {
+    "label": "Pied de page",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "credits": "Photos de Wikimedia Commons (CC BY-SA) : une route de montagne à Khevi, Lerma, Hondarribia, le château d'Amboise, la cathédrale de Burgos, la place de la Bourse à Bordeaux, la Grand-Place de Bruxelles et l'hôtel de ville de Saint-Sébastien."
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette page n'existe pas. Planifie un voyage, ou reviens à l'accueil.",
+    "home": "Accueil"
+  },
+  "landing": {
+    "title": "Ton road trip, réglé juste comme il faut.",
+    "lead": "Choisis le rythme et les détours. RoamGem planifie les journées, les nuits et les pépites.",
+    "cta": "Commence ton road trip",
+    "ctaNote": "Gratuit, prêt en une minute environ, sans compte.",
+    "heroAlt": "Une route de montagne qui serpente dans une vallée verte",
+    "daysTitle": "Cinq jours, réglés par toi",
+    "daysLead": "Un exemple d'itinéraire de Madrid à Bruxelles, environ 350 km par jour, avec un lit qui t'attend chaque soir.",
+    "burgosAlt": "La façade ouest de la cathédrale de Burgos",
+    "day1": "Lerma et Covarrubias en chemin",
+    "day2": "Le port d'Hondarribia avant le dîner",
+    "day3": "Le miroir d'eau la nuit",
+    "day4": "Le château d'Amboise au-dessus de la Loire",
+    "day5": "Arrivée sur la Grand-Place",
+    "routeTo": "{{from}} → {{to}}",
+    "checksTitle": "L'IA invente des lieux. RoamGem les vérifie.",
+    "checksLead": "Les autres planificateurs écrivent une jolie liste en espérant qu'elle existe. Chaque pépite d'un voyage RoamGem a passé trois vérifications avant d'arriver dans ton plan.",
+    "check1Title": "Elle est sur la carte",
+    "check1Body": "Chaque pépite est un vrai lieu trouvé sur Google Maps, avec son adresse et un lien.",
+    "check2Title": "Les gens l'ont noté",
+    "check2Body": "Tu vois sa note et combien de voyageurs l'ont donnée. Les lieux peu ou mal notés sont écartés.",
+    "check3Title": "Elle est sur ta route",
+    "check3Body": "Seulement des lieux à environ 20 km de ta route, pour qu'un détour reste un détour.",
+    "challengeTitle": "Relève le défi photo, gagne des points.",
+    "challengeLead": "Chaque pépite a un défi photo. Prends-la sur place, publie-la et grimpe au classement des explorateurs.",
+    "challengeCardTitle": "Défi : les tours de l'horloge",
+    "challengeCardBody": "Les deux tours de l'hôtel de ville sur une seule photo. 50 points.",
+    "sanSebAlt": "L'hôtel de ville de Saint-Sébastien parmi les palmiers",
+    "amboiseAlt": "Le château royal d'Amboise",
+    "postedTitle": "Publié par un voyageur",
+    "postedBody": "Le château d'Amboise, pointé sur place. Les autres peuvent l'aimer.",
+    "newGemTitle": "Tu as trouvé une nouvelle pépite ?",
+    "newGemBody": "Épingle-la avec une photo. Quand assez de voyageurs la visitent, elle devient officielle, avec ton nom.",
+    "newGemCta": "Partage une pépite"
+  },
+  "meta": {
+    "homeTitle": "RoamGem : planifie un road trip avec les pépites en chemin"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "loginTitle": "Content de te revoir",
+    "loginIntro": "Connecte-toi pour voir tes voyages enregistrés.",
+    "loggingIn": "Connexion…",
+    "loginFailed": "La connexion n'a pas marché. Vérifie ton e-mail et ton mot de passe.",
+    "newHere": "Nouveau sur RoamGem ?",
+    "makeAccountLink": "Crée un compte",
+    "signupTitle": "Crée ton compte",
+    "signupIntro": "Gratuit, et ton premier voyage est enregistré pour toi.",
+    "signupIntroInvite": "Un ami t'a offert 2 semaines de Plus. Crée ton compte pour commencer.",
+    "yourName": "Ton nom",
+    "newPassword": "Mot de passe, au moins 8 caractères",
+    "makeMyAccount": "Créer mon compte",
+    "makingAccount": "Création de ton compte…",
+    "signupFailed": "La création du compte n'a pas marché. Réessaie.",
+    "haveAccount": "Tu as déjà un compte ?"
+  },
+  "legal": {
+    "updated": "Dernière mise à jour : {{date}}",
+    "englishApplies": "Cette traduction est là pour t'aider. Si elle diffère de la version anglaise, c'est la version anglaise qui s'applique."
   }
 }

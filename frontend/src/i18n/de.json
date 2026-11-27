@@ -12,5 +12,77 @@
     "main": "Hauptmenü",
     "language": "Sprache: {{name}}",
     "chooseLanguage": "Wähle eine Sprache"
+  },
+  "footer": {
+    "label": "Fußzeile",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "credits": "Fotos von Wikimedia Commons (CC BY-SA): eine Bergstraße in Khevi, Lerma, Hondarribia, das Château d'Amboise, die Kathedrale von Burgos, die Place de la Bourse in Bordeaux, der Grand-Place in Brüssel und das Rathaus von San Sebastián."
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "body": "Diese Seite gibt es nicht. Plane eine Reise oder geh zurück zum Start.",
+    "home": "Startseite"
+  },
+  "landing": {
+    "title": "Dein Roadtrip, genau richtig eingestellt.",
+    "lead": "Wähle Tempo und Umwege. RoamGem plant die Tage, die Betten und die Gems.",
+    "cta": "Starte deinen Roadtrip",
+    "ctaNote": "Kostenlos, in etwa einer Minute fertig, kein Konto nötig.",
+    "heroAlt": "Eine Bergstraße, die sich durch ein grünes Tal windet",
+    "daysTitle": "Fünf Tage, von dir bestimmt",
+    "daysLead": "Eine Beispielroute von Madrid nach Brüssel, etwa 350 km am Tag, und am Ende jedes Tages wartet ein Bett.",
+    "burgosAlt": "Die Westfassade der Kathedrale von Burgos",
+    "day1": "Lerma und Covarrubias unterwegs",
+    "day2": "Der Hafen von Hondarribia vor dem Abendessen",
+    "day3": "Der Wasserspiegel bei Nacht",
+    "day4": "Schloss Amboise über der Loire",
+    "day5": "Ankunft auf dem Grand-Place",
+    "routeTo": "{{from}} nach {{to}}",
+    "checksTitle": "KI erfindet Orte. RoamGem prüft sie.",
+    "checksLead": "Andere Planer schreiben eine schöne Liste und hoffen, dass es die Orte gibt. Jeder Gem einer RoamGem-Reise hat drei Prüfungen bestanden, bevor er in deinem Plan landet.",
+    "check1Title": "Er ist auf der Karte",
+    "check1Body": "Jeder Gem ist ein echter Ort auf Google Maps, mit Adresse und Link.",
+    "check2Title": "Leute haben ihn bewertet",
+    "check2Body": "Du siehst die Bewertung und wie viele Reisende sie abgegeben haben. Orte mit wenigen oder schlechten Bewertungen fallen weg.",
+    "check3Title": "Er liegt an deiner Strecke",
+    "check3Body": "Nur Orte im Umkreis von etwa 20 km um deine Strecke, damit ein Umweg ein Umweg bleibt.",
+    "challengeTitle": "Mach die Foto-Challenge, sammle Punkte.",
+    "challengeLead": "Jeder Gem hat eine Foto-Challenge. Mach das Foto vor Ort, poste es und klettere in der Rangliste.",
+    "challengeCardTitle": "Challenge: die Uhrtürme",
+    "challengeCardBody": "Beide Türme des Rathauses auf einem Foto. 50 Punkte.",
+    "sanSebAlt": "Das Rathaus von San Sebastián zwischen Palmen",
+    "amboiseAlt": "Das königliche Schloss von Amboise",
+    "postedTitle": "Von einem Reisenden gepostet",
+    "postedBody": "Schloss Amboise, vor Ort eingecheckt. Andere können es liken.",
+    "newGemTitle": "Einen neuen Gem gefunden?",
+    "newGemBody": "Markiere ihn mit einem Foto. Wenn genug Reisende ihn besuchen, wird er offiziell, mit deinem Namen.",
+    "newGemCta": "Teile einen Gem"
+  },
+  "meta": {
+    "homeTitle": "RoamGem: plane einen Roadtrip mit den Gems unterwegs"
+  },
+  "auth": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "loginTitle": "Willkommen zurück",
+    "loginIntro": "Melde dich an, um deine gespeicherten Reisen zu sehen.",
+    "loggingIn": "Anmeldung läuft",
+    "loginFailed": "Die Anmeldung hat nicht geklappt. Prüfe deine E-Mail und dein Passwort.",
+    "newHere": "Neu bei RoamGem?",
+    "makeAccountLink": "Konto erstellen",
+    "signupTitle": "Erstelle dein Konto",
+    "signupIntro": "Kostenlos, und deine erste Reise wird für dich gespeichert.",
+    "signupIntroInvite": "Ein Freund hat dir 2 Wochen Plus geschenkt. Erstelle dein Konto, um loszulegen.",
+    "yourName": "Dein Name",
+    "newPassword": "Passwort, mindestens 8 Zeichen",
+    "makeMyAccount": "Mein Konto erstellen",
+    "makingAccount": "Dein Konto wird erstellt",
+    "signupFailed": "Das Konto konnte nicht erstellt werden. Versuch es noch einmal.",
+    "haveAccount": "Du hast schon ein Konto?"
+  },
+  "legal": {
+    "updated": "Zuletzt aktualisiert am {{date}}",
+    "englishApplies": "Diese Übersetzung dient nur dem Verständnis. Weicht sie von der englischen Fassung ab, gilt die englische Fassung."
   }
 }

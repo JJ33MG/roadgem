@@ -12,5 +12,77 @@
     "main": "Menu principale",
     "language": "Lingua: {{name}}",
     "chooseLanguage": "Scegli una lingua"
+  },
+  "footer": {
+    "label": "Piè di pagina",
+    "privacy": "Privacy",
+    "terms": "Termini",
+    "credits": "Foto da Wikimedia Commons (CC BY-SA): una strada di montagna a Khevi, Lerma, Hondarribia, il Château d'Amboise, la cattedrale di Burgos, la Place de la Bourse a Bordeaux, la Grand-Place di Bruxelles e il municipio di San Sebastián."
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "body": "Questa pagina non c'è. Pianifica un viaggio o torna all'inizio.",
+    "home": "Home"
+  },
+  "landing": {
+    "title": "Il tuo road trip, su misura per te.",
+    "lead": "Scegli il ritmo e le deviazioni. RoamGem pianifica le giornate, i letti e le gemme.",
+    "cta": "Inizia il tuo road trip",
+    "ctaNote": "Gratis, pronto in circa un minuto, senza account.",
+    "heroAlt": "Una strada di montagna che si snoda in una valle verde",
+    "daysTitle": "Cinque giorni, decisi da te",
+    "daysLead": "Un percorso di esempio da Madrid a Bruxelles, circa 350 km al giorno, con un letto che ti aspetta alla fine di ognuno.",
+    "burgosAlt": "La facciata ovest della cattedrale di Burgos",
+    "day1": "Lerma e Covarrubias lungo la strada",
+    "day2": "Il porto di Hondarribia prima di cena",
+    "day3": "Lo specchio d'acqua di notte",
+    "day4": "Il castello di Amboise sopra la Loira",
+    "day5": "Arrivo sulla Grand-Place",
+    "routeTo": "{{from}} a {{to}}",
+    "checksTitle": "L'IA inventa i posti. RoamGem li controlla.",
+    "checksLead": "Gli altri pianificatori scrivono una bella lista e sperano che esista. Ogni gemma di un viaggio RoamGem ha superato tre controlli prima di arrivare nel tuo piano.",
+    "check1Title": "È sulla mappa",
+    "check1Body": "Ogni gemma è un posto reale su Google Maps, con indirizzo e link.",
+    "check2Title": "Le persone l'hanno valutata",
+    "check2Body": "Vedi il voto e quanti viaggiatori l'hanno dato. I posti con pochi o bassi voti restano fuori.",
+    "check3Title": "È sulla tua strada",
+    "check3Body": "Solo posti entro circa 20 km dal tuo percorso, così una deviazione resta una deviazione.",
+    "challengeTitle": "Fai la sfida fotografica, guadagna punti.",
+    "challengeLead": "Ogni gemma ha una sfida fotografica. Scatta sul posto, pubblica e scala la classifica degli esploratori.",
+    "challengeCardTitle": "Sfida: le torri dell'orologio",
+    "challengeCardBody": "Entrambe le torri del municipio in un solo scatto. 50 punti.",
+    "sanSebAlt": "Il municipio di San Sebastián tra le palme",
+    "amboiseAlt": "Il castello reale di Amboise",
+    "postedTitle": "Pubblicato da un viaggiatore",
+    "postedBody": "Il castello di Amboise, registrato sul posto. Gli altri possono mettere mi piace.",
+    "newGemTitle": "Hai trovato una nuova gemma?",
+    "newGemBody": "Segnala con una foto. Quando abbastanza viaggiatori la visitano, diventa ufficiale con il tuo nome.",
+    "newGemCta": "Condividi una gemma"
+  },
+  "meta": {
+    "homeTitle": "RoamGem: pianifica un road trip con le gemme lungo la strada"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "loginTitle": "Bentornato",
+    "loginIntro": "Accedi per vedere i tuoi viaggi salvati.",
+    "loggingIn": "Accesso in corso",
+    "loginFailed": "L'accesso non è riuscito. Controlla email e password.",
+    "newHere": "Sei nuovo su RoamGem?",
+    "makeAccountLink": "Crea un account",
+    "signupTitle": "Crea il tuo account",
+    "signupIntro": "Gratis, e il tuo primo viaggio viene salvato per te.",
+    "signupIntroInvite": "Un amico ti ha regalato 2 settimane di Plus. Crea il tuo account per iniziare.",
+    "yourName": "Il tuo nome",
+    "newPassword": "Password, almeno 8 caratteri",
+    "makeMyAccount": "Crea il mio account",
+    "makingAccount": "Creazione del tuo account",
+    "signupFailed": "Non è stato possibile creare l'account. Riprova.",
+    "haveAccount": "Hai già un account?"
+  },
+  "legal": {
+    "updated": "Ultimo aggiornamento: {{date}}",
+    "englishApplies": "Questa traduzione è solo per comodità. Se differisce dalla versione inglese, vale la versione inglese."
   }
 }

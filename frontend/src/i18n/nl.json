@@ -12,5 +12,77 @@
     "main": "Hoofdmenu",
     "language": "Taal: {{name}}",
     "chooseLanguage": "Kies een taal"
+  },
+  "footer": {
+    "label": "Voettekst",
+    "privacy": "Privacy",
+    "terms": "Voorwaarden",
+    "credits": "Foto's van Wikimedia Commons (CC BY-SA): een bergweg in Khevi, Lerma, Hondarribia, het Château d'Amboise, de kathedraal van Burgos, de Place de la Bourse in Bordeaux, de Grote Markt in Brussel en het stadhuis van San Sebastián."
+  },
+  "notFound": {
+    "title": "Pagina niet gevonden",
+    "body": "Deze pagina bestaat niet. Plan een trip, of ga terug naar het begin.",
+    "home": "Home"
+  },
+  "landing": {
+    "title": "Je roadtrip, precies goed ingesteld.",
+    "lead": "Kies het tempo en de omwegen. RoamGem plant de dagen, de bedden en de gems.",
+    "cta": "Start je roadtrip",
+    "ctaNote": "Gratis, klaar in ongeveer een minuut, geen account nodig.",
+    "heroAlt": "Een bergweg die door een groen dal slingert",
+    "daysTitle": "Vijf dagen, door jou bepaald",
+    "daysLead": "Een voorbeeldroute van Madrid naar Brussel, met ongeveer 350 km per dag en aan het eind van elke dag een bed.",
+    "burgosAlt": "De westgevel van de kathedraal van Burgos",
+    "day1": "Lerma en Covarrubias onderweg",
+    "day2": "De haven van Hondarribia voor het avondeten",
+    "day3": "De waterspiegel 's avonds",
+    "day4": "Het kasteel van Amboise boven de Loire",
+    "day5": "Aankomen op de Grote Markt",
+    "routeTo": "{{from}} naar {{to}}",
+    "checksTitle": "AI verzint plekken. RoamGem checkt ze.",
+    "checksLead": "Andere planners schrijven een mooi lijstje en hopen dat het bestaat. Elke gem in een RoamGem-trip is drie keer gecheckt voor hij in je plan kwam.",
+    "check1Title": "Hij staat op de kaart",
+    "check1Body": "Elke gem is een echte plek op Google Maps, met het adres en een link ernaartoe.",
+    "check2Title": "Mensen gaven hem een score",
+    "check2Body": "Je ziet de score en hoeveel reizigers hem gaven. Plekken met weinig of lage scores vallen af.",
+    "check3Title": "Hij ligt aan je route",
+    "check3Body": "Alleen plekken binnen ongeveer 20 km van je route, zodat een omweg een omweg blijft.",
+    "challengeTitle": "Doe de fotochallenge, verdien je punten.",
+    "challengeLead": "Elke gem heeft een fotochallenge. Maak de foto ter plekke, post hem en klim op de ranglijst.",
+    "challengeCardTitle": "Challenge: de klokkentorens",
+    "challengeCardBody": "Beide torens van het stadhuis op één foto. 50 punten.",
+    "sanSebAlt": "Het stadhuis van San Sebastián tussen palmbomen",
+    "amboiseAlt": "Het koninklijk kasteel van Amboise",
+    "postedTitle": "Gepost door een reiziger",
+    "postedBody": "Het kasteel van Amboise, ter plekke ingecheckt. Anderen kunnen het liken.",
+    "newGemTitle": "Een nieuwe gem gevonden?",
+    "newGemBody": "Zet hem op de kaart met een foto. Als genoeg reizigers hem bezoeken, wordt hij officieel, met jouw naam erbij.",
+    "newGemCta": "Deel een gem"
+  },
+  "meta": {
+    "homeTitle": "RoamGem: plan een roadtrip met de gems onderweg"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "loginTitle": "Welkom terug",
+    "loginIntro": "Log in om je bewaarde trips te zien.",
+    "loggingIn": "Bezig met inloggen",
+    "loginFailed": "Inloggen lukte niet. Controleer je e-mail en wachtwoord.",
+    "newHere": "Nieuw bij RoamGem?",
+    "makeAccountLink": "Maak een account",
+    "signupTitle": "Maak een account",
+    "signupIntro": "Gratis, en je eerste trip wordt voor je bewaard.",
+    "signupIntroInvite": "Een vriend gaf je 2 weken Plus. Maak je account om te beginnen.",
+    "yourName": "Je naam",
+    "newPassword": "Wachtwoord, minstens 8 tekens",
+    "makeMyAccount": "Maak mijn account",
+    "makingAccount": "Je account wordt gemaakt",
+    "signupFailed": "Het account maken lukte niet. Probeer het opnieuw.",
+    "haveAccount": "Heb je al een account?"
+  },
+  "legal": {
+    "updated": "Laatst bijgewerkt op {{date}}",
+    "englishApplies": "Deze vertaling is er voor het gemak. Als ze verschilt van de Engelse versie, geldt de Engelse versie."
   }
 }

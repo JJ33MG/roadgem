@@ -12,5 +12,77 @@
     "main": "Menú principal",
     "language": "Idioma: {{name}}",
     "chooseLanguage": "Elige un idioma"
+  },
+  "footer": {
+    "label": "Pie de página",
+    "privacy": "Privacidad",
+    "terms": "Condiciones",
+    "credits": "Fotos de Wikimedia Commons (CC BY-SA): una carretera de montaña en Khevi, Lerma, Hondarribia, el Château d'Amboise, la catedral de Burgos, la Place de la Bourse de Burdeos, la Grand-Place de Bruselas y el ayuntamiento de San Sebastián."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "body": "Esta página no existe. Planea un viaje o vuelve al inicio.",
+    "home": "Inicio"
+  },
+  "landing": {
+    "title": "Tu road trip, justo a tu medida.",
+    "lead": "Elige el ritmo y los desvíos. RoamGem planifica los días, las camas y las joyas.",
+    "cta": "Empieza tu road trip",
+    "ctaNote": "Gratis, listo en un minuto más o menos, sin cuenta.",
+    "heroAlt": "Una carretera de montaña que serpentea por un valle verde",
+    "daysTitle": "Cinco días, a tu manera",
+    "daysLead": "Una ruta de ejemplo de Madrid a Bruselas, unos 350 km al día, con una cama esperándote al final de cada uno.",
+    "burgosAlt": "La fachada oeste de la catedral de Burgos",
+    "day1": "Lerma y Covarrubias por el camino",
+    "day2": "El puerto de Hondarribia antes de cenar",
+    "day3": "El espejo de agua de noche",
+    "day4": "El castillo de Amboise sobre el Loira",
+    "day5": "Llegada a la Grand-Place",
+    "routeTo": "{{from}} a {{to}}",
+    "checksTitle": "La IA se inventa lugares. RoamGem los comprueba.",
+    "checksLead": "Otros planificadores escriben una lista bonita y esperan que exista. Cada joya de un viaje RoamGem pasó tres comprobaciones antes de llegar a tu plan.",
+    "check1Title": "Está en el mapa",
+    "check1Body": "Cada joya es un lugar real de Google Maps, con su dirección y un enlace.",
+    "check2Title": "La gente lo valoró",
+    "check2Body": "Ves su puntuación y cuántos viajeros la dieron. Los lugares con pocas o malas puntuaciones se descartan.",
+    "check3Title": "Está en tu camino",
+    "check3Body": "Solo lugares a unos 20 km de tu ruta, para que un desvío siga siendo un desvío.",
+    "challengeTitle": "Haz el reto de la foto y gana puntos.",
+    "challengeLead": "Cada joya tiene un reto de foto. Hazla allí mismo, publícala y sube en la clasificación.",
+    "challengeCardTitle": "Reto: las torres del reloj",
+    "challengeCardBody": "Las dos torres del ayuntamiento en una foto. 50 puntos.",
+    "sanSebAlt": "El ayuntamiento de San Sebastián entre palmeras",
+    "amboiseAlt": "El castillo real de Amboise",
+    "postedTitle": "Publicado por un viajero",
+    "postedBody": "El castillo de Amboise, registrado allí mismo. Los demás pueden darle me gusta.",
+    "newGemTitle": "¿Has encontrado una joya nueva?",
+    "newGemBody": "Márcala con una foto. Cuando la visiten suficientes viajeros, se vuelve oficial con tu nombre.",
+    "newGemCta": "Comparte una joya"
+  },
+  "meta": {
+    "homeTitle": "RoamGem: planea un road trip con las joyas del camino"
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "loginTitle": "Hola de nuevo",
+    "loginIntro": "Inicia sesión para ver tus viajes guardados.",
+    "loggingIn": "Iniciando sesión",
+    "loginFailed": "No se pudo iniciar sesión. Revisa tu correo y tu contraseña.",
+    "newHere": "¿Eres nuevo en RoamGem?",
+    "makeAccountLink": "Crea una cuenta",
+    "signupTitle": "Crea tu cuenta",
+    "signupIntro": "Gratis, y tu primer viaje se guarda para ti.",
+    "signupIntroInvite": "Un amigo te ha regalado 2 semanas de Plus. Crea tu cuenta para empezar.",
+    "yourName": "Tu nombre",
+    "newPassword": "Contraseña, al menos 8 caracteres",
+    "makeMyAccount": "Crear mi cuenta",
+    "makingAccount": "Creando tu cuenta",
+    "signupFailed": "No se pudo crear la cuenta. Inténtalo de nuevo.",
+    "haveAccount": "¿Ya tienes cuenta?"
+  },
+  "legal": {
+    "updated": "Última actualización: {{date}}",
+    "englishApplies": "Esta traducción es solo para tu comodidad. Si difiere de la versión en inglés, se aplica la versión en inglés."
   }
 }

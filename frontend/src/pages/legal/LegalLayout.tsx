@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '@/i18n/format';
 
 /** Who runs RoamGem. Filled in before launch; until then the placeholders show plainly. */
 export const OPERATOR = {
@@ -9,14 +11,16 @@ export const OPERATOR = {
   country: '[Country of registration]',
 };
 
-export const UPDATED = '22 November 2026';
+export const UPDATED = '2026-11-22';
 
 export function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
   usePageTitle(title);
+  const { t, i18n } = useTranslation();
   return (
     <article className="legal mx-auto max-w-[760px] px-16 py-40 md:px-40 md:py-[64px]">
       <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[56px]" style={{ fontWeight: 400, letterSpacing: '-0.035em' }}>{title}</h1>
-      <p className="mt-12 text-[16px] text-muted">{`Last updated ${UPDATED}`}</p>
+      <p className="mt-12 text-[16px] text-muted">{t('legal.updated', { date: formatDate(UPDATED, undefined, { day: 'numeric', month: 'long', year: 'numeric' }) })}</p>
+      {i18n.language !== 'en' && <p className="mt-12 text-[16px] text-muted">{t('legal.englishApplies')}</p>}
       {children}
     </article>
   );

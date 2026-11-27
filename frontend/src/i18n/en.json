@@ -12,5 +12,77 @@
     "main": "Main",
     "language": "Language: {{name}}",
     "chooseLanguage": "Choose a language"
+  },
+  "footer": {
+    "label": "Footer",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "credits": "Photos from Wikimedia Commons (CC BY-SA): a mountain road in Khevi, Lerma, Hondarribia, the Château d'Amboise, Burgos Cathedral, Bordeaux's Place de la Bourse, the Grand-Place in Brussels and San Sebastián city hall."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page is not here. Plan a trip, or go back to the start.",
+    "home": "Home"
+  },
+  "landing": {
+    "title": "Your road trip, set just right.",
+    "lead": "Set the pace and the detours. RoamGem plans the days, beds and gems.",
+    "cta": "Start your road trip",
+    "ctaNote": "Free, ready in about a minute, no account needed.",
+    "heroAlt": "A mountain road winding through a green valley",
+    "daysTitle": "Five days, set by you",
+    "daysLead": "An example route from Madrid to Brussels at about 350 km a day, a bed waiting at the end of each one.",
+    "burgosAlt": "The west front of Burgos Cathedral",
+    "day1": "Lerma and Covarrubias on the way",
+    "day2": "Hondarribia harbour before dinner",
+    "day3": "The water mirror at night",
+    "day4": "Amboise castle above the Loire",
+    "day5": "Arrive on the Grand-Place",
+    "routeTo": "{{from}} to {{to}}",
+    "checksTitle": "AI invents places. RoamGem checks them.",
+    "checksLead": "Other planners write a nice list and hope it exists. Every gem on a RoamGem trip passed three checks before it reached your plan.",
+    "check1Title": "It is on the map",
+    "check1Body": "Each gem is a real place found on Google Maps, with its address and a link to it.",
+    "check2Title": "People rated it",
+    "check2Body": "You see its rating and how many travellers gave it. Places with few or low ratings are left out.",
+    "check3Title": "It is on your road",
+    "check3Body": "Only places within about 20 km of the route you drive, so a detour stays a detour.",
+    "challengeTitle": "Snap the challenge, earn your points.",
+    "challengeLead": "Every gem has a photo challenge. Take it on the spot, post it, and climb the explorers board.",
+    "challengeCardTitle": "Challenge: the clock towers",
+    "challengeCardBody": "Both towers of the city hall in one shot. 50 points.",
+    "sanSebAlt": "San Sebastián city hall among palm trees",
+    "amboiseAlt": "The royal castle of Amboise",
+    "postedTitle": "Posted by a traveller",
+    "postedBody": "Amboise castle, checked in on the spot. Others can like it.",
+    "newGemTitle": "Found a new gem?",
+    "newGemBody": "Pin it with a photo. When enough travellers visit, it turns official with your name on it.",
+    "newGemCta": "Share a gem"
+  },
+  "meta": {
+    "homeTitle": "RoamGem: plan a road trip with the gems on the way"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "loginTitle": "Welcome back",
+    "loginIntro": "Log in to see your saved trips.",
+    "loggingIn": "Logging in",
+    "loginFailed": "Logging in did not work. Check your email and password.",
+    "newHere": "New to RoamGem?",
+    "makeAccountLink": "Make an account",
+    "signupTitle": "Make an account",
+    "signupIntro": "Free, and your first trip is saved for you.",
+    "signupIntroInvite": "A friend gave you 2 weeks of Plus. Make your account to start.",
+    "yourName": "Your name",
+    "newPassword": "Password, at least 8 characters",
+    "makeMyAccount": "Make my account",
+    "makingAccount": "Making your account",
+    "signupFailed": "Making the account did not work. Please try again.",
+    "haveAccount": "Already have an account?"
+  },
+  "legal": {
+    "updated": "Last updated {{date}}",
+    "englishApplies": "If the translations differ, the English version applies."
   }
 }

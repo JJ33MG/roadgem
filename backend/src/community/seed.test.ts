@@ -54,6 +54,8 @@ describe('Wikimedia credits', () => {
     const { fileOf } = await import('./seed');
     expect(fileOf('https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Lago_di_Braies.jpg/800px-Lago_di_Braies.jpg')).toEqual({ wiki: 'commons', file: 'Lago_di_Braies.jpg' });
     expect(fileOf('https://upload.wikimedia.org/wikipedia/en/c/cd/Castle%20view.jpg')).toEqual({ wiki: 'en', file: 'Castle view.jpg' });
+    // Since late 2026 thumbnails come from thumb.wikimedia.org.
+    expect(fileOf('https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/Luxembourg_City_3_rue_du_Cur%C3%A9.jpg/960px-Luxembourg_City_3_rue_du_Cur%C3%A9.jpg')).toEqual({ wiki: 'commons', file: 'Luxembourg_City_3_rue_du_Curé.jpg' });
     expect(fileOf('https://example.com/x.jpg')).toBeNull();
   });
 

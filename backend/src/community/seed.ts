@@ -37,7 +37,7 @@ function spread<T extends { address: string }>(places: T[]): T[] {
 
 /** The file name behind an upload.wikimedia.org address (full upload or thumbnail), and its wiki. */
 export function fileOf(url: string): { wiki: 'commons' | 'en'; file: string } | null {
-  const m = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/(commons|en)\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/]+)/.exec(url);
+  const m = /^https:\/\/(?:upload|thumb)\.wikimedia\.org\/wikipedia\/(commons|en)\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/]+)/.exec(url);
   return m ? { wiki: m[1] as 'commons' | 'en', file: decodeURIComponent(m[2]) } : null;
 }
 

@@ -131,7 +131,8 @@
     "changes": "Nous pouvons mettre à jour ces conditions ; la date en haut indique la dernière version. Le droit de {{country}} s'applique, sans te priver de la protection du droit de ton pays. Questions : {{email}}."
   },
   "common": {
-    "close": "Fermer"
+    "close": "Fermer",
+    "loading": "Chargement"
   },
   "pricing": {
     "title": "Gratuit pour ton premier voyage",
@@ -500,5 +501,79 @@
     "plannedWith": "Planifié avec RoamGem",
     "cannotDraw": "Ce navigateur ne peut pas dessiner la carte.",
     "shareCard": "Partager la carte"
+  },
+  "dash": {
+    "hey": "Salut {{name}}",
+    "title": "Ton compte",
+    "lead": "Tes road trips et ton offre.",
+    "tripsPlanned": "Voyages planifiés",
+    "totalDistance": "Distance totale",
+    "totalCost": "Coût estimé",
+    "upgraded": "Tu as Plus maintenant : voyages illimités et toutes les pépites.",
+    "plusPlan": "Plus",
+    "freePlan": "Offre gratuite",
+    "renews": "Renouvellement le {{date}}",
+    "freeNote": "1 voyage enregistré · la meilleure pépite de chaque jour",
+    "stopPlus": "Arrêter Plus",
+    "redirecting": "Ouverture du paiement…",
+    "getPlus": "Prendre Plus, {{price}} par mois",
+    "upgradeFailed": "Plus n'a pas pu démarrer. Réessaie.",
+    "yourTrips": "Tes voyages",
+    "planNew": "Planifier un nouveau voyage",
+    "noTrips": "Pas encore de voyage.",
+    "planFirst": "Planifie ton premier voyage",
+    "loadFailed": "Tes voyages n'ont pas pu être chargés.",
+    "status": {
+      "draft": "Brouillon",
+      "saved": "Enregistré",
+      "archived": "Archivé"
+    },
+    "dates": "du {{start}} au {{end}}"
+  },
+  "invite": {
+    "title": "Invite un ami",
+    "body": "Un ami qui s'inscrit via ton lien reçoit 2 semaines de Plus. Tu reçois 1 semaine pour chaque ami."
+  },
+  "map": {
+    "label": "Carte de l'itinéraire, des nuits et des pépites",
+    "unavailable": "La carte n'est pas disponible sur cet appareil. Le plan ci-dessous contient chaque étape.",
+    "todayAlt": "Carte de l'itinéraire, le trajet du jour en foncé",
+    "rated": "Noté {{rating}}",
+    "ratedBy": "Noté {{rating}} par {{count}} avis Google"
+  },
+  "stayCard": {
+    "perNight": "/ nuit",
+    "selected": "Choisi",
+    "choose": "Choisir pour ce soir",
+    "book": "Réserver"
+  },
+  "error": {
+    "title": "Un problème est survenu",
+    "body": "Actualise la page et réessaie."
+  },
+  "errors": {
+    "stays": "Les hébergements n'ont pas pu être chargés.",
+    "trip": "Le voyage n'a pas pu être chargé.",
+    "saveChange": "La modification n'a pas pu être enregistrée. Réessaie.",
+    "restart": "Impossible de relancer. Réessaie dans une minute.",
+    "photoPrep": "Ce navigateur ne peut pas préparer la photo.",
+    "noGeo": "Ce navigateur ne peut pas partager ta position.",
+    "geoDenied": "Autorise la localisation pour ce site, pour que l'app vérifie que tu es à la pépite.",
+    "geoFailed": "Ta position n'a pas pu être trouvée. Sors dehors ou réessaie.",
+    "checkin": "Le pointage n'a pas marché. Réessaie.",
+    "gem": "Cette pépite n'a pas pu être chargée.",
+    "photoSend": "La photo n'a pas pu être envoyée. Réessaie.",
+    "gemSend": "La pépite n'a pas pu être envoyée. Réessaie.",
+    "feed": "Le fil n'a pas pu être chargé.",
+    "board": "Le classement n'a pas pu être chargé.",
+    "nearby": "Les pépites proches n'ont pas pu être chargées.",
+    "myTrips": "Tes voyages n'ont pas pu être chargés.",
+    "add": "L'ajout de la pépite n'a pas marché.",
+    "like": "Le j'aime n'a pas marché.",
+    "mine": "Tes publications n'ont pas pu être chargées.",
+    "generic": "Ça n'a pas marché.",
+    "challenge": "Le défi n'a pas pu être chargé.",
+    "explorer": "Les pépites d'explorateurs n'ont pas pu être chargées.",
+    "invite": "Ton lien d'invitation n'a pas pu être chargé."
   }
 }

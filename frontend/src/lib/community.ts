@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import axios from 'axios';
 import { apiClient } from './apiClient';
 
@@ -27,10 +28,10 @@ export type GemChallenge = { gemId: string; name: string; status: string; lat: n
 export type GemRef = { gemId: string } | { placeId: string; name: string; lat: number; lng: number; address?: string };
 type At = { lat: number; lng: number };
 
-/** The server's own sentence when it gives one (it explains refusals), else a plain fallback. */
+/** The server's own sentence when it gives one (it explains refusals, in the traveller's language), else a plain fallback (a translation key). */
 function reason(err: unknown, fallback: string): Error {
   const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: unknown } | undefined)?.error : null;
-  return new Error(typeof msg === 'string' && msg ? msg : fallback);
+  return new Error(typeof msg === 'string' && msg ? msg : i18n.t(fallback));
 }
 const call = async <T,>(p: Promise<{ data: T }>, fallback: string): Promise<T> => {
   try {
@@ -43,27 +44,27 @@ const call = async <T,>(p: Promise<{ data: T }>, fallback: string): Promise<T> =
 /** Full address for a photo served by the API (same origin on the preview). */
 export const photoSrc = (path: string) => `${import.meta.env.VITE_BACKEND_URL ?? ''}${path}`;
 
-export const challenge = (gem: GemRef) => call<GemChallenge>(apiClient.post('/community/challenge', gem), 'This gem could not be loaded.');
+export const challenge = (gem: GemRef) => call<GemChallenge>(apiClient.post('/community/challenge', gem), 'errors.gem');
 export const sendPost = (body: { gem: GemRef; at: At; photo: string; caption: string; challenge: boolean }) =>
-  call<{ id: string; status: string }>(apiClient.post('/community/posts', body, { timeout: 60_000 }), 'The photo could not be sent. Try again.');
+  call<{ id: string; status: string }>(apiClient.post('/community/posts', body, { timeout: 60_000 }), 'errors.photoSend');
 export const sendSuggestion = (body: { name: string; description: string; category: string; at: At; photo: string }) =>
-  call<{ gemId: string; postId: string }>(apiClient.post('/community/suggest', body, { timeout: 60_000 }), 'The gem could not be sent. Try again.');
-export const feed = (q: { period: FeedPeriod; page: number }) => call<FeedItem[]>(apiClient.get('/community/feed', { params: q }), 'The feed could not be loaded.');
-export const board = (q: { period: BoardPeriod; country: string }) => call<BoardRow[]>(apiClient.get('/community/board', { params: q }), 'The board could not be loaded.');
-export const nearby = (at: At) => call<NearbyGem[]>(apiClient.get('/community/nearby', { params: at }), 'Gems nearby could not be loaded.');
-export const myTrips = () => call<MyTrip[]>(apiClient.get('/community/my-trips'), 'Your trips could not be loaded.');
+  call<{ gemId: string; postId: string }>(apiClient.post('/community/suggest', body, { timeout: 60_000 }), 'errors.gemSend');
+export const feed = (q: { period: FeedPeriod; page: number }) => call<FeedItem[]>(apiClient.get('/community/feed', { params: q }), 'errors.feed');
+export const board = (q: { period: BoardPeriod; country: string }) => call<BoardRow[]>(apiClient.get('/community/board', { params: q }), 'errors.board');
+export const nearby = (at: At) => call<NearbyGem[]>(apiClient.get('/community/nearby', { params: at }), 'errors.nearby');
+export const myTrips = () => call<MyTrip[]>(apiClient.get('/community/my-trips'), 'errors.myTrips');
 export const addToTrip = (gemId: string, body: { postId?: string; tripId?: string; day?: number }) =>
-  call<{ added: 'trip' | 'saved'; inTrips: number }>(apiClient.post(`/community/gems/${gemId}/add`, body), 'Adding the gem did not work.');
-export const like = (postId: string) => call<{ liked: boolean; likes: number }>(apiClient.post(`/community/posts/${postId}/like`), 'Liking did not work.');
+  call<{ added: 'trip' | 'saved'; inTrips: number }>(apiClient.post(`/community/gems/${gemId}/add`, body), 'errors.add');
+export const like = (postId: string) => call<{ liked: boolean; likes: number }>(apiClient.post(`/community/posts/${postId}/like`), 'errors.like');
 export type MyPosts = {
   posts: { id: string; status: string; points: number; challenge: boolean; createdAt: string; gem: { name: string }; photoUrl: string }[];
   name: string; points: number; rank: number | null; toTop10: number; moments: number; likes: number; inTrips: number; moderator: boolean;
 };
-export const mine = (period: BoardPeriod = 'week') => call<MyPosts>(apiClient.get('/community/me', { params: { period } }), 'Your posts could not be loaded.');
+export const mine = (period: BoardPeriod = 'week') => call<MyPosts>(apiClient.get('/community/me', { params: { period } }), 'errors.mine');
 export type Pending = { id: string; caption: string; challenge: boolean; distanceM: number; aiNote: string; createdAt: string; user: { name: string }; gem: { name: string; status: string; description: string }; photoUrl: string };
-export const pending = () => call<Pending[]>(apiClient.get('/community/moderation'), 'The queue could not be loaded.');
+export const pending = () => call<Pending[]>(apiClient.get('/community/moderation'), 'errors.generic');
 export const decide = (postId: string, decision: 'approve' | 'approve_photo' | 'reject') =>
-  call(apiClient.post(`/community/posts/${postId}/review`, { decision }), 'That did not work.');
+  call(apiClient.post(`/community/posts/${postId}/review`, { decision }), 'errors.generic');
 
 /** A photo that needs the login (pending ones, for their owner or a moderator): fetched, then shown from memory. */
 export async function privatePhoto(path: string): Promise<string> {
@@ -71,9 +72,9 @@ export async function privatePhoto(path: string): Promise<string> {
   return URL.createObjectURL(res.data as Blob);
 }
 
-export const monthly = () => call<{ challenge: string; plusOnly: boolean }>(apiClient.get('/community/monthly'), 'The challenge could not be loaded.');
+export const monthly = () => call<{ challenge: string; plusOnly: boolean }>(apiClient.get('/community/monthly'), 'errors.challenge');
 export type ExplorerAnswer = { locked: true; count: number } | { gems: { id: string; name: string; lat: number; lng: number; description: string }[] };
-export const explorerGems = (tripId: string) => call<ExplorerAnswer>(apiClient.get(`/community/explorer/${tripId}`), 'Explorer gems could not be loaded.');
-export const myInvite = () => call<{ code: string; url: string }>(apiClient.get('/community/invite'), 'Your invite link could not be loaded.');
+export const explorerGems = (tripId: string) => call<ExplorerAnswer>(apiClient.get(`/community/explorer/${tripId}`), 'errors.explorer');
+export const myInvite = () => call<{ code: string; url: string }>(apiClient.get('/community/invite'), 'errors.invite');
 export type WeekGem = { placeId: string; name: string; lat: number; lng: number; rating: number; reviews: number; address: string; photoUrl: string | null };
-export const gemsOfTheWeek = () => call<WeekGem[]>(apiClient.get('/community/gems-of-the-week'), 'The gems of the week could not be loaded.');
+export const gemsOfTheWeek = () => call<WeekGem[]>(apiClient.get('/community/gems-of-the-week'), 'errors.generic');

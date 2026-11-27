@@ -131,7 +131,8 @@
     "changes": "We kunnen deze voorwaarden bijwerken; de datum bovenaan toont de laatste versie. Het recht van {{country}} is van toepassing, zonder de bescherming van het recht waar je woont weg te nemen. Vragen: {{email}}."
   },
   "common": {
-    "close": "Sluiten"
+    "close": "Sluiten",
+    "loading": "Laden"
   },
   "pricing": {
     "title": "Gratis voor je eerste trip",
@@ -500,5 +501,79 @@
     "plannedWith": "Gepland met RoamGem",
     "cannotDraw": "Deze browser kan de kaart niet tekenen.",
     "shareCard": "Deel de kaart"
+  },
+  "dash": {
+    "hey": "Hoi {{name}}",
+    "title": "Je account",
+    "lead": "Je roadtrips en je abonnement.",
+    "tripsPlanned": "Geplande trips",
+    "totalDistance": "Totale afstand",
+    "totalCost": "Geschatte kosten",
+    "upgraded": "Je hebt nu Plus: onbeperkt trips en elke gem.",
+    "plusPlan": "Plus",
+    "freePlan": "Gratis plan",
+    "renews": "Wordt verlengd op {{date}}",
+    "freeNote": "1 bewaarde trip · de beste gem van elke dag",
+    "stopPlus": "Plus stoppen",
+    "redirecting": "Betaalpagina wordt geopend…",
+    "getPlus": "Neem Plus, {{price}} per maand",
+    "upgradeFailed": "Plus kon niet starten. Probeer het opnieuw.",
+    "yourTrips": "Je trips",
+    "planNew": "Plan een nieuwe trip",
+    "noTrips": "Nog geen trips.",
+    "planFirst": "Plan je eerste trip",
+    "loadFailed": "Je trips konden niet geladen worden.",
+    "status": {
+      "draft": "Concept",
+      "saved": "Bewaard",
+      "archived": "Gearchiveerd"
+    },
+    "dates": "{{start}} tot {{end}}"
+  },
+  "invite": {
+    "title": "Nodig een vriend uit",
+    "body": "Een vriend die zich via jouw link aanmeldt, krijgt 2 weken Plus. Jij krijgt 1 week voor elke vriend."
+  },
+  "map": {
+    "label": "Kaart van de route, de nachten en de gems",
+    "unavailable": "De kaart werkt niet op dit toestel. Het plan hieronder heeft elke stop.",
+    "todayAlt": "Kaart van de route, de rit van vandaag in het donker",
+    "rated": "Score {{rating}}",
+    "ratedBy": "Score {{rating}} van {{count}} Google-reviewers"
+  },
+  "stayCard": {
+    "perNight": "/ nacht",
+    "selected": "Gekozen",
+    "choose": "Kies voor vannacht",
+    "book": "Boeken"
+  },
+  "error": {
+    "title": "Er ging iets mis",
+    "body": "Vernieuw de pagina en probeer opnieuw."
+  },
+  "errors": {
+    "stays": "De overnachtingen konden niet geladen worden.",
+    "trip": "De trip kon niet geladen worden.",
+    "saveChange": "De wijziging kon niet bewaard worden. Probeer opnieuw.",
+    "restart": "Opnieuw starten lukte niet. Probeer het over een minuut nog eens.",
+    "photoPrep": "Deze browser kan de foto niet voorbereiden.",
+    "noGeo": "Deze browser kan je locatie niet delen.",
+    "geoDenied": "Sta locatie toe voor deze site, zodat de app kan checken of je bij de gem bent.",
+    "geoFailed": "Je locatie kon niet gevonden worden. Ga naar buiten of probeer opnieuw.",
+    "checkin": "Het inchecken lukte niet. Probeer opnieuw.",
+    "gem": "Deze gem kon niet geladen worden.",
+    "photoSend": "De foto kon niet verstuurd worden. Probeer opnieuw.",
+    "gemSend": "De gem kon niet verstuurd worden. Probeer opnieuw.",
+    "feed": "De feed kon niet geladen worden.",
+    "board": "De ranglijst kon niet geladen worden.",
+    "nearby": "Gems in de buurt konden niet geladen worden.",
+    "myTrips": "Je trips konden niet geladen worden.",
+    "add": "De gem toevoegen lukte niet.",
+    "like": "Liken lukte niet.",
+    "mine": "Je posts konden niet geladen worden.",
+    "generic": "Dat lukte niet.",
+    "challenge": "De challenge kon niet geladen worden.",
+    "explorer": "Ontdekkersgems konden niet geladen worden.",
+    "invite": "Je uitnodigingslink kon niet geladen worden."
   }
 }

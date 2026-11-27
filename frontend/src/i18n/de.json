@@ -131,7 +131,8 @@
     "changes": "Wir können diese Bedingungen aktualisieren; das Datum oben zeigt die neueste Fassung. Es gilt das Recht von {{country}}, ohne dir den Schutz des Rechts deines Wohnorts zu nehmen. Fragen: {{email}}."
   },
   "common": {
-    "close": "Schließen"
+    "close": "Schließen",
+    "loading": "Wird geladen"
   },
   "pricing": {
     "title": "Kostenlos für deine erste Reise",
@@ -500,5 +501,79 @@
     "plannedWith": "Geplant mit RoamGem",
     "cannotDraw": "Dieser Browser kann die Karte nicht zeichnen.",
     "shareCard": "Karte teilen"
+  },
+  "dash": {
+    "hey": "Hallo {{name}}",
+    "title": "Dein Konto",
+    "lead": "Deine Roadtrips und dein Plan.",
+    "tripsPlanned": "Geplante Reisen",
+    "totalDistance": "Gesamtstrecke",
+    "totalCost": "Geschätzte Kosten",
+    "upgraded": "Du hast jetzt Plus: unbegrenzt Reisen und jeder Gem.",
+    "plusPlan": "Plus",
+    "freePlan": "Kostenloser Plan",
+    "renews": "Verlängert sich am {{date}}",
+    "freeNote": "1 gespeicherte Reise · der beste Gem jedes Tages",
+    "stopPlus": "Plus beenden",
+    "redirecting": "Bezahlseite wird geöffnet…",
+    "getPlus": "Plus holen, {{price}} im Monat",
+    "upgradeFailed": "Plus konnte nicht gestartet werden. Versuch es noch einmal.",
+    "yourTrips": "Deine Reisen",
+    "planNew": "Neue Reise planen",
+    "noTrips": "Noch keine Reisen.",
+    "planFirst": "Plane deine erste Reise",
+    "loadFailed": "Deine Reisen konnten nicht geladen werden.",
+    "status": {
+      "draft": "Entwurf",
+      "saved": "Gespeichert",
+      "archived": "Archiviert"
+    },
+    "dates": "{{start}} bis {{end}}"
+  },
+  "invite": {
+    "title": "Lade einen Freund ein",
+    "body": "Ein Freund, der sich über deinen Link anmeldet, bekommt 2 Wochen Plus. Du bekommst 1 Woche für jeden Freund."
+  },
+  "map": {
+    "label": "Karte der Route, der Nächte und der Gems",
+    "unavailable": "Die Karte ist auf diesem Gerät nicht verfügbar. Der Plan unten enthält jeden Stopp.",
+    "todayAlt": "Karte der Route, die heutige Fahrt dunkel",
+    "rated": "Bewertet mit {{rating}}",
+    "ratedBy": "Bewertet mit {{rating}} von {{count}} Google-Rezensenten"
+  },
+  "stayCard": {
+    "perNight": "/ Nacht",
+    "selected": "Ausgewählt",
+    "choose": "Für heute wählen",
+    "book": "Buchen"
+  },
+  "error": {
+    "title": "Etwas ist schiefgelaufen",
+    "body": "Lade die Seite neu und versuch es noch einmal."
+  },
+  "errors": {
+    "stays": "Die Unterkünfte konnten nicht geladen werden.",
+    "trip": "Die Reise konnte nicht geladen werden.",
+    "saveChange": "Die Änderung konnte nicht gespeichert werden. Versuch es noch einmal.",
+    "restart": "Neustart hat nicht geklappt. Versuch es in einer Minute noch einmal.",
+    "photoPrep": "Dieser Browser kann das Foto nicht vorbereiten.",
+    "noGeo": "Dieser Browser kann deinen Standort nicht teilen.",
+    "geoDenied": "Erlaube den Standort für diese Seite, damit die App prüfen kann, dass du beim Gem bist.",
+    "geoFailed": "Dein Standort konnte nicht gefunden werden. Geh nach draußen oder versuch es noch einmal.",
+    "checkin": "Das Einchecken hat nicht geklappt. Versuch es noch einmal.",
+    "gem": "Dieser Gem konnte nicht geladen werden.",
+    "photoSend": "Das Foto konnte nicht gesendet werden. Versuch es noch einmal.",
+    "gemSend": "Der Gem konnte nicht gesendet werden. Versuch es noch einmal.",
+    "feed": "Der Feed konnte nicht geladen werden.",
+    "board": "Die Rangliste konnte nicht geladen werden.",
+    "nearby": "Gems in der Nähe konnten nicht geladen werden.",
+    "myTrips": "Deine Reisen konnten nicht geladen werden.",
+    "add": "Der Gem konnte nicht hinzugefügt werden.",
+    "like": "Liken hat nicht geklappt.",
+    "mine": "Deine Beiträge konnten nicht geladen werden.",
+    "generic": "Das hat nicht geklappt.",
+    "challenge": "Die Challenge konnte nicht geladen werden.",
+    "explorer": "Entdecker-Gems konnten nicht geladen werden.",
+    "invite": "Dein Einladungslink konnte nicht geladen werden."
   }
 }

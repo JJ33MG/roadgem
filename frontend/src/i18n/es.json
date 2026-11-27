@@ -131,7 +131,8 @@
     "changes": "Podemos actualizar estas condiciones; la fecha de arriba indica la última versión. Se aplica la ley de {{country}}, sin quitarte la protección de la ley de donde vives. Preguntas: {{email}}."
   },
   "common": {
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "loading": "Cargando"
   },
   "pricing": {
     "title": "Gratis para tu primer viaje",
@@ -500,5 +501,79 @@
     "plannedWith": "Planeado con RoamGem",
     "cannotDraw": "Este navegador no puede dibujar la tarjeta.",
     "shareCard": "Compartir la tarjeta"
+  },
+  "dash": {
+    "hey": "Hola, {{name}}",
+    "title": "Tu cuenta",
+    "lead": "Tus road trips y tu plan.",
+    "tripsPlanned": "Viajes planeados",
+    "totalDistance": "Distancia total",
+    "totalCost": "Coste estimado",
+    "upgraded": "Ya tienes Plus: viajes ilimitados y todas las joyas.",
+    "plusPlan": "Plus",
+    "freePlan": "Plan gratis",
+    "renews": "Se renueva el {{date}}",
+    "freeNote": "1 viaje guardado · la mejor joya de cada día",
+    "stopPlus": "Cancelar Plus",
+    "redirecting": "Abriendo el pago…",
+    "getPlus": "Hazte Plus, {{price}} al mes",
+    "upgradeFailed": "No se pudo empezar Plus. Inténtalo de nuevo.",
+    "yourTrips": "Tus viajes",
+    "planNew": "Planear un viaje nuevo",
+    "noTrips": "Aún no hay viajes.",
+    "planFirst": "Planea tu primer viaje",
+    "loadFailed": "No se pudieron cargar tus viajes.",
+    "status": {
+      "draft": "Borrador",
+      "saved": "Guardado",
+      "archived": "Archivado"
+    },
+    "dates": "del {{start}} al {{end}}"
+  },
+  "invite": {
+    "title": "Invita a un amigo",
+    "body": "Un amigo que se registre con tu enlace recibe 2 semanas de Plus. Tú recibes 1 semana por cada amigo."
+  },
+  "map": {
+    "label": "Mapa de la ruta, las noches y las joyas",
+    "unavailable": "El mapa no está disponible en este dispositivo. El plan de abajo tiene todas las paradas.",
+    "todayAlt": "Mapa de la ruta, el trayecto de hoy en oscuro",
+    "rated": "Valorado con {{rating}}",
+    "ratedBy": "Valorado con {{rating}} por {{count}} reseñas de Google"
+  },
+  "stayCard": {
+    "perNight": "/ noche",
+    "selected": "Elegido",
+    "choose": "Elegir para esta noche",
+    "book": "Reservar"
+  },
+  "error": {
+    "title": "Algo ha fallado",
+    "body": "Actualiza la página e inténtalo de nuevo."
+  },
+  "errors": {
+    "stays": "No se pudieron cargar los alojamientos.",
+    "trip": "No se pudo cargar el viaje.",
+    "saveChange": "No se pudo guardar el cambio. Inténtalo de nuevo.",
+    "restart": "No se pudo volver a empezar. Inténtalo dentro de un minuto.",
+    "photoPrep": "Este navegador no puede preparar la foto.",
+    "noGeo": "Este navegador no puede compartir tu ubicación.",
+    "geoDenied": "Permite la ubicación en esta web para que la app compruebe que estás en la joya.",
+    "geoFailed": "No se encontró tu ubicación. Sal fuera o inténtalo de nuevo.",
+    "checkin": "No se pudo registrar. Inténtalo de nuevo.",
+    "gem": "No se pudo cargar esta joya.",
+    "photoSend": "No se pudo enviar la foto. Inténtalo de nuevo.",
+    "gemSend": "No se pudo enviar la joya. Inténtalo de nuevo.",
+    "feed": "No se pudo cargar el muro.",
+    "board": "No se pudo cargar la clasificación.",
+    "nearby": "No se pudieron cargar las joyas cercanas.",
+    "myTrips": "No se pudieron cargar tus viajes.",
+    "add": "No se pudo añadir la joya.",
+    "like": "No se pudo dar me gusta.",
+    "mine": "No se pudieron cargar tus publicaciones.",
+    "generic": "Eso no funcionó.",
+    "challenge": "No se pudo cargar el reto.",
+    "explorer": "No se pudieron cargar las joyas de exploradores.",
+    "invite": "No se pudo cargar tu enlace de invitación."
   }
 }

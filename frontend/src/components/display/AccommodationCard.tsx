@@ -1,6 +1,8 @@
 import { Star, ExternalLink } from 'lucide-react';
 import clsx from 'clsx';
 import type { AccommodationOption } from '@/types';
+import { useTranslation } from 'react-i18next';
+import { formatMoney } from '@/i18n/format';
 
 export const ACCOMMODATION_TYPE_LABELS: Record<AccommodationOption['type'], string> = {
   hotel: 'Hotel',
@@ -16,6 +18,7 @@ interface AccommodationCardProps {
 }
 
 export function AccommodationCard({ accommodation, selected, onSelect }: AccommodationCardProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={clsx(
@@ -38,7 +41,7 @@ export function AccommodationCard({ accommodation, selected, onSelect }: Accommo
       <div className="p-12">
         <div className="flex items-center justify-between gap-8">
           <p className="truncate text-body-sm font-w480 text-starlight">{accommodation.name}</p>
-          <span className="badge badge-free flex-shrink-0">{ACCOMMODATION_TYPE_LABELS[accommodation.type]}</span>
+          <span className="badge badge-free flex-shrink-0">{t(`trip.stayTag.${accommodation.type}`, { defaultValue: ACCOMMODATION_TYPE_LABELS[accommodation.type] })}</span>
         </div>
 
         <div className="mt-4 flex items-center justify-between text-caption text-silver">
@@ -51,14 +54,14 @@ export function AccommodationCard({ accommodation, selected, onSelect }: Accommo
             <span />
           )}
           <span className="text-body-sm font-w480 text-starlight">
-            &euro;{accommodation.pricePerNight.toLocaleString()} <span className="text-silver">/ night</span>
+            {formatMoney(Math.round(accommodation.pricePerNight), undefined, { whole: true })} <span className="text-silver">{t('stayCard.perNight')}</span>
           </span>
         </div>
 
         <div className="mt-12 flex gap-8">
           {onSelect && (
             <button onClick={() => onSelect(accommodation)} className="btn-header flex-1 text-caption">
-              {selected ? 'Selected' : 'Add to itinerary'}
+              {selected ? t('stayCard.selected') : t('stayCard.choose')}
             </button>
           )}
           <a
@@ -67,7 +70,7 @@ export function AccommodationCard({ accommodation, selected, onSelect }: Accommo
             rel="noopener noreferrer sponsored"
             className="btn-header flex items-center gap-4 text-caption"
           >
-            Book <ExternalLink size={14} />
+            {t('stayCard.book')} <ExternalLink size={14} />
           </a>
         </div>
       </div>

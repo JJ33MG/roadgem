@@ -4,6 +4,9 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { greatCircle, type LngLat } from '@/lib/arc';
 import { tokenHex } from '@/lib/color';
 import { mapData } from '@/lib/polyline';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
+import { formatNumber } from '@/i18n/format';
 
 type Stop = { location: string; latitude: number; longitude: number };
 type Gem = { name: string; latitude: number; longitude: number; rating?: number; reviews?: number; mapsUrl?: string };
@@ -43,20 +46,22 @@ function gemPopup(g: Gem): HTMLElement {
   box.append(name);
   if (g.rating) {
     const r = document.createElement('div');
-    r.textContent = `Rated ${g.rating.toFixed(1)}${g.reviews ? ` by ${g.reviews.toLocaleString('en')} Google reviewers` : ''}`;
+    r.textContent = g.reviews ? i18n.t('map.ratedBy', { rating: g.rating.toFixed(1), count: formatNumber(g.reviews) as unknown as number }) : i18n.t('map.rated', { rating: g.rating.toFixed(1) });
     box.append(r);
   }
   const a = document.createElement('a');
   a.href = g.mapsUrl ?? `https://www.google.com/maps/search/?api=1&query=${g.latitude},${g.longitude}`;
   a.target = '_blank';
   a.rel = 'noopener noreferrer';
-  a.textContent = 'Open in Google Maps';
+  a.textContent = i18n.t('trip.openInMaps');
   box.append(a);
   return box;
 }
 
 /** The trip on a 3D globe: the road, the nights (ink) and the gems (accent); or, while planning, an arc from start to end. */
-export function GlobeMap({ stops = [], gems = [], route, dayGems = [], arc, className = '', label = 'Map of the route, the nights and the gems' }: Props) {
+export function GlobeMap({ stops = [], gems = [], route, dayGems = [], arc, className = '', label }: Props) {
+  const { t } = useTranslation();
+  label = label ?? t('map.label');
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [ready, setReady] = useState(false);
@@ -145,7 +150,7 @@ export function GlobeMap({ stops = [], gems = [], route, dayGems = [], arc, clas
   if (failed) {
     return (
       <div role="img" aria-label={label} className={`flex items-center justify-center bg-paper-2 p-24 text-center text-[16px] text-muted rt-map ${className}`}>
-        The map is not available on this device. The plan below has every stop.
+        {t('map.unavailable')}
       </div>
     );
   }

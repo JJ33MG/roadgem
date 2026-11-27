@@ -131,7 +131,8 @@
     "changes": "We may update these terms; the date at the top shows the latest version. The law of {{country}} applies, without taking away the protection of the law where you live. Questions: {{email}}."
   },
   "common": {
-    "close": "Close"
+    "close": "Close",
+    "loading": "Loading"
   },
   "pricing": {
     "title": "Free for your first trip",
@@ -500,5 +501,79 @@
     "plannedWith": "Planned with RoamGem",
     "cannotDraw": "This browser cannot draw the card.",
     "shareCard": "Share the card"
+  },
+  "dash": {
+    "hey": "Hey, {{name}}",
+    "title": "Your account",
+    "lead": "Your road trips and your plan.",
+    "tripsPlanned": "Trips planned",
+    "totalDistance": "Total distance",
+    "totalCost": "Estimated cost",
+    "upgraded": "You're on Plus now: unlimited trips and every gem.",
+    "plusPlan": "Plus",
+    "freePlan": "Free plan",
+    "renews": "Renews {{date}}",
+    "freeNote": "1 saved trip · the best gem of every day",
+    "stopPlus": "Stop Plus",
+    "redirecting": "Opening checkout…",
+    "getPlus": "Get Plus, {{price}} a month",
+    "upgradeFailed": "Plus could not be started. Please try again.",
+    "yourTrips": "Your trips",
+    "planNew": "Plan a new trip",
+    "noTrips": "No trips yet.",
+    "planFirst": "Plan your first trip",
+    "loadFailed": "Your trips could not be loaded.",
+    "status": {
+      "draft": "Draft",
+      "saved": "Saved",
+      "archived": "Archived"
+    },
+    "dates": "{{start}} to {{end}}"
+  },
+  "invite": {
+    "title": "Invite a friend",
+    "body": "A friend who signs up through your link gets 2 weeks of Plus. You get 1 week for every friend."
+  },
+  "map": {
+    "label": "Map of the route, the nights and the gems",
+    "unavailable": "The map is not available on this device. The plan below has every stop.",
+    "todayAlt": "Map of the route, today’s drive in dark",
+    "rated": "Rated {{rating}}",
+    "ratedBy": "Rated {{rating}} by {{count}} Google reviewers"
+  },
+  "stayCard": {
+    "perNight": "/ night",
+    "selected": "Selected",
+    "choose": "Choose for tonight",
+    "book": "Book"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "Please refresh the page and try again."
+  },
+  "errors": {
+    "stays": "The stays could not be loaded.",
+    "trip": "The trip could not be loaded.",
+    "saveChange": "The change could not be saved. Try again.",
+    "restart": "Could not start again. Try once more in a minute.",
+    "photoPrep": "This browser cannot prepare the photo.",
+    "noGeo": "This browser cannot share your location.",
+    "geoDenied": "Allow location for this site, so the app can check you are at the gem.",
+    "geoFailed": "Your location could not be found. Step outside or try again.",
+    "checkin": "The check-in did not go through. Try again.",
+    "gem": "This gem could not be loaded.",
+    "photoSend": "The photo could not be sent. Try again.",
+    "gemSend": "The gem could not be sent. Try again.",
+    "feed": "The feed could not be loaded.",
+    "board": "The board could not be loaded.",
+    "nearby": "Gems nearby could not be loaded.",
+    "myTrips": "Your trips could not be loaded.",
+    "add": "Adding the gem did not work.",
+    "like": "Liking did not work.",
+    "mine": "Your posts could not be loaded.",
+    "generic": "That did not work.",
+    "challenge": "The challenge could not be loaded.",
+    "explorer": "Explorer gems could not be loaded.",
+    "invite": "Your invite link could not be loaded."
   }
 }

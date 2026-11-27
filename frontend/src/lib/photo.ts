@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 /** Shrinks a camera photo to at most `max` px and re-encodes it as JPEG; this also drops the
  *  file's hidden data (EXIF, including the exact GPS position of the phone). */
 export async function shrinkPhoto(file: File, max = 1600): Promise<string> {
@@ -8,7 +9,7 @@ export async function shrinkPhoto(file: File, max = 1600): Promise<string> {
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('This browser cannot prepare the photo.');
+  if (!ctx) throw new Error(i18n.t('errors.photoPrep'));
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close?.();
   return canvas.toDataURL('image/jpeg', 0.85);

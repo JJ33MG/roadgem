@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import i18n from '@/i18n';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -25,8 +26,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         this.props.fallback ?? (
           <div className="section py-80 text-center">
-            <h2 className="text-heading font-display font-w360 text-starlight">Something went wrong</h2>
-            <p className="mt-12 text-body-sm text-silver">Please refresh the page and try again.</p>
+            <h2 className="text-heading font-display font-w360 text-starlight">{i18n.t('error.title')}</h2>
+            <p className="mt-12 text-body-sm text-silver">{i18n.t('error.body')}</p>
           </div>
         )
       );

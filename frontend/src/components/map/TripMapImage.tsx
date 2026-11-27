@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useState, type ReactNode } from 'react';
 
 type Props = {
@@ -24,7 +25,7 @@ export function TripMapImage({ tripId, from, to, version, href, fallback, classN
     <a href={href} target="_blank" rel="noopener noreferrer" className={`block overflow-hidden rounded-card border border-rule bg-paper-2 ${className}`}>
       <img
         src={src}
-        alt="Map of the route, today’s drive in dark"
+        alt={i18n.t('map.todayAlt')}
         width={640}
         height={440}
         className="block aspect-[640/440] h-auto w-full object-cover"

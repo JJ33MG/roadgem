@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useEffect, useState } from 'react';
 import { tripsApi } from '@/lib/api';
 import type { TripDetail } from '@/types';
@@ -14,7 +15,7 @@ export function useTrip(tripId: string | undefined) {
     tripsApi
       .getById(tripId)
       .then((res) => setTrip(res.data))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load trip'))
+      .catch((err) => setError(err instanceof Error ? err.message : i18n.t('errors.trip')))
       .finally(() => setIsLoading(false));
   }, [tripId]);
 

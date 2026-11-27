@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useEffect, useState } from 'react';
 import { accommodationsApi } from '@/lib/api';
 import type { AccommodationOption, AccommodationType } from '@/types';
@@ -33,7 +34,7 @@ export function useAccommodations({ lat, lng, location, types, checkin, checkout
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load accommodations');
+        setError(err instanceof Error ? err.message : i18n.t('errors.stays'));
         setAccommodations([]);
       })
       .finally(() => {

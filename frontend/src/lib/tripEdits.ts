@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import axios from 'axios';
 import { apiClient } from './apiClient';
 import type { GeneratedTrip } from '@/types';
@@ -35,7 +36,7 @@ export async function sendEdit(tripId: string, edit: TripEdit): Promise<Generate
     return res.data;
   } catch (err) {
     const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: string } | undefined)?.error : null;
-    throw new Error(msg || 'The change could not be saved. Try again.');
+    throw new Error(msg || i18n.t('errors.saveChange'));
   }
 }
 
@@ -46,6 +47,6 @@ export async function retryDays(tripId: string): Promise<void> {
     await apiClient.post(`/trips/${tripId}/days/retry`, {}, { headers: key ? { 'x-edit-key': key } : {} });
   } catch (err) {
     const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: string } | undefined)?.error : null;
-    throw new Error(msg || 'Could not start again. Try once more in a minute.');
+    throw new Error(msg || i18n.t('errors.restart'));
   }
 }

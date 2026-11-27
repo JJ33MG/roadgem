@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 // On the road: where the traveller is, checking in at a gem, and the trip passport.
 import axios from 'axios';
 import { apiClient } from './apiClient';
@@ -24,7 +25,7 @@ export async function checkInAt(tripId: string, placeId: string, at: Point): Pro
     return (await apiClient.post('/community/checkins', { tripId, placeId, at }, { headers: key ? { 'x-edit-key': key } : {} })).data;
   } catch (err) {
     const msg = axios.isAxiosError(err) ? (err.response?.data as { error?: string } | undefined)?.error : null;
-    throw new Error(msg || 'The check-in did not go through. Try again.');
+    throw new Error(msg || i18n.t('errors.checkin'));
   }
 }
 

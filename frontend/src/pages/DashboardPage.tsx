@@ -11,12 +11,15 @@ import { SavedTripCard } from '@/components/display/SavedTripCard';
 import { LoadingSpinner } from '@/components/utility/LoadingSpinner';
 import { apiClient } from '@/lib/apiClient';
 import { useState } from 'react';
+import { formatDate, formatMoney, formatNumber } from '@/i18n/format';
+import { useTranslation } from 'react-i18next';
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
 
 export function DashboardPage() {
-  usePageTitle('My trips');
+  const { t } = useTranslation();
+  usePageTitle(t('nav.myTrips'));
   const [searchParams] = useSearchParams();
   const justUpgraded = searchParams.get('upgraded') === 'true';
   const { user, refreshUser } = useAuth();
@@ -38,7 +41,7 @@ export function DashboardPage() {
         await apiClient.post('/subscription/upgrade', {});
         await refreshUser();
       } catch {
-        setStripeError('Could not upgrade. Please try again.');
+        setStripeError(t('dash.upgradeFailed'));
       }
     } finally {
       setStripeLoading(false);
@@ -49,9 +52,9 @@ export function DashboardPage() {
   const totalSpent = trips.reduce((sum, t) => sum + t.totalCost, 0);
 
   const stats = [
-    { icon: MapPin, label: 'Trips planned', value: trips.length.toString() },
-    { icon: Route, label: 'Total distance', value: `${totalDistance.toLocaleString()} km` },
-    { icon: Wallet, label: 'Total spent', value: `€${totalSpent.toLocaleString()}` },
+    { icon: MapPin, label: t('dash.tripsPlanned'), value: formatNumber(trips.length) },
+    { icon: Route, label: t('dash.totalDistance'), value: `${formatNumber(Math.round(totalDistance))} km` },
+    { icon: Wallet, label: t('dash.totalCost'), value: formatMoney(Math.round(totalSpent), undefined, { whole: true }) },
   ];
 
   return (
@@ -60,9 +63,9 @@ export function DashboardPage() {
         {/* Header */}
         <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
           <h1 className="text-heading font-display font-w360 text-starlight">
-            {user?.name ? `Hey, ${user.name}` : 'Dashboard'}
+            {user?.name ? t('dash.hey', { name: user.name }) : t('dash.title')}
           </h1>
-          <p className="mt-8 text-body-sm text-silver">Here's an overview of your road trips.</p>
+          <p className="mt-8 text-body-sm text-silver">{t('dash.lead')}</p>
         </motion.div>
 
         <div className="mt-24"><InvitePanel /></div>
@@ -90,7 +93,7 @@ export function DashboardPage() {
             className="mt-24 flex items-center gap-12 rounded-container border border-green-500/30 bg-green-500/10 px-16 py-12"
           >
             <CheckCircle size={18} className="flex-shrink-0 text-green-400" />
-            <p className="text-body-sm text-green-400">You're on Plus now: unlimited trips and every gem.</p>
+            <p className="text-body-sm text-green-400">{t('dash.upgraded')}</p>
           </motion.div>
         )}
 
@@ -105,25 +108,25 @@ export function DashboardPage() {
               <Crown size={20} className={isPremium ? 'text-mercury-blue' : 'text-lead'} />
               <div>
                 <p className="text-body-sm font-w480 text-starlight">
-                  {isPremium ? 'Premium plan' : 'Free plan'}
+                  {isPremium ? t('dash.plusPlan') : t('dash.freePlan')}
                 </p>
                 {isPremium && subscriptionExpires ? (
                   <p className="mt-2 text-caption text-silver">
-                    Renews {new Date(subscriptionExpires).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {t('dash.renews', { date: formatDate(String(subscriptionExpires), undefined, { day: 'numeric', month: 'long', year: 'numeric' }) })}
                   </p>
                 ) : (
-                  <p className="mt-2 text-caption text-silver">1 saved trip · hidden gems locked</p>
+                  <p className="mt-2 text-caption text-silver">{t('dash.freeNote')}</p>
                 )}
               </div>
             </div>
             <div className="flex flex-col items-end gap-6">
               {isPremium ? (
                 <button onClick={downgrade} disabled={isSubscriptionLoading} className="btn-header text-body-sm">
-                  Cancel premium
+                  {t('dash.stopPlus')}
                 </button>
               ) : (
                 <button onClick={handleUpgrade} disabled={stripeLoading} className="btn-primary inline-flex items-center gap-8 text-body-sm">
-                  {stripeLoading ? 'Redirecting…' : <><Crown size={14} /> Get Plus, €9 a month <ArrowRight size={14} /></>}
+                  {stripeLoading ? t('dash.redirecting') : <><Crown size={14} /> {t('dash.getPlus', { price: formatMoney(9, undefined, { whole: true }) })} <ArrowRight size={14} /></>}
                 </button>
               )}
               {stripeError && <p className="text-caption text-red-400">{stripeError}</p>}
@@ -134,9 +137,9 @@ export function DashboardPage() {
         {/* Trips */}
         <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="mt-40">
           <div className="flex items-center justify-between">
-            <h2 className="text-heading-sm font-display font-w480 text-starlight">Your trips</h2>
+            <h2 className="text-heading-sm font-display font-w480 text-starlight">{t('dash.yourTrips')}</h2>
             <Link to="/plan" className="btn-header flex items-center gap-8 text-body-sm">
-              <Plus size={16} /> Plan new trip
+              <Plus size={16} /> {t('dash.planNew')}
             </Link>
           </div>
 
@@ -155,9 +158,9 @@ export function DashboardPage() {
           {!isLoading && trips.length === 0 && (
             <div className="mt-24 rounded-container border border-dashed border-starlight/20 py-56 text-center">
               <MapPin size={32} className="mx-auto text-lead" />
-              <p className="mt-16 text-body-sm text-silver">No trips yet.</p>
+              <p className="mt-16 text-body-sm text-silver">{t('dash.noTrips')}</p>
               <Link to="/plan" className="btn-primary mt-16 inline-block">
-                Plan your first trip
+                {t('dash.planFirst')}
               </Link>
             </div>
           )}

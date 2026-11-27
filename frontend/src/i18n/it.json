@@ -131,7 +131,8 @@
     "changes": "Possiamo aggiornare questi termini; la data in alto indica l'ultima versione. Si applica la legge di {{country}}, senza toglierti la tutela della legge del luogo in cui vivi. Domande: {{email}}."
   },
   "common": {
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "loading": "Caricamento"
   },
   "pricing": {
     "title": "Gratis per il tuo primo viaggio",
@@ -500,5 +501,79 @@
     "plannedWith": "Pianificato con RoamGem",
     "cannotDraw": "Questo browser non può disegnare la card.",
     "shareCard": "Condividi la card"
+  },
+  "dash": {
+    "hey": "Ciao {{name}}",
+    "title": "Il tuo account",
+    "lead": "I tuoi road trip e il tuo piano.",
+    "tripsPlanned": "Viaggi pianificati",
+    "totalDistance": "Distanza totale",
+    "totalCost": "Costo stimato",
+    "upgraded": "Ora hai Plus: viaggi illimitati e ogni gemma.",
+    "plusPlan": "Plus",
+    "freePlan": "Piano gratuito",
+    "renews": "Si rinnova il {{date}}",
+    "freeNote": "1 viaggio salvato · la gemma migliore di ogni giorno",
+    "stopPlus": "Interrompi Plus",
+    "redirecting": "Apertura del pagamento…",
+    "getPlus": "Prendi Plus, {{price}} al mese",
+    "upgradeFailed": "Non è stato possibile attivare Plus. Riprova.",
+    "yourTrips": "I tuoi viaggi",
+    "planNew": "Pianifica un nuovo viaggio",
+    "noTrips": "Ancora nessun viaggio.",
+    "planFirst": "Pianifica il tuo primo viaggio",
+    "loadFailed": "Non è stato possibile caricare i viaggi.",
+    "status": {
+      "draft": "Bozza",
+      "saved": "Salvato",
+      "archived": "Archiviato"
+    },
+    "dates": "dal {{start}} al {{end}}"
+  },
+  "invite": {
+    "title": "Invita un amico",
+    "body": "Un amico che si iscrive con il tuo link riceve 2 settimane di Plus. Tu ricevi 1 settimana per ogni amico."
+  },
+  "map": {
+    "label": "Mappa del percorso, delle notti e delle gemme",
+    "unavailable": "La mappa non è disponibile su questo dispositivo. Il piano qui sotto ha ogni tappa.",
+    "todayAlt": "Mappa del percorso, il viaggio di oggi in scuro",
+    "rated": "Voto {{rating}}",
+    "ratedBy": "Voto {{rating}} da {{count}} recensioni Google"
+  },
+  "stayCard": {
+    "perNight": "/ notte",
+    "selected": "Scelto",
+    "choose": "Scegli per stanotte",
+    "book": "Prenota"
+  },
+  "error": {
+    "title": "Qualcosa è andato storto",
+    "body": "Ricarica la pagina e riprova."
+  },
+  "errors": {
+    "stays": "Non è stato possibile caricare gli alloggi.",
+    "trip": "Non è stato possibile caricare il viaggio.",
+    "saveChange": "Non è stato possibile salvare la modifica. Riprova.",
+    "restart": "Non è stato possibile ricominciare. Riprova tra un minuto.",
+    "photoPrep": "Questo browser non può preparare la foto.",
+    "noGeo": "Questo browser non può condividere la tua posizione.",
+    "geoDenied": "Consenti la posizione per questo sito, così l'app può verificare che sei alla gemma.",
+    "geoFailed": "Non è stato possibile trovare la tua posizione. Esci all'aperto o riprova.",
+    "checkin": "La registrazione non è riuscita. Riprova.",
+    "gem": "Non è stato possibile caricare questa gemma.",
+    "photoSend": "Non è stato possibile inviare la foto. Riprova.",
+    "gemSend": "Non è stato possibile inviare la gemma. Riprova.",
+    "feed": "Non è stato possibile caricare il feed.",
+    "board": "Non è stato possibile caricare la classifica.",
+    "nearby": "Non è stato possibile caricare le gemme vicine.",
+    "myTrips": "Non è stato possibile caricare i tuoi viaggi.",
+    "add": "Non è stato possibile aggiungere la gemma.",
+    "like": "Il mi piace non è riuscito.",
+    "mine": "Non è stato possibile caricare i tuoi post.",
+    "generic": "Non ha funzionato.",
+    "challenge": "Non è stato possibile caricare la sfida.",
+    "explorer": "Non è stato possibile caricare le gemme degli esploratori.",
+    "invite": "Non è stato possibile caricare il tuo link d'invito."
   }
 }

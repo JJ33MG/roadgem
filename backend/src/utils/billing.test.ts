@@ -128,3 +128,13 @@ describe('applyStripeEvent: invoices in Stripe\'s newer format (27 Nov: the webh
     expect(update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { subscriptionTier: 'premium', subscriptionExpires: new Date(1800000000 * 1000) } });
   });
 });
+
+import { PLUS_PRICES, plusPriceParams } from './billing';
+
+describe('plusPriceParams: Routify makes its own Plus prices in a fresh Stripe account (27 Nov)', () => {
+  it('describes monthly €9 and yearly €59, EUR, VAT included, findable by lookup key', () => {
+    const m = plusPriceParams('monthly', 'prod_1');
+    expect(m).toMatchObject({ product: 'prod_1', currency: 'eur', unit_amount: 900, tax_behavior: 'inclusive', recurring: { interval: 'month' }, lookup_key: PLUS_PRICES.monthly });
+    expect(plusPriceParams('yearly', 'prod_1')).toMatchObject({ unit_amount: 5900, recurring: { interval: 'year' }, lookup_key: PLUS_PRICES.yearly });
+  });
+});

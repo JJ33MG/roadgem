@@ -123,3 +123,17 @@ export function planPricesFrom(prices: { id: string; active: boolean; recurring?
     yearly: active.find((p) => p.recurring?.interval === 'year')?.id,
   };
 }
+
+/** Lookup keys of the Plus prices Routify creates itself when none are configured (a fresh live account). */
+export const PLUS_PRICES = { monthly: 'roamgem_plus_monthly', yearly: 'roamgem_plus_yearly' } as const;
+
+export function plusPriceParams(plan: 'monthly' | 'yearly', product: string): Stripe.PriceCreateParams {
+  return {
+    product,
+    currency: 'eur',
+    unit_amount: plan === 'monthly' ? 900 : 5900,
+    tax_behavior: 'inclusive',
+    recurring: { interval: plan === 'monthly' ? 'month' : 'year' },
+    lookup_key: PLUS_PRICES[plan],
+  };
+}

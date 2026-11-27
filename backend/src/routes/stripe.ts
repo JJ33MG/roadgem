@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, requireAuth, AuthRequest } from '../middleware/auth';
-import { applyStripeEvent, checkoutParams, planPricesFrom } from '../utils/billing';
+import { PLUS_PRICES, applyStripeEvent, checkoutParams, planPricesFrom, plusPriceParams } from '../utils/billing';
 
 const frontendUrl = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 const set = (v?: string) => (v && !/YOUR/.test(v) ? v : undefined);
@@ -14,6 +14,12 @@ let resolved: { monthly?: string; yearly?: string } | null = null;
 async function prices(stripe: Stripe): Promise<{ monthly?: string; yearly?: string }> {
   const c = configured();
   const ids = [c.monthly, c.yearly].filter((x): x is string => !!x);
+  // Nothing configured (a fresh live account, 27 Nov): find or create RoamGem Plus by its lookup keys.
+  if (!ids.length) {
+    if (resolved?.monthly && resolved?.yearly) return resolved;
+    resolved = await ensurePlusPrices(stripe);
+    return resolved;
+  }
   if (!ids.some((id) => id.startsWith('prod_'))) return c;
   if (resolved?.monthly && resolved?.yearly) return resolved;
   const found = await Promise.all(ids.filter((id) => id.startsWith('prod_')).map((product) => stripe.prices.list({ product, active: true, limit: 20 }).then((r) => r.data)));
@@ -23,6 +29,23 @@ async function prices(stripe: Stripe): Promise<{ monthly?: string; yearly?: stri
     yearly: c.yearly?.startsWith('price_') ? c.yearly : fromProducts.yearly,
   };
   return resolved;
+}
+
+/** RoamGem Plus (€9 a month, €59 a year, VAT included, SaaS for consumers): found by lookup key, else created once. */
+async function ensurePlusPrices(stripe: Stripe): Promise<{ monthly?: string; yearly?: string }> {
+  const found = await stripe.prices.list({ lookup_keys: [PLUS_PRICES.monthly, PLUS_PRICES.yearly], active: true });
+  const byKey = (k: string) => found.data.find((p) => p.lookup_key === k)?.id;
+  let monthly = byKey(PLUS_PRICES.monthly);
+  let yearly = byKey(PLUS_PRICES.yearly);
+  if (monthly && yearly) return { monthly, yearly };
+  const product = await stripe.products.create({
+    name: 'RoamGem Plus',
+    description: 'Unlimited trips, every gem on your route, gem filters, the cheapest route without tolls and a PDF of your trip.',
+    tax_code: 'txcd_10103000',
+  });
+  monthly ??= (await stripe.prices.create(plusPriceParams('monthly', product.id))).id;
+  yearly ??= (await stripe.prices.create(plusPriceParams('yearly', product.id))).id;
+  return { monthly, yearly };
 }
 
 const router = Router();

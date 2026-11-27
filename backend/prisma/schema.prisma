@@ -33,6 +33,8 @@ model User {
   foundGems     Gem[]          @relation("FoundGems")
   posts         Post[]
   likes         Like[]
+  gemAdds       GemAdd[]
+  savedGems     SavedGem[]
 }
 
 model Trip {
@@ -257,6 +259,8 @@ model Gem {
   createdAt   DateTime  @default(now())
   officialAt  DateTime?
   posts       Post[]
+  adds        GemAdd[]
+  saved       SavedGem[]
 
   @@index([status])
   @@index([finderId])
@@ -277,10 +281,13 @@ model Post {
   monthly    Boolean   @default(false) // an entry for the monthly challenge (Plus)
   status     String    @default("pending") // pending | public | rejected
   aiNote     String    @default("")
+  /// Photo credit of team posts (Wikimedia Commons author).
+  credit     String    @default("")
   points     Int       @default(0)
   createdAt  DateTime  @default(now())
   reviewedAt DateTime?
   likes      Like[]
+  adds       GemAdd[]
 
   @@index([status, createdAt])
   @@index([gemId])
@@ -367,4 +374,39 @@ model Feedback {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+/// Someone put a community gem in a trip (or saved it): once per person and gem; 25 points for the post's author.
+model GemAdd {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gemId     String
+  gem       Gem      @relation(fields: [gemId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: SetNull)
+  tripId    String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, gemId])
+  @@index([gemId])
+  @@index([postId, createdAt])
+}
+
+/// A community gem saved without a trip: added to the next trip that passes by.
+model SavedGem {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gemId     String
+  gem       Gem      @relation(fields: [gemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, gemId])
+}
+
+/// The monthly explorer prize (a year of Plus), granted once per month after Jarne's approval.
+model PrizeGrant {
+  month     String   @id
+  userId    String
+  createdAt DateTime @default(now())
 }

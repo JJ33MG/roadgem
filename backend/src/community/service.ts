@@ -2,7 +2,8 @@
 import type { PrismaClient } from '@prisma/client';
 import { hasPlus } from '../utils/billing';
 import { teamLabel } from './launch';
-import { decodePhoto, metresBetween, onTheSpot, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
+import { decodePhoto, metresBetween, onTheSpot, periodStart, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
+import { nearLine, type LatLng } from '../utils/routeGems';
 
 type GemRef = { gemId: string } | { placeId: string; name: string; lat: number; lng: number; address?: string };
 
@@ -135,29 +136,57 @@ export async function toggleLike(db: PrismaClient, postId: string, userId: strin
   return { liked: !had, likes };
 }
 
-export async function feed(db: PrismaClient, viewerId: string | null, before?: Date, take = 20) {
-  const posts = await db.post.findMany({
-    where: { status: 'public', ...(before ? { createdAt: { lt: before } } : {}) },
+export type FeedOptions = { period?: 'today' | 'week' | 'route'; page?: number; take?: number; routeLines?: LatLng[][]; now?: Date };
+
+/** Public moments of the period, most liked first, then newest. "route": moments whose gem lies within 20 km of the viewer's roads. */
+export async function feed(db: PrismaClient, viewerId: string | null, opts: FeedOptions = {}) {
+  const period = opts.period ?? 'week';
+  const take = Math.min(Math.max(opts.take ?? 20, 1), 50);
+  const page = Math.max(0, Math.floor(opts.page ?? 0));
+  const since = period === 'route' ? periodStart('month', opts.now) : periodStart(period, opts.now);
+  const rows = await db.post.findMany({
+    where: { status: 'public', createdAt: { gte: since } },
     orderBy: { createdAt: 'desc' },
-    take: Math.min(Math.max(take, 1), 50),
+    take: 500,
     select: {
-      id: true, caption: true, challenge: true, points: true, createdAt: true,
+      id: true, caption: true, challenge: true, points: true, createdAt: true, distanceM: true, credit: true, userId: true,
       user: { select: { name: true, email: true, isTeam: true } },
-      gem: { select: { id: true, name: true, status: true, address: true, lat: true, lng: true } },
+      gem: { select: { id: true, placeId: true, name: true, status: true, address: true, lat: true, lng: true } },
       _count: { select: { likes: true } },
       likes: viewerId ? { where: { userId: viewerId }, select: { userId: true } } : false,
     },
   });
+  let posts = rows;
+  if (period === 'route') {
+    const lines = (opts.routeLines ?? []).filter((l) => l.length > 1);
+    const near = new Set(lines.flatMap((l) => nearLine(rows.map((r) => ({ ...r.gem, postId: r.id })), l, 20).map((g) => g.postId)));
+    posts = rows.filter((r) => near.has(r.id));
+  }
+  posts = [...posts].sort((a, b) => b._count.likes - a._count.likes || b.createdAt.getTime() - a.createdAt.getTime()).slice(page * take, page * take + take);
+  const gemIds = [...new Set(posts.map((p) => p.gem.id))];
+  const placeIds = posts.filter((p) => p.user.isTeam && p.gem.placeId).map((p) => p.gem.placeId!);
+  const [adds, places] = await Promise.all([
+    gemIds.length ? db.gemAdd.groupBy({ by: ['gemId'], where: { gemId: { in: gemIds } }, _count: { _all: true } }) : [],
+    placeIds.length ? db.placeGem.findMany({ where: { placeId: { in: placeIds } }, select: { placeId: true, rating: true } }) : [],
+  ]);
+  const inTrips = new Map(adds.map((a) => [a.gemId, a._count._all]));
+  const rating = new Map(places.map((p) => [p.placeId, p.rating]));
   return posts.map((p) => ({
     id: p.id,
     caption: p.caption,
     challenge: p.challenge,
     points: p.points,
     createdAt: p.createdAt,
+    userId: p.userId,
     ...teamLabel(p.user),
-    gem: p.gem,
+    gem: { id: p.gem.id, name: p.gem.name, status: p.gem.status, address: p.gem.address, lat: p.gem.lat, lng: p.gem.lng },
+    distanceKm: Math.round(p.distanceM / 100) / 10,
     likes: p._count.likes,
     likedByMe: Array.isArray(p.likes) && p.likes.length > 0,
+    inTrips: inTrips.get(p.gem.id) ?? 0,
+    credit: p.credit,
+    rating: p.user.isTeam && p.gem.placeId ? rating.get(p.gem.placeId) ?? null : null,
+    rank: null as number | null,
     photoUrl: `/api/community/posts/${p.id}/photo`,
   }));
 }

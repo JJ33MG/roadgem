@@ -49,8 +49,18 @@ router.post('/suggest', requireAuth, wrap(async (req, res) => {
 }));
 
 router.get('/feed', optionalAuth, wrap(async (req, res) => {
-  const before = typeof req.query.before === 'string' ? new Date(req.query.before) : undefined;
-  res.json(await feed(prisma, req.userId ?? null, before && !isNaN(before.getTime()) ? before : undefined));
+  const q = String(req.query.period ?? 'week');
+  const period = q === 'today' || q === 'route' ? q : 'week';
+  const page = Number(req.query.page ?? 0) || 0;
+  if (period !== 'route') return res.json(await feed(prisma, req.userId ?? null, { period, page }));
+  if (!req.userId) return res.status(401).json({ error: 'Sign in to see posts along your route.' });
+  const trips = await prisma.trip.findMany({ where: { userId: req.userId }, orderBy: { createdAt: 'desc' }, take: 5, select: { planner: true } });
+  const routeLines = trips
+    .map((t) => { try { return (JSON.parse(t.planner || '{}') as { route?: string }).route; } catch { return undefined; } })
+    .filter((r): r is string => typeof r === 'string' && r.length > 0)
+    .map((r) => decodePolyline(r));
+  if (!routeLines.length) return res.json([]);
+  res.json(await feed(prisma, req.userId, { period, page, routeLines }));
 }));
 
 router.post('/posts/:id/like', requireAuth, wrap(async (req, res) => {

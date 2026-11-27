@@ -3,6 +3,13 @@
 export type Point = { lat: number; lng: number };
 
 export const SPOT_METRES = 300;
+/** A moment may tag a gem this close to where the traveller is (camping nearby, the group at the lake). */
+export const NEAR_GEM_METRES = 5000;
+
+export type Period = 'today' | 'week' | 'month';
+const PERIOD_DAYS: Record<Period, number> = { today: 1, week: 7, month: 30 };
+/** The start of a rolling period: today = the last 24 h, week = 7 days, month = 30 days. */
+export const periodStart = (period: Period, now = new Date()) => new Date(now.getTime() - PERIOD_DAYS[period] * 86_400_000);
 export const POINTS = { photo: 10, challenge: 50, foundGem: 200 } as const;
 export const OFFICIAL = { visitors: 10, likes: 20 } as const;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;

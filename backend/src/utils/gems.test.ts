@@ -13,3 +13,10 @@ describe('gemsFor', () => {
     expect(gemsFor(gems, true)).toEqual({ hiddenGems: gems, lockedGems: 0 });
   });
 });
+
+describe('gemsFor with gems a traveller added from the community', () => {
+  it('keeps an added gem visible on the free plan, next to the best gem of its day', () => {
+    const day = [{ name: 'Best', day: 1 }, { name: 'Second', day: 1 }, { name: 'Added', day: 1, added: true }];
+    expect(gemsFor(day, false)).toEqual({ hiddenGems: [day[0], day[2]], lockedGems: 1 });
+  });
+});

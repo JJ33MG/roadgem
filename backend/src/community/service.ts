@@ -2,7 +2,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { hasPlus } from '../utils/billing';
 import { teamLabel } from './launch';
-import { decodePhoto, metresBetween, onTheSpot, periodStart, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
+import { decodePhoto, metresBetween, NEAR_GEM_METRES, onTheSpot, periodStart, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
 import { nearLine, type LatLng } from '../utils/routeGems';
 
 type GemRef = { gemId: string } | { placeId: string; name: string; lat: number; lng: number; address?: string };
@@ -54,7 +54,9 @@ export async function createPost(
   }
   const gem = await gemFor(db, input.gem);
   const at = point(input.at);
-  if (!onTheSpot(gem, at)) throw fail('Photos count only when you are at the gem (within 300 m). Try again when you are there.');
+  const metres = metresBetween(gem, at);
+  if (input.challenge === true && !onTheSpot(gem, at)) throw fail('A challenge counts only at the gem itself (within 300 m). Try again when you are there.');
+  if (metres > NEAR_GEM_METRES) throw fail('Tag a gem within 5 km of where you are.');
   const { bytes, type } = decodePhoto(input.photo);
   return db.post.create({
     data: {
@@ -63,7 +65,7 @@ export async function createPost(
       caption: clean(input.caption, 280),
       photo: bytes,
       photoType: type,
-      distanceM: Math.round(metresBetween(gem, at)),
+      distanceM: Math.round(metres),
       challenge: input.challenge === true,
       monthly: input.monthly === true,
     },

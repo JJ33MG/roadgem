@@ -23,9 +23,9 @@ describe.skipIf(!url)('community service', () => {
   });
   afterAll(() => db?.$disconnect());
 
-  it('refuses a photo taken away from the gem, so no points from home', async () => {
+  it('refuses a photo taken more than 5 km from the gem, so no points from home', async () => {
     const u = await user();
-    await expect(createPost(db, { userId: u.id, gem: GEM, at: FAR, photo: JPEG, caption: '', challenge: false })).rejects.toThrow(/at the gem/);
+    await expect(createPost(db, { userId: u.id, gem: GEM, at: FAR, photo: JPEG, caption: '', challenge: false })).rejects.toThrow(/within 5 km/);
     expect(await db.post.count()).toBe(0);
   });
 

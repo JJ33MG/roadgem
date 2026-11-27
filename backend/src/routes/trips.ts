@@ -15,6 +15,7 @@ import { prisma } from '../utils/prisma';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
 import { generateLimit, limit } from '../middleware/limits';
 import { gemsFor } from '../utils/gems';
+import { placeSavedGems } from '../community/adds';
 import { routeLine, type RoadLeg } from '../utils/routeGems';
 import { findDayGems, nightIndexes } from '../utils/dayGems';
 import { commonsPhotoNear } from '../utils/commonsPhoto';
@@ -127,6 +128,11 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       weatherP,
     ]);
     if (free?.legs.length) savedPlanner.alt = { route: free.encoded, legs: free.legs, tollFree: true };
+    // Gems this traveller saved from the community join the trip when the road passes within 15 km.
+    if (req.userId && gemsEnabled) {
+      const withSaved = await placeSavedGems(prisma, req.userId, road.points, hiddenGems as never[]).catch(() => null);
+      if (withSaved) hiddenGems.splice(0, hiddenGems.length, ...(withSaved as typeof hiddenGems));
+    }
     console.log(`[generate] ${days} days: plan ${tPlan - t0} ms, road and gems ${Date.now() - tPlan} ms`);
 
     const saved = await prisma.trip.create({

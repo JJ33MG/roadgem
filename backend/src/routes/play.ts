@@ -6,6 +6,8 @@ import { isAdmin } from '../community/rules';
 import { board, createPost, feed, review, suggestGem, toggleLike } from '../community/service';
 import { fallbackChallenge, writeChallenge } from '../community/aiCheck';
 import { autoReview } from '../community/autoReview';
+import { addGemToTrip } from '../community/adds';
+import { nearbyGems } from '../community/nearby';
 import { rateLimiter } from './track';
 import { checkIn, passport } from '../community/road';
 import { explorerGemsNear, monthlyChallenge } from '../community/explorer';
@@ -61,6 +63,35 @@ router.get('/feed', optionalAuth, wrap(async (req, res) => {
     .map((r) => decodePolyline(r));
   if (!routeLines.length) return res.json([]);
   res.json(await feed(prisma, req.userId, { period, page, routeLines }));
+}));
+
+// Gems within 5 km of where the traveller is, to tag a moment.
+router.get('/nearby', requireAuth, wrap(async (req, res) => {
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return res.status(400).json({ error: 'Your location is needed to find gems nearby.' });
+  res.json(await nearbyGems(prisma, { lat, lng }));
+}));
+
+// "Add to my trip": into a day of one of my trips, or saved for the next trip when no trip is given.
+const allowAdd = rateLimiter(60, 60 * 60_000);
+router.post('/gems/:gemId/add', requireAuth, wrap(async (req, res) => {
+  if (!allowAdd(req.userId!)) return res.status(429).json({ error: 'That is a lot of gems. Try again in an hour.' });
+  const { postId, tripId, day } = (req.body ?? {}) as { postId?: unknown; tripId?: unknown; day?: unknown };
+  res.json(await addGemToTrip(prisma, {
+    userId: req.userId!,
+    gemId: req.params.gemId,
+    postId: typeof postId === 'string' ? postId : undefined,
+    tripId: typeof tripId === 'string' && tripId ? tripId : undefined,
+    day: Number(day) || undefined,
+    key: typeof req.headers['x-edit-key'] === 'string' ? req.headers['x-edit-key'] : undefined,
+  }));
+}));
+
+// My trips, newest first, for the "Add to my trip" picker.
+router.get('/my-trips', requireAuth, wrap(async (req, res) => {
+  const trips = await prisma.trip.findMany({ where: { userId: req.userId! }, orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, startLocation: true, destination: true, days: true, startDate: true } });
+  res.json(trips.map((t) => ({ id: t.id, title: `${t.startLocation.split(',')[0]} to ${t.destination.split(',')[0]}`, days: t.days, startDate: t.startDate })));
 }));
 
 router.post('/posts/:id/like', requireAuth, wrap(async (req, res) => {

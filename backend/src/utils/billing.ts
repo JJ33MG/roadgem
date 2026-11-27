@@ -1,3 +1,4 @@
+import type { Lang } from '../i18n/lang';
 // Plus (monthly or yearly subscription) and the Trip pass (one-off, one trip): checkout sessions,
 // who has what, and what Stripe's events change. Stripe itself only runs once the keys are set.
 import type Stripe from 'stripe';
@@ -23,14 +24,15 @@ export function hasPlus(user: { subscriptionTier: string; subscriptionExpires: D
 export const tripUnlocked = (planner: Record<string, unknown> | null | undefined) => planner?.pass === true;
 
 type CheckoutInput =
-  | { kind: 'plus'; plan: 'monthly' | 'yearly'; frontendUrl: string; email: string; userId: string }
-  | { kind: 'pass'; tripId: string; frontendUrl: string; email?: string; userId?: string };
+  | { kind: 'plus'; plan: 'monthly' | 'yearly'; frontendUrl: string; email: string; userId: string; lang?: Lang }
+  | { kind: 'pass'; tripId: string; frontendUrl: string; email?: string; userId?: string; lang?: Lang };
 
 export function checkoutParams(i: CheckoutInput, prices: { monthly?: string; yearly?: string }): Stripe.Checkout.SessionCreateParams {
   if (i.kind === 'plus') {
     const price = i.plan === 'yearly' ? prices.yearly : prices.monthly;
     if (!price) throw new Error(`No Stripe price for Plus ${i.plan}`);
     return {
+      locale: i.lang ?? 'en',
       mode: 'subscription',
       customer_email: i.email,
       line_items: [{ price, quantity: 1 }],
@@ -41,6 +43,7 @@ export function checkoutParams(i: CheckoutInput, prices: { monthly?: string; yea
     };
   }
   return {
+    locale: i.lang ?? 'en',
     mode: 'payment',
     ...(i.email ? { customer_email: i.email } : {}),
     line_items: [

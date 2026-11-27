@@ -14,3 +14,28 @@ describe('the language of a request', () => {
     expect(isLang('EN')).toBe(false);
   });
 });
+
+describe('server messages in the visitor\'s language', () => {
+  it('translates a known message and leaves others as they are', async () => {
+    const { translateMessage } = await import('./messages');
+    expect(translateMessage('Tag a gem within 5 km of where you are.', 'de')).toBe('Tagge einen Gem im Umkreis von 5 km um deinen Standort.');
+    expect(translateMessage('Tag a gem within 5 km of where you are.', 'en')).toBe('Tag a gem within 5 km of where you are.');
+    expect(translateMessage('lat and lng are required', 'nl')).toBe('lat and lng are required');
+  });
+
+  it('has every message in all five other languages', async () => {
+    const { MESSAGES } = await import('./messages');
+    for (const [en, t] of Object.entries(MESSAGES)) expect(Object.keys(t).sort(), en).toEqual(['de', 'es', 'fr', 'it', 'nl']);
+  });
+
+  it('answers in the request language through res.json', async () => {
+    const { speakLanguage } = await import('./messages');
+    let sent: unknown;
+    const res = { json: (b: unknown) => { sent = b; return res; } } as never;
+    const req = { headers: { 'x-lang': 'fr' } } as never;
+    speakLanguage(req, res, () => undefined);
+    (res as { json: (b: unknown) => unknown }).json({ error: 'Trip not found' });
+    expect(sent).toEqual({ error: 'Voyage introuvable' });
+    expect((req as { lang: string }).lang).toBe('fr');
+  });
+});

@@ -37,6 +37,12 @@ describe('checkout', () => {
     expect(p).toMatchObject({ mode: 'payment', metadata: { type: 'trip_pass', tripId: 't1' }, success_url: 'https://routify.test/trips/t1?pass=ok' });
     expect(p.line_items![0]!.price_data).toMatchObject({ currency: 'eur', unit_amount: 499 });
   });
+
+  it('opens the payment page in the traveller\'s language', () => {
+    expect(checkoutParams({ kind: 'plus', plan: 'monthly', ...base, lang: 'fr' }, { monthly: 'price_m' }).locale).toBe('fr');
+    expect(checkoutParams({ kind: 'pass', tripId: 't1', frontendUrl: 'https://routify.test', lang: 'de' }, {}).locale).toBe('de');
+    expect(checkoutParams({ kind: 'pass', tripId: 't1', frontendUrl: 'https://routify.test' }, {}).locale).toBe('en');
+  });
 });
 
 describe('Stripe events', () => {

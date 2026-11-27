@@ -1,3 +1,4 @@
+import { langOf } from '../i18n/lang';
 import { Router, Request, Response, NextFunction } from 'express';
 import { autocompleteCities } from '../utils/google';
 import dotenv from 'dotenv';
@@ -26,7 +27,7 @@ router.get('/suggestions', async (req: Request, res: Response, next: NextFunctio
       return res.json([]);
     }
 
-    const suggestions = (await autocompleteCities(query, apiKey)).slice(0, 5);
+    const suggestions = (await autocompleteCities(query, apiKey, langOf(req.headers['x-lang']))).slice(0, 5);
 
     res.json(suggestions);
   } catch (err) {

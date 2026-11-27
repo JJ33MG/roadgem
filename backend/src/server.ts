@@ -1,3 +1,4 @@
+import { speakLanguage } from './i18n/messages';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -56,6 +57,8 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 // Community photos arrive as data URLs (shrunk in the browser): a larger limit for those routes only.
 app.use(['/api/community/posts', '/api/community/suggest'], express.json({ limit: '8mb' }));
 app.use(express.json());
+// Answers people in their language (x-lang) and sets req.lang for trips written in it.
+app.use(speakLanguage);
 
 // Routes
 // Up and the database answers: checked by Railway and by the Brain.

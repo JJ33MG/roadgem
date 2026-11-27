@@ -81,10 +81,11 @@ export async function placePhotos(id: string, key: string): Promise<string[]> {
 }
 
 /** City suggestions while typing, Europe first. */
-export async function autocompleteCities(input: string, key: string): Promise<string[]> {
+/** City suggestions, named in the traveller's language ("Brussel", "Bruxelles"). */
+export async function autocompleteCities(input: string, key: string, lang = 'en'): Promise<string[]> {
   const res = await axios.post(
     `${PLACES}/places:autocomplete`,
-    { input, includedPrimaryTypes: ['(cities)'], languageCode: 'en', locationBias: { rectangle: { low: { latitude: 34, longitude: -25 }, high: { latitude: 72, longitude: 45 } } } },
+    { input, includedPrimaryTypes: ['(cities)'], languageCode: lang, locationBias: { rectangle: { low: { latitude: 34, longitude: -25 }, high: { latitude: 72, longitude: 45 } } } },
     { headers: { 'X-Goog-Api-Key': key, 'Content-Type': 'application/json' }, timeout: 6000 },
   );
   return ((res.data?.suggestions ?? []) as any[]).map((s) => s?.placePrediction?.text?.text).filter((t): t is string => !!t);

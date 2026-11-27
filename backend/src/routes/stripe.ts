@@ -1,3 +1,4 @@
+import { langOf } from '../i18n/lang';
 import { Router, Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../utils/prisma';
@@ -69,7 +70,7 @@ router.post('/create-checkout-session', requireAuth, async (req: AuthRequest, re
     if (!user) return res.status(404).json({ error: 'User not found' });
     const plan = req.body?.plan === 'yearly' ? 'yearly' : 'monthly';
     const session = await stripe.checkout.sessions.create(
-      checkoutParams({ kind: 'plus', plan, frontendUrl: frontendUrl(), email: user.email, userId: user.id }, await prices(stripe)),
+      checkoutParams({ kind: 'plus', plan, frontendUrl: frontendUrl(), email: user.email, userId: user.id, lang: langOf(req.headers['x-lang']) }, await prices(stripe)),
     );
     res.json({ url: session.url });
   } catch (err: any) {
@@ -86,7 +87,7 @@ router.post('/trip-pass', optionalAuth, async (req: AuthRequest, res: Response, 
     if (!trip) return res.status(404).json({ error: 'Trip not found' });
     const user = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
     const session = await stripe.checkout.sessions.create(
-      checkoutParams({ kind: 'pass', tripId: trip.id, frontendUrl: frontendUrl(), email: user?.email, userId: user?.id }, configured()),
+      checkoutParams({ kind: 'pass', tripId: trip.id, frontendUrl: frontendUrl(), email: user?.email, userId: user?.id, lang: langOf(req.headers['x-lang']) }, configured()),
     );
     res.json({ url: session.url });
   } catch (err: any) {

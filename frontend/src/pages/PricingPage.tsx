@@ -6,49 +6,19 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useManageSubscription } from '@/hooks/useManageSubscription';
 import { apiClient } from '@/lib/apiClient';
 import { Button, Panel } from '@/components/ui';
+import { useTranslation } from 'react-i18next';
+import { formatMoney } from '@/i18n/format';
 
-const FREE = [
-  'A full trip: days, stays and the route',
-  'Real costs per day: fuel, tolls and vignettes',
-  'The best checked gem of every day',
-  'Change the plan: move a night, add a rest day',
-  'The route in Google Maps in one tap',
-  'Collect gems on the road in your trip passport',
-  'One community photo a day',
-  'One saved trip',
-];
-const PASS = [
-  'Everything in Free, for one trip',
-  'Every gem on the route',
-  'Filter gems: hikes, food, experiences, for family, couples or friends',
-  'The cheapest route, without toll roads',
-  'A printable PDF of the trip',
-  'Yours to keep, no subscription',
-];
-const PLUS = [
-  'Unlimited trips',
-  'Every gem on the route',
-  'Filter gems: hikes, food, experiences, for family, couples or friends',
-  'The cheapest route, without toll roads',
-  'A printable PDF of the trip',
-  'Explorer gems: rare places travellers found',
-  'Double points and unlimited community photos',
-  'Suggest new gems, and the monthly prize challenge',
-  'Your trips on every device you sign in on',
-];
-
-const FAQS = [
-  { q: 'Can I stop any time?', a: 'Yes. Stop from your account page; Plus keeps working until the end of the month or year you paid for.' },
-  { q: 'What happens to my trips if I stop?', a: 'They stay. You can open every trip you saved; only new trips follow the free plan again.' },
-  { q: 'Do I need a card for the free plan?', a: 'No. Plan and save one full trip without paying anything.' },
-  { q: 'Trip pass or Plus?', a: 'One road trip a year: the Trip pass unlocks everything for that trip, once. Several trips, or planning and comparing a lot: Plus.' },
-  { q: 'How does the cheapest route work?', a: 'RoamGem also asks Google for the route without toll roads and prices both. When it saves money, you see how much and how much longer it takes, and switch in one tap.' },
-];
+const FREE = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `pricing.free${n}`);
+const PASS = ['pricing.pass1', 'pricing.everyGem', 'pricing.filters', 'pricing.cheapest', 'pricing.pdf', 'pricing.pass6'];
+const PLUS = ['pricing.plus1', 'pricing.everyGem', 'pricing.filters', 'pricing.cheapest', 'pricing.pdf', 'pricing.plus6', 'pricing.plus7', 'pricing.plus8', 'pricing.plus9'];
+const FAQS = [1, 2, 3, 4, 5].map((n) => ({ q: `pricing.q${n}`, a: `pricing.a${n}` }));
 
 const head = { fontWeight: 400, letterSpacing: '-0.035em' } as const;
 
 export function PricingPage() {
-  usePageTitle('Pricing');
+  const { t } = useTranslation();
+  usePageTitle(t('nav.pricing'));
   const { user } = useAuth();
   const { isPremium } = useSubscription();
   const { upgrade } = useManageSubscription();
@@ -73,7 +43,7 @@ export function PricingPage() {
         await upgrade();
         navigate('/dashboard?upgraded=true');
       } catch {
-        setError('Plus could not be started. Please try again.');
+        setError(t('pricing.startFailed'));
       }
     } finally {
       setBusy(false);
@@ -82,62 +52,62 @@ export function PricingPage() {
 
   return (
     <div className="mx-auto max-w-[1040px] px-16 py-40 md:px-40 md:py-[64px]">
-      <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[64px]" style={head}>Free for your first trip</h1>
-      <p className="mt-16 max-w-[44ch] text-[20px]">Plan a whole trip for free. Plus is for people who keep going.</p>
+      <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[64px]" style={head}>{t('pricing.title')}</h1>
+      <p className="mt-16 max-w-[44ch] text-[20px]">{t('pricing.lead')}</p>
 
       <div className="mt-40 grid gap-24 md:grid-cols-3">
         <section aria-labelledby="free-head" className="rounded-card border border-rule bg-paper p-24">
-          <h2 id="free-head" className="text-[20px] text-ink" style={{ fontWeight: 500 }}>Free</h2>
-          <p className="num mt-8 font-display text-[56px] text-ink" style={head}>€0</p>
+          <h2 id="free-head" className="text-[20px] text-ink" style={{ fontWeight: 500 }}>{t('pricing.free')}</h2>
+          <p className="num mt-8 font-display text-[56px] text-ink" style={head}>{formatMoney(0, undefined, { whole: true })}</p>
           <ul className="mt-16 grid gap-8 p-0" style={{ listStyle: 'none' }}>
-            {FREE.map((f) => <li key={f} className="border-t border-rule pt-8">{f}</li>)}
+            {FREE.map((f) => <li key={f} className="border-t border-rule pt-8">{t(f)}</li>)}
           </ul>
-          <Button className="mt-24 w-full" onClick={() => navigate('/plan')}>Plan a trip</Button>
+          <Button className="mt-24 w-full" onClick={() => navigate('/plan')}>{t('nav.plan')}</Button>
         </section>
 
         <section aria-labelledby="pass-head" className="rounded-card border border-rule bg-paper p-24">
           <h2 id="pass-head" className="text-[20px] text-ink" style={{ fontWeight: 500 }}>Trip pass</h2>
           <p className="mt-8 text-ink">
-            <span className="num font-display text-[56px]" style={head}>€4.99</span>
-            <span className="ml-8 text-[18px] text-muted">once, per trip</span>
+            <span className="num font-display text-[56px]" style={head}>{formatMoney(4.99)}</span>
+            <span className="ml-8 text-[18px] text-muted">{t('pricing.once')}</span>
           </p>
           <ul className="mt-16 grid gap-8 p-0" style={{ listStyle: 'none' }}>
-            {PASS.map((f) => <li key={f} className="border-t border-rule pt-8">{f}</li>)}
+            {PASS.map((f) => <li key={f} className="border-t border-rule pt-8">{t(f)}</li>)}
           </ul>
-          <Link to="/plan" className="btn-header mt-24 w-full no-underline" aria-label="Plan a trip, then get its pass">Plan a trip, then get its pass</Link>
-          <p className="mt-8 text-[15px] text-muted">You buy the pass on the trip page, no account needed.</p>
+          <Link to="/plan" className="btn-header mt-24 w-full no-underline" aria-label={t('pricing.passCta')}>{t('pricing.passCta')}</Link>
+          <p className="mt-8 text-[15px] text-muted">{t('pricing.passNote')}</p>
         </section>
 
         <Panel aria-labelledby="plus-head">
           <h2 id="plus-head" className="text-[20px] text-ink" style={{ fontWeight: 500 }}>Plus</h2>
           <p className="mt-8 text-ink">
-            <span className="num font-display text-[56px]" style={head}>{plan === 'yearly' ? '€59' : '€9'}</span>
-            <span className="ml-8 text-[18px] text-muted">{plan === 'yearly' ? 'a year' : 'a month'}</span>
+            <span className="num font-display text-[56px]" style={head}>{formatMoney(plan === 'yearly' ? 59 : 9, undefined, { whole: true })}</span>
+            <span className="ml-8 text-[18px] text-muted">{plan === 'yearly' ? t('pricing.aYear') : t('pricing.aMonth')}</span>
           </p>
-          <div role="radiogroup" aria-label="Pay" className="mt-12 grid grid-cols-2 gap-8">
+          <div role="radiogroup" aria-label={t('pricing.pay')} className="mt-12 grid grid-cols-2 gap-8">
             {(['monthly', 'yearly'] as const).map((p) => (
               <button
                 key={p}
                 type="button"
                 role="radio"
                 aria-checked={plan === p}
-                aria-label={p === 'monthly' ? 'Monthly, €9' : 'Yearly, €59'}
+                aria-label={p === 'monthly' ? t('pricing.monthlyLabel', { price: formatMoney(9, undefined, { whole: true }) }) : t('pricing.yearlyLabel', { price: formatMoney(59, undefined, { whole: true }) })}
                 onClick={() => setPlan(p)}
                 className={`min-h-[48px] rounded-btn border px-12 text-[16px] ${plan === p ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`}
                 style={{ fontWeight: 500 }}
               >
-                {p === 'monthly' ? 'Monthly' : 'Yearly, save 45%'}
+                {p === 'monthly' ? t('pricing.monthly') : t('pricing.yearlySave')}
               </button>
             ))}
           </div>
           <ul className="mt-16 grid gap-8 p-0" style={{ listStyle: 'none' }}>
-            {PLUS.map((f) => <li key={f} className="border-t border-rule pt-8 text-ink">{f}</li>)}
+            {PLUS.map((f) => <li key={f} className="border-t border-rule pt-8 text-ink">{t(f)}</li>)}
           </ul>
           {isPremium ? (
-            <p className="mt-24 text-ink" style={{ fontWeight: 500 }}>You have Plus. Thank you.</p>
+            <p className="mt-24 text-ink" style={{ fontWeight: 500 }}>{t('pricing.havePlus')}</p>
           ) : (
             <Button variant="primary" className="mt-24 w-full" onClick={startPlus} disabled={busy}>
-              {busy ? 'Starting Plus' : 'Start Plus'}
+              {busy ? t('pricing.startingPlus') : t('pricing.startPlus')}
             </Button>
           )}
           {error && <p className="mt-12 text-error" role="alert">{error}</p>}
@@ -145,12 +115,12 @@ export function PricingPage() {
       </div>
 
       <section aria-labelledby="faq-head" className="mt-80">
-        <h2 id="faq-head" className="font-display text-[32px] text-ink md:text-[40px]" style={head}>Questions</h2>
+        <h2 id="faq-head" className="font-display text-[32px] text-ink md:text-[40px]" style={head}>{t('pricing.questions')}</h2>
         <dl className="mt-16">
           {FAQS.map((f) => (
             <div key={f.q} className="border-t border-rule py-20">
-              <dt className="text-[19px] text-ink" style={{ fontWeight: 500 }}>{f.q}</dt>
-              <dd className="mt-[6px] max-w-[60ch]" style={{ marginLeft: 0 }}>{f.a}</dd>
+              <dt className="text-[19px] text-ink" style={{ fontWeight: 500 }}>{t(f.q)}</dt>
+              <dd className="mt-[6px] max-w-[60ch]" style={{ marginLeft: 0 }}>{t(f.a)}</dd>
             </div>
           ))}
         </dl>

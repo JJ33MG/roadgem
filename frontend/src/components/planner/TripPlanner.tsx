@@ -7,12 +7,14 @@ import { toGenerateRequest, type TripPlan } from '@/lib/tripPlan';
 import { useState } from 'react';
 import { PlannerPanel } from './PlannerPanel';
 import { PlanningProgress } from './PlanningProgress';
+import { useTranslation } from 'react-i18next';
 
 type Point = { lat: number; lng: number };
 type Estimate = { km: number | null; from?: Point; to?: Point };
 
 /** The planner wired to trip generation: plans, then opens the trip page. */
 export function TripPlanner({ initial }: { initial?: TripPlan }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isLoading, error, limitReached, generateTrip, dismissLimit } = useTripGeneration();
   const [ends, setEnds] = useState<{ from?: Point; to?: Point }>({});
@@ -49,7 +51,7 @@ export function TripPlanner({ initial }: { initial?: TripPlan }) {
           <p className="text-error" role="alert">{error}</p>
         </Panel>
       )}
-      <PaywallModal isOpen={limitReached} onClose={dismissLimit} title="Your free trip is saved" message="The free plan keeps one trip. RoamGem Plus keeps every trip and shows every gem." />
+      <PaywallModal isOpen={limitReached} onClose={dismissLimit} title={t('paywall.limitTitle')} message={t('paywall.limitMessage')} />
     </>
   );
 }

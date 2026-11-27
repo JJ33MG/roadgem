@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, title, onClose, children }: ModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!isOpen) return;
 
@@ -27,7 +29,7 @@ export function Modal({ isOpen, title, onClose, children }: ModalProps) {
       <div className="w-full max-w-lg rounded-container border border-lead bg-midnight-slate p-32">
         <div className="mb-24 flex items-center justify-between">
           <h3 className="text-heading-sm font-display font-w480 text-starlight">{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="text-silver hover:text-starlight">
+          <button onClick={onClose} aria-label={t('common.close')} className="text-silver hover:text-starlight">
             <X size={20} />
           </button>
         </div>

@@ -96,13 +96,17 @@ export function photoMediaUrl(name: string, maxWidth: number, key: string): stri
 
 // --- Routes API ---
 
-const point = (p: LatLng) => ({ location: { latLng: { latitude: p.lat, longitude: p.lng } } });
+type RouteStop = LatLng & { label?: string };
+/** A stop by its coordinates, or by its name (Google then picks the nearest road; 27 Nov: Plitvice Lakes). */
+const point = (byName: boolean) => (p: RouteStop) =>
+  byName && p.label ? { address: p.label } : { location: { latLng: { latitude: p.lat, longitude: p.lng } } };
 
-export function routeBody(stops: LatLng[], avoidTolls: boolean) {
+export function routeBody(stops: RouteStop[], avoidTolls: boolean, byName = false) {
+  const at = point(byName);
   return {
-    origin: point(stops[0]),
-    destination: point(stops[stops.length - 1]),
-    intermediates: stops.slice(1, -1).map(point),
+    origin: at(stops[0]),
+    destination: at(stops[stops.length - 1]),
+    intermediates: stops.slice(1, -1).map(at),
     travelMode: 'DRIVE',
     languageCode: 'en',
     units: 'METRIC',
@@ -132,10 +136,11 @@ export function parseRoute(data: unknown): GRoute | null {
 const ROUTE_FIELDS = 'routes.polyline.encodedPolyline,routes.legs.distanceMeters,routes.legs.duration,routes.legs.steps.distanceMeters,routes.legs.steps.navigationInstruction.instructions';
 
 /** The driving road through the stops (at most 25 in between), or null when Google has none. */
-export async function computeRoute(stops: LatLng[], key: string, avoidTolls = false): Promise<GRoute | null> {
-  const res = await axios.post('https://routes.googleapis.com/directions/v2:computeRoutes', routeBody(stops, avoidTolls), {
-    headers: headers(key, ROUTE_FIELDS),
-    timeout: 12000,
-  });
-  return parseRoute(res.data);
+export async function computeRoute(stops: RouteStop[], key: string, avoidTolls = false): Promise<GRoute | null> {
+  const ask = async (byName: boolean) =>
+    parseRoute((await axios.post('https://routes.googleapis.com/directions/v2:computeRoutes', routeBody(stops, avoidTolls, byName), { headers: headers(key, ROUTE_FIELDS), timeout: 12000 })).data);
+  const route = await ask(false);
+  // No road at a stop's exact coordinates (inside a park, on a lake): ask again by the stops' names.
+  if (!route && stops.every((s) => s.label)) return ask(true);
+  return route;
 }

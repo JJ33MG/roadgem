@@ -51,3 +51,12 @@ describe('photoMediaUrl', () => {
     expect(photoMediaUrl('places/ChIJ1/photos/AbC', 800, 'K')).toBe('https://places.googleapis.com/v1/places/ChIJ1/photos/AbC/media?maxWidthPx=800&key=K');
   });
 });
+
+describe('routeBody with place names (27 Nov: Plitvice Lakes coordinates had no road, so Google found no route)', () => {
+  it('sends the stops as addresses when asked', () => {
+    const b = routeBody([{ lat: 1, lng: 2, label: 'Munich, Germany' }, { lat: 3, lng: 4, label: 'Plitvice Lakes, Croatia' }, { lat: 5, lng: 6, label: 'Split, Croatia' }], false, true);
+    expect(b.origin).toEqual({ address: 'Munich, Germany' });
+    expect(b.intermediates).toEqual([{ address: 'Plitvice Lakes, Croatia' }]);
+    expect(b.destination).toEqual({ address: 'Split, Croatia' });
+  });
+});

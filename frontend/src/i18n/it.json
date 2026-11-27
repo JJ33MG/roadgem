@@ -132,7 +132,8 @@
   },
   "common": {
     "close": "Chiudi",
-    "loading": "Caricamento"
+    "loading": "Caricamento",
+    "dismiss": "Chiudi"
   },
   "pricing": {
     "title": "Gratis per il tuo primo viaggio",
@@ -246,7 +247,8 @@
     "slow": "Ci vuole più del solito. Il server potrebbe essere occupato: riprova.",
     "serverError": "Qualcosa è andato storto da parte nostra. Riprova tra poco.",
     "offline": "Impossibile raggiungere il server. Controlla la connessione e riprova.",
-    "failed": "Non è stato possibile pianificare il viaggio. Riprova."
+    "failed": "Non è stato possibile pianificare il viaggio. Riprova.",
+    "closeFilters": "Chiudi filtri"
   },
   "vehicle": {
     "car": "Auto",
@@ -679,5 +681,22 @@
     "checkingLoc": "Controllo della posizione",
     "send": "Invia la foto",
     "locNote": "L'app chiede la posizione una volta, per verificare che sei vicino alla gemma. Non è condivisa con nessuno."
+  },
+  "sg": {
+    "kind": "Tipo di posto",
+    "needName": "Dai un nome alla gemma.",
+    "needAbout": "Di' in una frase cosa la rende speciale.",
+    "needPhoto": "Aggiungi una foto scattata qui.",
+    "pinned": "La tua gemma è segnata",
+    "pinnedBody": "Dopo un rapido controllo compare nel feed. Quando 10 viaggiatori vi avranno pubblicato una foto e avrà 20 mi piace, diventerà ufficiale con il tuo nome.",
+    "title": "Proponi una nuova gemma",
+    "plusOnly": "Proporre nuove gemme è incluso in Plus.",
+    "plusBody": "Quando abbastanza viaggiatori visitano la tua gemma, diventa ufficiale con il tuo nome.",
+    "stand": "Mettiti sul posto. Il segnaposto va dove sei ora.",
+    "name": "Nome del posto",
+    "about": "Cosa la rende speciale",
+    "takeHere": "Scatta una foto qui",
+    "photoAlt": "La tua foto della nuova gemma",
+    "send": "Invia la gemma"
   }
 }

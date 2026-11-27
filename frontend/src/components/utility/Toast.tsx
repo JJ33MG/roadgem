@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useEffect } from 'react';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 import clsx from 'clsx';
@@ -29,7 +30,7 @@ export function Toast({ variant, message, onClose, durationMs = 5000 }: ToastPro
     >
       <Icon size={20} className={variant === 'success' ? 'text-mercury-blue' : 'text-silver'} />
       <p className="text-body-sm text-starlight">{message}</p>
-      <button onClick={onClose} aria-label="Dismiss" className="ml-auto text-silver hover:text-starlight">
+      <button onClick={onClose} aria-label={i18n.t('common.dismiss')} className="ml-auto text-silver hover:text-starlight">
         <X size={16} />
       </button>
     </div>

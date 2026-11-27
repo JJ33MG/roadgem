@@ -132,7 +132,8 @@
   },
   "common": {
     "close": "Sluiten",
-    "loading": "Laden"
+    "loading": "Laden",
+    "dismiss": "Sluiten"
   },
   "pricing": {
     "title": "Gratis voor je eerste trip",
@@ -246,7 +247,8 @@
     "slow": "Dit duurt langer dan normaal. De server is misschien druk; probeer het opnieuw.",
     "serverError": "Er ging bij ons iets mis. Probeer het zo opnieuw.",
     "offline": "De server is niet bereikbaar. Controleer je verbinding en probeer opnieuw.",
-    "failed": "Je trip kon niet gepland worden. Probeer het opnieuw."
+    "failed": "Je trip kon niet gepland worden. Probeer het opnieuw.",
+    "closeFilters": "Filters sluiten"
   },
   "vehicle": {
     "car": "Auto",
@@ -679,5 +681,22 @@
     "checkingLoc": "Je locatie wordt gecheckt",
     "send": "Verstuur de foto",
     "locNote": "De app vraagt één keer je locatie, om te checken of je bij de gem bent. Ze wordt met niemand gedeeld."
+  },
+  "sg": {
+    "kind": "Soort plek",
+    "needName": "Geef de gem een naam.",
+    "needAbout": "Zeg in een zin wat hem bijzonder maakt.",
+    "needPhoto": "Voeg een foto toe die hier genomen is.",
+    "pinned": "Je gem staat op de kaart",
+    "pinnedBody": "Na een snelle controle verschijnt hij in de feed. Als 10 reizigers er een foto postten en hij 20 likes heeft, wordt hij officieel, met jouw naam erbij.",
+    "title": "Stel een nieuwe gem voor",
+    "plusOnly": "Nieuwe gems voorstellen kan met Plus.",
+    "plusBody": "Als genoeg reizigers je gem bezoeken, wordt hij officieel, met jouw naam erbij.",
+    "stand": "Sta op de plek. De pin komt waar je nu bent.",
+    "name": "Naam van de plek",
+    "about": "Wat hem bijzonder maakt",
+    "takeHere": "Maak hier een foto",
+    "photoAlt": "Je foto van de nieuwe gem",
+    "send": "Verstuur de gem"
   }
 }

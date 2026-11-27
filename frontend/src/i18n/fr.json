@@ -132,7 +132,8 @@
   },
   "common": {
     "close": "Fermer",
-    "loading": "Chargement"
+    "loading": "Chargement",
+    "dismiss": "Fermer"
   },
   "pricing": {
     "title": "Gratuit pour ton premier voyage",
@@ -246,7 +247,8 @@
     "slow": "C'est plus long que d'habitude. Le serveur est peut-être occupé : réessaie.",
     "serverError": "Un souci de notre côté. Réessaie dans un instant.",
     "offline": "Impossible de joindre le serveur. Vérifie ta connexion et réessaie.",
-    "failed": "Ton voyage n'a pas pu être planifié. Réessaie."
+    "failed": "Ton voyage n'a pas pu être planifié. Réessaie.",
+    "closeFilters": "Fermer les filtres"
   },
   "vehicle": {
     "car": "Voiture",
@@ -679,5 +681,22 @@
     "checkingLoc": "Vérification de ta position",
     "send": "Envoyer la photo",
     "locNote": "L'app demande ta position une fois, pour vérifier que tu es près de la pépite. Elle n'est partagée avec personne."
+  },
+  "sg": {
+    "kind": "Type de lieu",
+    "needName": "Donne un nom à la pépite.",
+    "needAbout": "Dis en une phrase ce qui la rend spéciale.",
+    "needPhoto": "Ajoute une photo prise ici.",
+    "pinned": "Ta pépite est épinglée",
+    "pinnedBody": "Après une vérification rapide, elle apparaît dans le fil. Quand 10 voyageurs y ont publié une photo et qu'elle a 20 j'aime, elle devient officielle, avec ton nom.",
+    "title": "Proposer une nouvelle pépite",
+    "plusOnly": "Proposer de nouvelles pépites, c'est avec Plus.",
+    "plusBody": "Quand assez de voyageurs visitent ta pépite, elle devient officielle, avec ton nom.",
+    "stand": "Tiens-toi sur place. L'épingle se met là où tu es.",
+    "name": "Nom du lieu",
+    "about": "Ce qui la rend spéciale",
+    "takeHere": "Prendre une photo ici",
+    "photoAlt": "Ta photo de la nouvelle pépite",
+    "send": "Envoyer la pépite"
   }
 }

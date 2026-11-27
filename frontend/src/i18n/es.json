@@ -132,7 +132,8 @@
   },
   "common": {
     "close": "Cerrar",
-    "loading": "Cargando"
+    "loading": "Cargando",
+    "dismiss": "Cerrar"
   },
   "pricing": {
     "title": "Gratis para tu primer viaje",
@@ -246,7 +247,8 @@
     "slow": "Esto tarda más de lo normal. Puede que el servidor esté ocupado: inténtalo de nuevo.",
     "serverError": "Algo falló por nuestra parte. Inténtalo en un momento.",
     "offline": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
-    "failed": "No se pudo planear tu viaje. Inténtalo de nuevo."
+    "failed": "No se pudo planear tu viaje. Inténtalo de nuevo.",
+    "closeFilters": "Cerrar filtros"
   },
   "vehicle": {
     "car": "Coche",
@@ -679,5 +681,22 @@
     "checkingLoc": "Comprobando tu ubicación",
     "send": "Enviar la foto",
     "locNote": "La app pide tu ubicación una vez para comprobar que estás cerca de la joya. No se comparte con nadie."
+  },
+  "sg": {
+    "kind": "Tipo de lugar",
+    "needName": "Ponle un nombre a la joya.",
+    "needAbout": "Di en una frase qué la hace especial.",
+    "needPhoto": "Añade una foto hecha aquí.",
+    "pinned": "Tu joya está marcada",
+    "pinnedBody": "Tras una revisión rápida aparece en el muro. Cuando 10 viajeros hayan publicado una foto allí y tenga 20 me gusta, se vuelve oficial con tu nombre.",
+    "title": "Propón una joya nueva",
+    "plusOnly": "Proponer joyas nuevas viene con Plus.",
+    "plusBody": "Cuando suficientes viajeros visiten tu joya, se vuelve oficial con tu nombre.",
+    "stand": "Ponte en el lugar. La chincheta va donde estás ahora.",
+    "name": "Nombre del lugar",
+    "about": "Qué la hace especial",
+    "takeHere": "Haz una foto aquí",
+    "photoAlt": "Tu foto de la joya nueva",
+    "send": "Enviar la joya"
   }
 }

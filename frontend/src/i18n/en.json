@@ -132,7 +132,8 @@
   },
   "common": {
     "close": "Close",
-    "loading": "Loading"
+    "loading": "Loading",
+    "dismiss": "Dismiss"
   },
   "pricing": {
     "title": "Free for your first trip",
@@ -246,7 +247,8 @@
     "slow": "This is taking longer than usual. The server might be busy, so please try again.",
     "serverError": "Something went wrong on our end. Please try again in a moment.",
     "offline": "Could not reach the server. Check your connection and try again.",
-    "failed": "Your trip could not be planned. Please try again."
+    "failed": "Your trip could not be planned. Please try again.",
+    "closeFilters": "Close filters"
   },
   "vehicle": {
     "car": "Car",
@@ -679,5 +681,22 @@
     "checkingLoc": "Checking your location",
     "send": "Send the photo",
     "locNote": "The app asks for your location once, to check you are near the gem. It is not shared with anyone."
+  },
+  "sg": {
+    "kind": "Kind of place",
+    "needName": "Give the gem a name.",
+    "needAbout": "Say in a sentence what makes it special.",
+    "needPhoto": "Add a photo taken here.",
+    "pinned": "Your gem is pinned",
+    "pinnedBody": "After a quick check it shows in the feed. When 10 travellers have posted a photo there and it has 20 likes, it turns official with your name on it.",
+    "title": "Suggest a new gem",
+    "plusOnly": "Suggesting new gems comes with Plus.",
+    "plusBody": "When enough travellers visit your gem, it turns official with your name on it.",
+    "stand": "Stand at the place. The pin goes where you are now.",
+    "name": "Name of the place",
+    "about": "What makes it special",
+    "takeHere": "Take a photo here",
+    "photoAlt": "Your photo of the new gem",
+    "send": "Send the gem"
   }
 }

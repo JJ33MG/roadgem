@@ -44,7 +44,7 @@ export function FiltersSheet({ open, selected, onChange, onClose }: Props) {
       >
         <div className="flex items-center justify-between gap-16">
           <h2 className="font-display text-[28px] text-ink" style={{ fontWeight: 400 }}>{t('planner.allFilters')}</h2>
-          <button type="button" aria-label="Close filters" onClick={onClose} className="flex h-[48px] w-[48px] items-center justify-center rounded-btn border border-rule">
+          <button type="button" aria-label={t('planner.closeFilters')} onClick={onClose} className="flex h-[48px] w-[48px] items-center justify-center rounded-btn border border-rule">
             <X size={20} aria-hidden="true" />
           </button>
         </div>

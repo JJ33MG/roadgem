@@ -46,7 +46,11 @@ const plain = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '
 
 /** "Photo: author, licence, via Wikimedia Commons", or null when the author or licence is unknown (then the photo is not used). */
 export function creditFrom(meta: Meta): string | null {
-  const artist = plain(meta.Artist?.value ?? '').slice(0, 80);
+  const html = meta.Artist?.value ?? '';
+  // A link to the author's user page names them best; otherwise a short plain name, never a long note.
+  const linked = /<a[^>]*User:[^>]*>([^<]+)<\/a>/i.exec(html)?.[1];
+  const text = plain(linked ?? html);
+  const artist = text.length <= 60 ? text : '';
   const licence = plain(meta.LicenseShortName?.value ?? '').slice(0, 40);
   return artist && licence ? `Photo: ${artist}, ${licence}, via Wikimedia Commons` : null;
 }
@@ -87,6 +91,9 @@ export async function seedTeamMoments(
     create: { email: TEAM_EMAIL, name: 'RoamGem team', isTeam: true, password: await bcrypt.hash(randomBytes(24).toString('hex'), 10) },
     update: { isTeam: true },
   });
+  // Team moments with an unreadable credit (an author's whole note, before 27 Nov) are made again.
+  const messy = (await db.post.findMany({ where: { userId: team.id }, select: { id: true, credit: true } })).filter((p) => p.credit.length > 110);
+  if (messy.length) await db.post.deleteMany({ where: { id: { in: messy.map((p) => p.id) } } });
   let have = await db.post.count({ where: { userId: team.id } });
   if (have >= target) return { created: 0 };
   const done = new Set((await db.post.findMany({ where: { userId: team.id }, select: { gem: { select: { placeId: true } } } })).map((p) => p.gem.placeId));

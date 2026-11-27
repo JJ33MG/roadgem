@@ -41,6 +41,14 @@ describe.skipIf(!url)('filling the feed with team moments', () => {
     expect(posts.every((p) => p.status === 'public' && p.credit !== '' && p.user.isTeam)).toBe(true);
   });
 
+  it('replaces a team moment whose credit is an author\'s whole note', async () => {
+    await place(1, 'Italy');
+    await seedTeamMoments(db, { fetchPhoto: async () => ({ ...(await photo()), credit: `Photo: ${'I would appreciate being notified '.repeat(4)}, CC BY-SA 3.0, via Wikimedia Commons` }), pause: async () => undefined });
+    await seedTeamMoments(db, { fetchPhoto: photo, pause: async () => undefined });
+    const posts = await db.post.findMany();
+    expect(posts.map((p) => p.credit)).toEqual(['Photo: Wikimedia Commons']);
+  });
+
   it('skips a gem without a usable photo and stops at the target', async () => {
     for (let i = 1; i <= 4; i++) await place(i, i % 2 ? 'Italy' : 'Austria');
     const someMissing = async (g: { placeId: string }) => (g.placeId === 'seed-1' ? null : photo());
@@ -62,6 +70,9 @@ describe('Wikimedia credits', () => {
   it('credits the author and licence, and refuses a photo without them', async () => {
     const { creditFrom } = await import('./seed');
     expect(creditFrom({ Artist: { value: '<a href="//commons.wikimedia.org/wiki/User:Anna">Anna Rossi</a>' }, LicenseShortName: { value: 'CC BY-SA 4.0' } })).toBe('Photo: Anna Rossi, CC BY-SA 4.0, via Wikimedia Commons');
+    // Some authors put a whole note in the field: keep only their name.
+    expect(creditFrom({ Artist: { value: 'I would appreciate being notified if you use my work outside Wikimedia. More of <a href="//commons.wikimedia.org/wiki/User:Ben_Skala">Ben Skála</a>\'s work' }, LicenseShortName: { value: 'CC BY-SA 3.0' } })).toBe('Photo: Ben Skála, CC BY-SA 3.0, via Wikimedia Commons');
+    expect(creditFrom({ Artist: { value: 'A very long note without any link that goes on and on about how to credit this photo properly' }, LicenseShortName: { value: 'CC BY 4.0' } })).toBeNull();
     expect(creditFrom({ LicenseShortName: { value: 'CC BY 2.0' } })).toBeNull();
     expect(creditFrom({ Artist: { value: 'Anna' } })).toBeNull();
   });

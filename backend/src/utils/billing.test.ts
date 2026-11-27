@@ -92,3 +92,17 @@ describe('hasPlus on the preview: everyone has Plus there (Jarne, 26 Nov: the pr
     expect(hasPlus({ subscriptionTier: 'free', subscriptionExpires: null })).toBe(false);
   });
 });
+
+import { planPricesFrom } from './billing';
+
+describe('planPricesFrom: Plus prices found from Stripe products (27 Nov: product IDs are easier to find)', () => {
+  it('picks the monthly and the yearly price by their interval, whichever product holds them', () => {
+    const prices = [
+      { id: 'price_y', active: true, recurring: { interval: 'year' } },
+      { id: 'price_old', active: false, recurring: { interval: 'month' } },
+      { id: 'price_m', active: true, recurring: { interval: 'month' } },
+    ];
+    expect(planPricesFrom(prices as never)).toEqual({ monthly: 'price_m', yearly: 'price_y' });
+    expect(planPricesFrom([])).toEqual({ monthly: undefined, yearly: undefined });
+  });
+});

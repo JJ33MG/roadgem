@@ -2,11 +2,28 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, requireAuth, AuthRequest } from '../middleware/auth';
-import { applyStripeEvent, checkoutParams } from '../utils/billing';
+import { applyStripeEvent, checkoutParams, planPricesFrom } from '../utils/billing';
 
 const frontendUrl = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 const set = (v?: string) => (v && !/YOUR/.test(v) ? v : undefined);
-const prices = () => ({ monthly: set(process.env.STRIPE_PRICE_ID), yearly: set(process.env.STRIPE_PRICE_ID_YEARLY) });
+const configured = () => ({ monthly: set(process.env.STRIPE_PRICE_ID), yearly: set(process.env.STRIPE_PRICE_ID_YEARLY) });
+
+// The variables may hold price IDs (price_…) or the products (prod_…) that hold them: then the monthly and the
+// yearly price are looked up once by their interval (27 Nov: Stripe shows product IDs more readily).
+let resolved: { monthly?: string; yearly?: string } | null = null;
+async function prices(stripe: Stripe): Promise<{ monthly?: string; yearly?: string }> {
+  const c = configured();
+  const ids = [c.monthly, c.yearly].filter((x): x is string => !!x);
+  if (!ids.some((id) => id.startsWith('prod_'))) return c;
+  if (resolved?.monthly && resolved?.yearly) return resolved;
+  const found = await Promise.all(ids.filter((id) => id.startsWith('prod_')).map((product) => stripe.prices.list({ product, active: true, limit: 20 }).then((r) => r.data)));
+  const fromProducts = planPricesFrom(found.flat());
+  resolved = {
+    monthly: c.monthly?.startsWith('price_') ? c.monthly : fromProducts.monthly,
+    yearly: c.yearly?.startsWith('price_') ? c.yearly : fromProducts.yearly,
+  };
+  return resolved;
+}
 
 const router = Router();
 
@@ -26,7 +43,7 @@ router.post('/create-checkout-session', requireAuth, async (req: AuthRequest, re
     if (!user) return res.status(404).json({ error: 'User not found' });
     const plan = req.body?.plan === 'yearly' ? 'yearly' : 'monthly';
     const session = await stripe.checkout.sessions.create(
-      checkoutParams({ kind: 'plus', plan, frontendUrl: frontendUrl(), email: user.email, userId: user.id }, prices()),
+      checkoutParams({ kind: 'plus', plan, frontendUrl: frontendUrl(), email: user.email, userId: user.id }, await prices(stripe)),
     );
     res.json({ url: session.url });
   } catch (err: any) {
@@ -43,7 +60,7 @@ router.post('/trip-pass', optionalAuth, async (req: AuthRequest, res: Response, 
     if (!trip) return res.status(404).json({ error: 'Trip not found' });
     const user = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
     const session = await stripe.checkout.sessions.create(
-      checkoutParams({ kind: 'pass', tripId: trip.id, frontendUrl: frontendUrl(), email: user?.email, userId: user?.id }, prices()),
+      checkoutParams({ kind: 'pass', tripId: trip.id, frontendUrl: frontendUrl(), email: user?.email, userId: user?.id }, configured()),
     );
     res.json({ url: session.url });
   } catch (err: any) {

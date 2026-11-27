@@ -108,3 +108,12 @@ export async function applyStripeEvent(db: Db, event: Stripe.Event, now = new Da
     });
   }
 }
+
+/** The active monthly and yearly Plus prices among a product's prices (Stripe products hold them). */
+export function planPricesFrom(prices: { id: string; active: boolean; recurring?: { interval?: string } | null }[]): { monthly?: string; yearly?: string } {
+  const active = prices.filter((p) => p.active);
+  return {
+    monthly: active.find((p) => p.recurring?.interval === 'month')?.id,
+    yearly: active.find((p) => p.recurring?.interval === 'year')?.id,
+  };
+}

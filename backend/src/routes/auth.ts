@@ -1,3 +1,4 @@
+import { isLang } from '../i18n/lang';
 import { hasPlus } from '../utils/billing';
 import { acceptInvite } from '../community/invites';
 import { Router, Request, Response, NextFunction } from 'express';
@@ -41,6 +42,7 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
         createdAt: user.createdAt,
         subscriptionTier: hasPlus(user) ? 'premium' : 'free',
         subscriptionExpires: user.subscriptionExpires,
+        language: user.language,
       },
     });
   } catch (err) {
@@ -76,10 +78,23 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         createdAt: user.createdAt,
         subscriptionTier: hasPlus(user) ? 'premium' : 'free',
         subscriptionExpires: user.subscriptionExpires,
+        language: user.language,
       },
     });
   } catch (err) {
     next(err);
+  }
+});
+
+// The language the traveller picked (used for their trips and the site on other devices).
+router.patch('/me/language', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const language = req.body?.language;
+    if (!isLang(language)) return res.status(400).json({ error: 'Unknown language.' });
+    await prisma.user.update({ where: { id: req.userId }, data: { language } });
+    res.json({ language });
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -97,6 +112,7 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response, next: Nex
       createdAt: user.createdAt,
       subscriptionTier: hasPlus(user) ? 'premium' : 'free',
       subscriptionExpires: user.subscriptionExpires,
+        language: user.language,
     });
   } catch (err) {
     next(err);

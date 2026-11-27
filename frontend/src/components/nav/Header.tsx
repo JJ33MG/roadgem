@@ -2,18 +2,22 @@ import { Link, NavLink } from 'react-router-dom';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { MobileMenu } from './MobileMenu';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
+/** The main links; labels are translation keys. */
 export const NAV_LINKS = [
-  { to: '/plan', label: 'Plan a trip' },
-  { to: '/community', label: 'Community' },
-  { to: '/pricing', label: 'Pricing' },
+  { to: '/plan', label: 'nav.plan' },
+  { to: '/community', label: 'nav.community' },
+  { to: '/pricing', label: 'nav.pricing' },
 ];
 
 /** Edge-aligned: the wordmark, four links, one action. */
 export function Header() {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-50 border-b border-rule bg-paper">
@@ -21,35 +25,39 @@ export function Header() {
         <Link to="/" className="font-display text-[24px] text-ink no-underline" style={{ fontWeight: 500, letterSpacing: '-0.02em' }}>
           RoamGem
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-[28px] md:flex">
+        <nav aria-label={t('nav.main')} className="hidden items-center gap-[28px] md:flex">
           {NAV_LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} className={({ isActive }) => `nav-link text-[17px] no-underline ${isActive ? 'underline decoration-accent' : ''}`}>
-              {l.label}
+              {t(l.label)}
             </NavLink>
           ))}
         </nav>
         <div className="hidden items-center gap-12 md:flex">
+          <LanguageSwitcher />
           {user ? (
             <>
-              <Link to="/dashboard" className="nav-link text-[17px] no-underline">My trips</Link>
-              <button type="button" onClick={logout} className="btn-header">Log out</button>
+              <Link to="/dashboard" className="nav-link text-[17px] no-underline">{t('nav.myTrips')}</Link>
+              <button type="button" onClick={logout} className="btn-header">{t('nav.logOut')}</button>
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link text-[17px] no-underline">Log in</Link>
-              <Link to="/signup" className="btn-header no-underline">Sign up</Link>
+              <Link to="/login" className="nav-link text-[17px] no-underline">{t('nav.logIn')}</Link>
+              <Link to="/signup" className="btn-header no-underline">{t('nav.signUp')}</Link>
             </>
           )}
         </div>
+        <div className="flex items-center gap-8 md:hidden">
+        <LanguageSwitcher />
         <button
           type="button"
           className="flex h-[48px] w-[48px] items-center justify-center rounded-btn border border-rule text-ink md:hidden"
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
         >
           {open ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
         </button>
+        </div>
       </div>
       {open && <MobileMenu links={NAV_LINKS} onClose={() => setOpen(false)} />}
     </header>

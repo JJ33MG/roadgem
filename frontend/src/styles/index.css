@@ -167,3 +167,12 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 .cm-row-n { font-family: var(--font-display); font-weight: 600; text-align: center; color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .cm-row.is-top .cm-row-n { color: var(--color-gold); }
 .cm-row-pts { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--color-ink); }
+
+/* The language button at the top (27 Nov). */
+.lang { position: relative; }
+.lang-button { min-height: 44px; display: inline-flex; align-items: center; gap: var(--space-2xs); padding: 0 var(--space-sm); border-radius: var(--radius-pill); border: var(--rule-hair) solid var(--color-rule); background: var(--color-paper); color: var(--color-ink); font-size: 15px; font-weight: 500; }
+.lang-button:focus-visible, .lang-item:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.lang-list { position: absolute; right: 0; top: calc(100% + var(--space-2xs)); z-index: var(--z-dropdown); min-width: 180px; display: grid; padding: var(--space-2xs); border-radius: var(--radius-part); border: var(--rule-hair) solid var(--color-rule); background: var(--color-paper); box-shadow: var(--shadow-panel); }
+.lang-item { min-height: 44px; padding: 0 var(--space-sm); text-align: left; border: 0; border-radius: var(--radius-part); background: none; color: var(--color-ink); font-size: 16px; }
+.lang-item:hover, .lang-item[aria-checked="true"] { background: var(--color-paper-2); }
+.lang-item[aria-checked="true"] { font-weight: 600; }

@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { authApi } from '@/lib/api';
 import { getAuthToken, setAuthToken } from '@/lib/apiClient';
 import type { User } from '@/types';
+import { apiClient } from '@/lib/apiClient';
+import { applyAccountLanguage, onLanguageChosen } from '@/i18n';
 
 interface AuthContextValue {
   user: User | null;
@@ -17,6 +19,14 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // The account remembers the language: applied on sign-in, saved when the traveller picks one.
+  useEffect(() => {
+    if (user) applyAccountLanguage(user.language);
+  }, [user]);
+  useEffect(() => onLanguageChosen((lang) => {
+    if (getAuthToken()) void apiClient.patch('/auth/me/language', { language: lang }).catch(() => undefined);
+  }), []);
 
   useEffect(() => {
     const token = getAuthToken();

@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "plan": "Plan a trip",
+    "community": "Community",
+    "pricing": "Pricing",
+    "myTrips": "My trips",
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "signUp": "Sign up",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "main": "Main",
+    "language": "Language: {{name}}",
+    "chooseLanguage": "Choose a language"
+  }
+}

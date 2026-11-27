@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "plan": "Reise planen",
+    "community": "Community",
+    "pricing": "Preise",
+    "myTrips": "Meine Reisen",
+    "logIn": "Anmelden",
+    "logOut": "Abmelden",
+    "signUp": "Registrieren",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "main": "Hauptmenü",
+    "language": "Sprache: {{name}}",
+    "chooseLanguage": "Wähle eine Sprache"
+  }
+}

@@ -27,6 +27,8 @@ model User {
   plusBonusDays       Int       @default(0)
   /// The Routify team account: its posts are labelled as the team.
   isTeam              Boolean   @default(false)
+  /// The language the traveller chose for the site and their trips (en, nl, fr, de, es, it).
+  language            String    @default("en")
 
   trips         Trip[]
   communityGems CommunityGem[]

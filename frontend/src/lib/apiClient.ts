@@ -1,3 +1,4 @@
+import { currentLang } from '@/i18n';
 import axios from 'axios';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -21,6 +22,8 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // The server answers in the traveller's language and writes trips in it.
+  config.headers['x-lang'] = currentLang();
   return config;
 });
 

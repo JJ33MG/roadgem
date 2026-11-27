@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "plan": "Plan een trip",
+    "community": "Community",
+    "pricing": "Prijzen",
+    "myTrips": "Mijn trips",
+    "logIn": "Inloggen",
+    "logOut": "Uitloggen",
+    "signUp": "Account maken",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten",
+    "main": "Hoofdmenu",
+    "language": "Taal: {{name}}",
+    "chooseLanguage": "Kies een taal"
+  }
+}

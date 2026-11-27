@@ -1,6 +1,6 @@
 # RoamGem in six languages
 
-Status: waiting for Jarne's approval (27 Nov 2026). Approach A was chosen by Jarne.
+Status: approved by Jarne (27 Nov 2026). Approach A.
 
 ## Why
 

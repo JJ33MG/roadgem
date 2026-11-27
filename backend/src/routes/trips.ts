@@ -5,6 +5,7 @@ import { searchText } from '../utils/google';
 import { editKeyMatches } from '../utils/edits';
 import { planningState } from '../utils/dayByDay';
 import { logLine } from '../middleware/errors';
+import { alertError } from '../utils/brain';
 import { missingDays } from '../utils/dayByDay';
 import { calculateRoute } from '../utils/googleMaps';
 import { getWeather } from '../utils/weather';
@@ -270,6 +271,7 @@ export async function fillDays(tripId: string): Promise<void> {
         });
       } catch (err) {
         console.error(`[fillDays] trip ${tripId} day ${d}`, logLine(err));
+        alertError(`Day could not be written (trip ${tripId}, day ${d}): ${logLine(err)}`);
         failed.push(d);
       }
     }

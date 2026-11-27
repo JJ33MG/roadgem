@@ -1,3 +1,4 @@
+import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
@@ -64,6 +65,7 @@ function AppShell() {
         <AnimatedRoutes />
       </main>
       <Footer />
+      <FeedbackButton />
     </div>
   );
 }

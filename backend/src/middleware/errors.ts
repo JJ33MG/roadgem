@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { alertError } from '../utils/brain';
 
 type Failure = { status: number; body: { error: string } };
 
@@ -43,6 +44,9 @@ export function logLine(err: unknown): string {
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
   console.error('Error:', logLine(err));
   const { status, body } = errorResponse(err);
-  if (status >= 500) recordServerError(err);
+  if (status >= 500) {
+    recordServerError(err);
+    alertError(`${_req.method} ${_req.path}: ${logLine(err)}`);
+  }
   res.status(status).json(body);
 }

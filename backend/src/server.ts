@@ -13,6 +13,8 @@ import communityRouter from './routes/community';
 import templatesRouter from './routes/templates';
 import { statsRouter } from './routes/stats';
 import trackRouter from './routes/track';
+import feedbackRouter from './routes/feedback';
+import { alertError } from './utils/brain';
 import { prisma } from './utils/prisma';
 import { limit } from './middleware/limits';
 
@@ -83,6 +85,7 @@ app.use('/api/community', communityRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/stats', statsRouter());
 app.use('/api/track', trackRouter);
+app.use('/api/feedback', feedbackRouter);
 app.use('/api/route', limit('route', 30, HOUR), routeRouter);
 
 // Unknown API paths answer in JSON, never with the website.
@@ -121,4 +124,10 @@ process.once('SIGTERM', () => {
   server.close();
   const deadline = new Promise((r) => setTimeout(r, 50_000));
   void Promise.race([Promise.allSettled([...writingTrips]), deadline]).then(() => process.exit(0));
+});
+
+// Anything that escapes a request still reaches Jarne (through the Brain), at most once per kind every 10 minutes.
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandled]', logLine(err));
+  alertError(`Unhandled: ${logLine(err)}`);
 });

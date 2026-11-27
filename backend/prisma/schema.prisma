@@ -355,3 +355,16 @@ model Invite {
 
   @@index([inviterId, createdAt])
 }
+
+// Tester feedback from the button on every page (27 Nov); also sent to Jarne on Telegram through the Brain.
+model Feedback {
+  id        String   @id @default(cuid())
+  type      String   @default("other") // bug | idea | other
+  message   String
+  page      String   @default("")
+  email     String   @default("")
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

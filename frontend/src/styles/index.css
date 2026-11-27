@@ -127,3 +127,6 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 .gem-filter { min-height: 40px; padding: 0 var(--space-sm); border-radius: var(--radius-pill); border: var(--rule-hair) solid var(--color-rule); background: var(--color-paper); color: var(--color-ink); font-size: 15px; font-weight: 500; }
 .gem-filter.is-on { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
 .gem-filter:disabled { color: var(--color-muted); cursor: not-allowed; }
+/* The feedback button, on every page (27 Nov). */
+.feedback-fab { position: fixed; right: max(var(--space-md), env(safe-area-inset-right, 0px)); bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px)); z-index: 40; min-height: 44px; padding: 0 var(--space-md); border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-paper); font-size: 15px; font-weight: 500; box-shadow: var(--shadow-panel); }
+.feedback-fab:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }

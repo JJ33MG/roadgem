@@ -115,3 +115,16 @@ describe('checkoutParams: the Trip pass carries a tax code (Stripe Managed Payme
     expect(pd.tax_behavior).toBe('inclusive');
   });
 });
+
+describe('applyStripeEvent: invoices in Stripe\'s newer format (27 Nov: the webhook sends version 2026-11-18)', () => {
+  it('finds the user under parent.subscription_details and extends Plus to the period end', async () => {
+    const update = vi.fn();
+    const db = { user: { update, findUnique: vi.fn() }, trip: { findUnique: vi.fn(), update: vi.fn() } } as never;
+    const event = {
+      type: 'invoice.payment_succeeded',
+      data: { object: { parent: { subscription_details: { metadata: { userId: 'u1' } } }, lines: { data: [{ period: { end: 1800000000 } }] } } },
+    } as never;
+    await applyStripeEvent(db, event);
+    expect(update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { subscriptionTier: 'premium', subscriptionExpires: new Date(1800000000 * 1000) } });
+  });
+});

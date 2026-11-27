@@ -32,7 +32,8 @@ function getStripe(): Stripe {
   if (!key || key.startsWith('sk_test_YOUR')) {
     throw new Error('STRIPE_SECRET_KEY is not configured');
   }
-  return new Stripe(key);
+  // Managed Payments (Stripe sells and handles VAT) needs API version 2025-03-31.basil or newer.
+  return new Stripe(key, { apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion });
 }
 
 // POST /api/stripe/create-checkout-session  { plan: "monthly" | "yearly" }

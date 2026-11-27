@@ -88,8 +88,12 @@ export async function applyStripeEvent(db: Db, event: Stripe.Event, now = new Da
     return;
   }
   if (event.type === 'invoice.payment_succeeded') {
-    const invoice = event.data.object as Stripe.Invoice & { subscription_details?: { metadata?: Record<string, string> } };
-    const userId = invoice.subscription_details?.metadata?.userId;
+    // Older API versions put the subscription's metadata on the invoice; newer ones (2025-03-31 and later) under parent.
+    const invoice = event.data.object as Stripe.Invoice & {
+      subscription_details?: { metadata?: Record<string, string> };
+      parent?: { subscription_details?: { metadata?: Record<string, string> } };
+    };
+    const userId = invoice.parent?.subscription_details?.metadata?.userId ?? invoice.subscription_details?.metadata?.userId;
     const end = invoice.lines?.data?.[0]?.period?.end;
     if (userId && end) {
       await db.user.update({ where: { id: userId }, data: { subscriptionTier: 'premium', subscriptionExpires: new Date(end * 1000) } });

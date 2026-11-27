@@ -2,16 +2,13 @@ import { useId, useState } from 'react';
 import { Button, Panel, SliderField, Switch, Toggle } from '@/components/ui';
 import {
   DEFAULT_PLAN,
-  FILTER_GROUPS,
   GEMS_PER_DAY,
   KM_PER_DAY,
   QUICK_FILTERS,
-  STAY_LABELS,
   defaultStartDate,
   notInPast,
   suggestedDays,
   TRAVELLERS,
-  VEHICLE_DEFAULTS,
   VEHICLES,
   withVehicle,
   type StayType,
@@ -19,6 +16,7 @@ import {
 } from '@/lib/tripPlan';
 import { CityField } from './CityField';
 import { FiltersSheet } from './FiltersSheet';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   initial?: TripPlan;
@@ -30,11 +28,11 @@ type Props = {
   estimateKm?: (from: string, to: string) => Promise<number | null>;
 };
 
-const LABEL_OF = new Map(FILTER_GROUPS.flatMap((g) => g.options.map((o) => [o.id, o.label] as const)));
 const STAYS: StayType[] = ['campsite', 'hotel', 'holiday_home'];
 
 /** The trip, set like an instrument: route, days, daily distance, gems and where to sleep. */
 export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, estimateKm }: Props) {
+  const { t } = useTranslation();
   const [plan, setPlan] = useState<TripPlan>({ ...initial, startDate: initial.startDate || defaultStartDate() });
   const [pastDate, setPastDate] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -78,7 +76,7 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
   return (
     <Panel>
       <form
-        aria-label="Plan a trip"
+        aria-label={t('planner.form')}
         onSubmit={(e) => {
           e.preventDefault();
           if (!plan.from.trim() || !plan.to.trim()) {
@@ -95,20 +93,20 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
         }}
       >
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_96px]">
-          <CityField id={ids.from} label="From" value={plan.from} placeholder="Madrid" onChange={(v) => set('from', v)} />
-          <CityField id={ids.to} label="To" value={plan.to} placeholder="Brussels" onChange={(v) => set('to', v)} />
+          <CityField id={ids.from} label={t('planner.from')} value={plan.from} placeholder="Madrid" onChange={(v) => set('from', v)} />
+          <CityField id={ids.to} label={t('planner.to')} value={plan.to} placeholder="Brussels" onChange={(v) => set('to', v)} />
           <label htmlFor={ids.days} className={labelClass} style={{ fontWeight: 500 }}>
-            Days
+            {t('planner.days')}
             <input id={ids.days} className={inputClass} type="number" min={1} max={30} value={plan.days} onChange={(e) => set('days', Math.min(30, Math.max(1, Number(e.target.value) || 1)))} />
           </label>
         </div>
         <div className="mt-12 grid grid-cols-[minmax(0,1fr)_120px] gap-12">
           <label htmlFor={ids.date} className={labelClass} style={{ fontWeight: 500 }}>
-            Leaving on
+            {t('planner.leaving')}
             <input id={ids.date} className={inputClass} type="date" value={plan.startDate} onChange={(e) => set('startDate', e.target.value)} />
           </label>
           <label htmlFor={ids.people} className={labelClass} style={{ fontWeight: 500 }}>
-            Travellers
+            {t('planner.travellers')}
             <input
               id={ids.people}
               className={inputClass}
@@ -120,11 +118,11 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
             />
           </label>
         </div>
-        {missing && <p className="mt-8 text-error" role="alert">Add where you start and where you end.</p>}
-        {pastDate && <p className="mt-8 text-error" role="alert">Pick a day from today on.</p>}
+        {missing && <p className="mt-8 text-error" role="alert">{t('planner.missing')}</p>}
+        {pastDate && <p className="mt-8 text-error" role="alert">{t('planner.pastDate')}</p>}
 
-        <p className="mt-20 text-[16px] text-muted" style={{ fontWeight: 500 }}>Travelling by</p>
-        <div role="radiogroup" aria-label="Travelling by" className="mt-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
+        <p className="mt-20 text-[16px] text-muted" style={{ fontWeight: 500 }}>{t('planner.travellingBy')}</p>
+        <div role="radiogroup" aria-label={t('planner.travellingBy')} className="mt-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
           {VEHICLES.map((v) => (
             <button
               key={v}
@@ -135,49 +133,49 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
               className={`min-h-[52px] rounded-btn border px-12 text-[17px] ${plan.vehicle === v ? 'border-ink bg-ink text-paper' : 'border-rule bg-paper text-ink'}`}
               style={{ fontWeight: 500 }}
             >
-              {VEHICLE_DEFAULTS[v].label}
+              {t(`vehicle.${v}`)}
             </button>
           ))}
         </div>
         {tooShort && (
           <p className="mt-12 text-[16px] text-ink-2" role="status">
-            {`About ${needed} days at ${plan.kmPerDay} km a day`}
+            {t('planner.aboutDays', { days: needed, km: plan.kmPerDay })}
           </p>
         )}
 
         <details className="mt-16 rounded-input border border-rule bg-paper px-16 py-12">
           <summary className="min-h-[32px] cursor-pointer text-[17px] text-ink" style={{ fontWeight: 500 }}>
-            <span>Adjust</span>
+            <span>{t('planner.adjust')}</span>
             <span className="ml-8 text-[16px] text-muted" style={{ fontWeight: 400 }}>
-              {`${plan.kmPerDay} km a day, ${plan.gemsEnabled ? `${plan.gemsPerDay} gems a day` : 'no gems'}, ${plan.stayTypes.map((s) => STAY_LABELS[s].toLowerCase()).join(' or ')}`}
+              {t('planner.summary', { km: plan.kmPerDay, gems: plan.gemsEnabled ? t('planner.gemsADay', { count: plan.gemsPerDay }) : t('planner.noGems'), stays: plan.stayTypes.map((s) => t(`stay.${s}`).toLowerCase()).join(` ${t('planner.or')} `) })}
             </span>
           </summary>
         <div className="mt-16 grid gap-16">
-          <SliderField label="Kilometres a day" unit="km" value={plan.kmPerDay} min={KM_PER_DAY.min} max={KM_PER_DAY.max} step={KM_PER_DAY.step} onChange={(v) => set('kmPerDay', v)} />
+          <SliderField label={t('planner.kmADay')} unit="km" value={plan.kmPerDay} min={KM_PER_DAY.min} max={KM_PER_DAY.max} step={KM_PER_DAY.step} onChange={(v) => set('kmPerDay', v)} />
           {plan.gemsEnabled && (
-            <SliderField label="Gems a day" value={plan.gemsPerDay} min={GEMS_PER_DAY.min} max={GEMS_PER_DAY.max} onChange={(v) => set('gemsPerDay', v)} />
+            <SliderField label={t('planner.gemsADayLabel')} value={plan.gemsPerDay} min={GEMS_PER_DAY.min} max={GEMS_PER_DAY.max} onChange={(v) => set('gemsPerDay', v)} />
           )}
         </div>
 
         <div className="mt-16 flex items-center justify-between gap-12 rounded-input border border-rule bg-paper px-16 py-12">
-          <span className="text-ink" style={{ fontWeight: 500 }}>Road gems on the way</span>
-          <Switch checked={plan.gemsEnabled} label="Road gems on the way" onChange={(v) => set('gemsEnabled', v)} />
+          <span className="text-ink" style={{ fontWeight: 500 }}>{t('planner.roadGems')}</span>
+          <Switch checked={plan.gemsEnabled} label={t('planner.roadGems')} onChange={(v) => set('gemsEnabled', v)} />
         </div>
-        {!plan.gemsEnabled && <p className="mt-[6px] text-[15px] text-muted">Just the route and the stays.</p>}
+        {!plan.gemsEnabled && <p className="mt-[6px] text-[15px] text-muted">{t('planner.justRoute')}</p>}
 
-        <p className="mt-16 text-[16px] text-muted" style={{ fontWeight: 500 }}>Sleep in</p>
-        <div role="group" aria-label="Where to sleep" className="mt-8 flex flex-wrap gap-8">
+        <p className="mt-16 text-[16px] text-muted" style={{ fontWeight: 500 }}>{t('planner.sleepIn')}</p>
+        <div role="group" aria-label={t('planner.whereSleep')} className="mt-8 flex flex-wrap gap-8">
           {STAYS.map((s) => (
-            <Toggle key={s} pressed={plan.stayTypes.includes(s)} onChange={() => toggleStay(s)}>{STAY_LABELS[s]}</Toggle>
+            <Toggle key={s} pressed={plan.stayTypes.includes(s)} onChange={() => toggleStay(s)}>{t(`stay.${s}`)}</Toggle>
           ))}
         </div>
 
-        <div role="group" aria-label="Filters" className="mt-12 flex flex-wrap gap-8">
+        <div role="group" aria-label={t('planner.filters')} className="mt-12 flex flex-wrap gap-8">
           {QUICK_FILTERS.map((id) => (
-            <Toggle key={id} pressed={plan.filters.includes(id)} onChange={() => toggleFilter(id)}>{LABEL_OF.get(id)}</Toggle>
+            <Toggle key={id} pressed={plan.filters.includes(id)} onChange={() => toggleFilter(id)}>{t(`filter.${id}`)}</Toggle>
           ))}
           <button type="button" onClick={() => setSheetOpen(true)} className="min-h-[48px] rounded-btn border border-ink px-16 text-[17px] text-ink" style={{ fontWeight: 500 }}>
-            {extraFilters ? `All filters, ${extraFilters} on` : 'All filters'}
+            {extraFilters ? t('planner.allFiltersOn', { count: extraFilters }) : t('planner.allFilters')}
           </button>
         </div>
         </details>
@@ -185,15 +183,15 @@ export function PlannerPanel({ initial = DEFAULT_PLAN, routeKm, busy, onSubmit, 
         {asking && tooShort ? (
           <div className="mt-20 grid gap-8 sm:grid-cols-2">
             <Button type="button" variant="primary" className="w-full" disabled={busy} onClick={() => finish(Math.min(30, needed))}>
-              {`Plan it in ${Math.min(30, needed)} days`}
+              {t('planner.planInDays', { days: Math.min(30, needed) })}
             </Button>
             <Button type="button" className="w-full" disabled={busy} onClick={() => finish(plan.days)}>
-              {`Keep ${plan.days} days`}
+              {t('planner.keepDays', { days: plan.days })}
             </Button>
           </div>
         ) : (
           <Button type="submit" variant="primary" className="mt-20 w-full" disabled={busy || checking}>
-            {busy ? 'Planning your trip' : checking ? 'Checking the distance' : 'Plan my trip'}
+            {busy ? t('planner.planning') : checking ? t('planner.checking') : t('planner.planMyTrip')}
           </Button>
         )}
       </form>

@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useState } from 'react';
 import axios from 'axios';
 import { apiClient } from '@/lib/apiClient';
@@ -44,7 +45,7 @@ export function useTripGeneration(): UseTripGenerationResult {
         (err instanceof Error && err.message === 'timeout')
       ) {
         setError(
-          'This is taking longer than usual. The server might be busy, so please try again.',
+          i18n.t('planner.slow'),
         );
         return null;
       }
@@ -57,22 +58,22 @@ export function useTripGeneration(): UseTripGenerationResult {
         }
 
         if (err.response?.status && err.response.status >= 500) {
-          setError('Something went wrong on our end. Please try again in a moment.');
+          setError(i18n.t('planner.serverError'));
           return null;
         }
 
         // Network error (no response received)
         if (!err.response) {
-          setError('Could not reach the server. Check your connection and try again.');
+          setError(i18n.t('planner.offline'));
           return null;
         }
 
         const message = (err.response.data as { error?: unknown } | undefined)?.error;
-        setError(typeof message === 'string' && message ? message : 'Your trip could not be planned. Please try again.');
+        setError(typeof message === 'string' && message ? message : i18n.t('planner.failed'));
         return null;
       }
 
-      setError(err instanceof Error ? err.message : 'Failed to generate trip');
+      setError(err instanceof Error ? err.message : i18n.t('planner.failed'));
       return null;
     } finally {
       clearTimeout(timeoutId);

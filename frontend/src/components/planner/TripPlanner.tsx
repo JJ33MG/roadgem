@@ -42,12 +42,12 @@ export function TripPlanner({ initial }: { initial?: TripPlan }) {
       <PlannerPanel initial={initial} busy={isLoading} onSubmit={plan} estimateKm={estimateKm} />
       {/* Own light panels: on the homepage the planner sits on the dark band, where plain text disappears. */}
       {isLoading && (
-        <Panel role="region" aria-label="Planning your trip" className="mt-16">
+        <Panel role="region" aria-label={t('planner.planning')} className="mt-16">
           <PlanningProgress from={ends.from} to={ends.to} />
         </Panel>
       )}
       {error && !limitReached && (
-        <Panel role="region" aria-label="Your trip was not planned" className="mt-16">
+        <Panel role="region" aria-label={t('planner.notPlanned')} className="mt-16">
           <p className="text-error" role="alert">{error}</p>
         </Panel>
       )}

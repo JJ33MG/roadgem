@@ -44,3 +44,16 @@ describe('translations', () => {
     });
   }
 });
+
+describe('planner choices', () => {
+  it('has a text for every vehicle, stay type, filter group and filter', async () => {
+    const { FILTER_GROUPS, VEHICLES, STAY_LABELS } = await import('@/lib/tripPlan');
+    const keys = flat(en as Tree);
+    const need = [
+      ...VEHICLES.map((v) => `vehicle.${v}`),
+      ...Object.keys(STAY_LABELS).map((s) => `stay.${s}`),
+      ...FILTER_GROUPS.flatMap((g) => [`filterGroup.${g.id}`, ...g.options.map((o) => `filter.${o.id}`)]),
+    ];
+    expect(need.filter((k) => !keys[k])).toEqual([]);
+  });
+});

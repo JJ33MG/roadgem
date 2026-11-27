@@ -1,40 +1,40 @@
+import { useTranslation } from 'react-i18next';
 import { LegalLayout, OPERATOR, Section } from './LegalLayout';
 
 export function TermsPage() {
+  const { t } = useTranslation();
   return (
-    <LegalLayout title="Terms">
-      <p className="mt-24 text-[19px]">{`These terms apply to RoamGem, run by ${OPERATOR.name}, ${OPERATOR.address}. By using RoamGem you agree to them.`}</p>
+    <LegalLayout title={t('terms.title')}>
+      <p className="mt-24 text-[19px]">{t('terms.intro', { name: OPERATOR.name, address: OPERATOR.address })}</p>
 
-      <Section title="What RoamGem does">
-        <p>RoamGem plans road trips: the days, where to sleep, gems on the way and what it may cost. It is a planning aid. You stay responsible for your journey, your vehicle and following the road rules.</p>
+      <Section title={t('terms.whatTitle')}>
+        <p>{t('terms.what')}</p>
       </Section>
 
-      <Section title="Estimates, not promises">
-        <p>Costs, tolls, vignettes, prices of stays and driving times are estimates from public prices and tables, and change over time. Gems are real places found on Google with their ratings, but opening hours, access and conditions change. Check them before you go, and always follow the road signs, local rules and limits for your vehicle (height, weight, low-emission zones).</p>
+      <Section title={t('terms.estimatesTitle')}>
+        <p>{t('terms.estimates')}</p>
       </Section>
 
-      <Section title="Partner links">
-        <p>Some links lead to partners such as Booking.com, Pitchup, Vrbo, Roadsurfer, Indie Campers and GetYourGuide. When you book through them we may earn a commission, at no extra cost to you. Your booking is a contract between you and that partner.</p>
+      <Section title={t('terms.partnersTitle')}>
+        <p>{t('terms.partners')}</p>
       </Section>
 
-      <Section title="Plus and the Trip pass">
+      <Section title={t('terms.plusTitle')}>
         <ul className="grid gap-8 pl-24">
-          <li>Plus is a subscription, paid monthly or yearly. It renews until you stop it; you can stop it any time and it keeps working until the end of the paid month or year.</li>
-          <li>The Trip pass is a one-off payment: every Plus feature, for one trip.</li>
-          <li>Both start right away when you pay. Because the service starts at once, the 14-day right of withdrawal ends when you ask us to start it. If something does not work, email us and we will put it right.</li>
+          {[1, 2, 3].map((n) => <li key={n}>{t(`terms.plus${n}`)}</li>)}
         </ul>
       </Section>
 
-      <Section title="Community photos and gems">
-        <p>You keep the rights to photos you post. You allow RoamGem to show them in the app and in its own promotion, with your explorer name. Post only your own photos, nothing unsafe, offensive or private about others. We may remove posts and suggested gems that break these rules.</p>
+      <Section title={t('terms.communityTitle')}>
+        <p>{t('terms.community')}</p>
       </Section>
 
-      <Section title="Liability">
-        <p>We do our best to keep RoamGem correct and available, but cannot promise it is always error-free. We are not liable for indirect damage, or for what partners and places do. Nothing in these terms limits rights you have as a consumer by law.</p>
+      <Section title={t('terms.liabilityTitle')}>
+        <p>{t('terms.liability')}</p>
       </Section>
 
-      <Section title="Changes and law">
-        <p>{`We may update these terms; the date at the top shows the latest version. The law of ${OPERATOR.country} applies, without taking away the protection of the law where you live. Questions: ${OPERATOR.email}.`}</p>
+      <Section title={t('terms.changesTitle')}>
+        <p>{t('terms.changes', { country: OPERATOR.country, email: OPERATOR.email })}</p>
       </Section>
     </LegalLayout>
   );

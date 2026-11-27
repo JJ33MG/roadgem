@@ -11,3 +11,8 @@ export function outsideRoaming(legs: { countries: { code: string }[] }[] | undef
   const names = (legs ?? []).flatMap((l) => l.countries.map((c) => OUTSIDE[c.code.toUpperCase()])).filter(Boolean);
   return [...new Set(names)];
 }
+
+/** The same countries as two-letter codes, so their names can be shown in the traveller's language. */
+export function outsideRoamingCodes(legs: { countries: { code: string }[] }[] | undefined): string[] {
+  return [...new Set((legs ?? []).flatMap((l) => l.countries.map((c) => c.code.toUpperCase())).filter((c) => OUTSIDE[c]))];
+}

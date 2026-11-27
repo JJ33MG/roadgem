@@ -15,3 +15,12 @@ export function formatDate(iso: string, lang: Lang = currentLang(), opts: Intl.D
 }
 
 export const formatNumber = (n: number, lang: Lang = currentLang()) => new Intl.NumberFormat(localeOf(lang)).format(n);
+
+/** A country's name in the traveller's language, from its two-letter code ("HR" → "Kroatië"). */
+export function countryName(code: string, lang: Lang = currentLang()): string {
+  try {
+    return new Intl.DisplayNames([localeOf(lang)], { type: 'region' }).of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
+}

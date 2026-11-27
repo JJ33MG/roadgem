@@ -8,6 +8,8 @@ import { fallbackChallenge, writeChallenge } from '../community/aiCheck';
 import { autoReview } from '../community/autoReview';
 import { addGemToTrip } from '../community/adds';
 import { nearbyGems } from '../community/nearby';
+import { grantYear, monthWinner } from '../community/prize';
+import { tokenMatches } from './stats';
 import { rateLimiter } from './track';
 import { checkIn, passport } from '../community/road';
 import { explorerGemsNear, monthlyChallenge } from '../community/explorer';
@@ -217,6 +219,23 @@ router.post('/posts/:id/review', requireAuth, wrap(async (req, res) => {
   const decision = req.body?.decision;
   if (decision !== 'approve' && decision !== 'approve_photo' && decision !== 'reject') return res.status(400).json({ error: 'decision must be approve, approve_photo or reject' });
   res.json(await review(prisma, req.params.id, decision));
+}));
+
+// The monthly explorer prize, for the Brain only (signed with the stats token).
+router.get('/prize', wrap(async (req, res) => {
+  if (!tokenMatches(req.headers['x-stats-token'])) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    res.json({ winner: await monthWinner(prisma, String(req.query.month ?? '')) });
+  } catch {
+    res.status(400).json({ error: 'month must look like 2026-11' });
+  }
+}));
+
+router.post('/prize/grant', wrap(async (req, res) => {
+  if (!tokenMatches(req.headers['x-stats-token'])) return res.status(401).json({ error: 'Unauthorized' });
+  const { userId, month } = (req.body ?? {}) as { userId?: unknown; month?: unknown };
+  if (typeof userId !== 'string' || typeof month !== 'string' || !/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'userId and month (2026-11) are needed' });
+  res.json(await grantYear(prisma, userId, month));
 }));
 
 export default router;

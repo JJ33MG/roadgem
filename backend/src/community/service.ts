@@ -167,10 +167,12 @@ export async function feed(db: PrismaClient, viewerId: string | null, opts: Feed
   posts = [...posts].sort((a, b) => b._count.likes - a._count.likes || b.createdAt.getTime() - a.createdAt.getTime()).slice(page * take, page * take + take);
   const gemIds = [...new Set(posts.map((p) => p.gem.id))];
   const placeIds = posts.filter((p) => p.user.isTeam && p.gem.placeId).map((p) => p.gem.placeId!);
-  const [adds, places] = await Promise.all([
+  const [adds, places, top] = await Promise.all([
     gemIds.length ? db.gemAdd.groupBy({ by: ['gemId'], where: { gemId: { in: gemIds } }, _count: { _all: true } }) : [],
     placeIds.length ? db.placeGem.findMany({ where: { placeId: { in: placeIds } }, select: { placeId: true, rating: true } }) : [],
+    board(db, { period: 'week', take: 10, now: opts.now }),
   ]);
+  const rankOf = new Map(top.map((r) => [r.userId, r.rank]));
   const inTrips = new Map(adds.map((a) => [a.gemId, a._count._all]));
   const rating = new Map(places.map((p) => [p.placeId, p.rating]));
   return posts.map((p) => ({
@@ -188,34 +190,62 @@ export async function feed(db: PrismaClient, viewerId: string | null, opts: Feed
     inTrips: inTrips.get(p.gem.id) ?? 0,
     credit: p.credit,
     rating: p.user.isTeam && p.gem.placeId ? rating.get(p.gem.placeId) ?? null : null,
-    rank: null as number | null,
+    rank: rankOf.get(p.userId) ?? null,
     photoUrl: `/api/community/posts/${p.id}/photo`,
   }));
 }
 
-/** Explorers by points: approved photos and challenges, check-ins on the road, plus 200 for every found gem that turned official. */
-export async function board(db: PrismaClient, take = 20) {
-  const [byPosts, found, byCheckIns] = await Promise.all([
-    db.post.groupBy({ by: ['userId'], where: { status: 'public' }, _sum: { points: true }, _count: { _all: true } }),
-    db.gem.groupBy({ by: ['finderId'], where: { status: 'official', finderId: { not: null } }, _count: { _all: true } }),
-    db.checkIn.groupBy({ by: ['userId'], _sum: { points: true } }),
+export type BoardOptions = { period?: 'week' | 'month' | 'all'; country?: string; take?: number; now?: Date; from?: Date; to?: Date };
+export type BoardRow = { rank: number; userId: string; name: string; points: number; moments: number; likes: number; inTrips: number; gems: number };
+
+/** Points per traveller in a period (all from the rules in rules.ts). */
+async function standings(db: PrismaClient, opts: BoardOptions) {
+  const to = opts.to ?? opts.now ?? new Date();
+  const from = opts.from ?? (opts.period === 'week' || opts.period === 'month' ? periodStart(opts.period, to) : new Date(0));
+  const range = { gte: from, lt: new Date(to.getTime() + 1) };
+  const country = opts.country?.trim().toLowerCase();
+  const inCountry = (address: string) => !country || (address.split(',').pop() ?? '').trim().toLowerCase() === country;
+
+  const [posts, likes, adds, found, checkIns] = await Promise.all([
+    db.post.findMany({ where: { status: 'public', createdAt: range }, select: { userId: true, points: true, gem: { select: { address: true } } } }),
+    db.like.findMany({ where: { createdAt: range, post: { status: 'public' } }, select: { post: { select: { userId: true, gem: { select: { address: true } } } } } }),
+    db.gemAdd.findMany({ where: { createdAt: range, postId: { not: null } }, select: { post: { select: { userId: true, gem: { select: { address: true } } } } } }),
+    db.gem.findMany({ where: { status: 'official', finderId: { not: null }, officialAt: range }, select: { finderId: true, address: true } }),
+    country ? Promise.resolve([]) : db.checkIn.findMany({ where: { createdAt: range }, select: { userId: true, points: true } }),
   ]);
-  const totals = new Map<string, { points: number; photos: number; gems: number }>();
-  for (const r of byPosts) totals.set(r.userId, { points: r._sum.points ?? 0, photos: r._count._all, gems: 0 });
-  for (const r of found) {
-    const t = totals.get(r.finderId!) ?? { points: 0, photos: 0, gems: 0 };
-    t.points += POINTS.foundGem * r._count._all;
-    t.gems = r._count._all;
-    totals.set(r.finderId!, t);
-  }
-  // Check-ins on the road count too.
-  for (const r of byCheckIns) {
-    const t = totals.get(r.userId) ?? { points: 0, photos: 0, gems: 0 };
-    t.points += r._sum.points ?? 0;
-    totals.set(r.userId, t);
-  }
-  const top = [...totals.entries()].sort((a, b) => b[1].points - a[1].points).slice(0, take);
-  const users = await db.user.findMany({ where: { id: { in: top.map(([id]) => id) } }, select: { id: true, name: true, email: true, isTeam: true } });
-  const nameOf = new Map(users.map((u) => [u.id, teamLabel(u).by]));
-  return top.map(([id, t], i) => ({ rank: i + 1, userId: id, name: nameOf.get(id) ?? 'Traveller', ...t }));
+  const totals = new Map<string, Omit<BoardRow, 'rank' | 'userId' | 'name'>>();
+  const t = (id: string) => totals.get(id) ?? (totals.set(id, { points: 0, moments: 0, likes: 0, inTrips: 0, gems: 0 }), totals.get(id)!);
+  for (const p of posts) if (inCountry(p.gem.address)) { const r = t(p.userId); r.points += p.points; r.moments++; }
+  for (const l of likes) if (inCountry(l.post.gem.address)) { const r = t(l.post.userId); r.points += POINTS.like; r.likes++; }
+  for (const a of adds) if (a.post && inCountry(a.post.gem.address)) { const r = t(a.post.userId); r.points += POINTS.addedToTrip; r.inTrips++; }
+  for (const g of found) if (inCountry(g.address)) { const r = t(g.finderId!); r.points += POINTS.foundGem; r.gems++; }
+  for (const c of checkIns) t(c.userId).points += c.points;
+
+  const users = await db.user.findMany({ where: { id: { in: [...totals.keys()] } }, select: { id: true, name: true, email: true, isTeam: true } });
+  const people = new Map(users.filter((u) => !teamLabel(u).team).map((u) => [u.id, u.name]));
+  return [...totals.entries()]
+    .filter(([id, r]) => people.has(id) && r.points > 0)
+    .sort((a, b) => b[1].points - a[1].points)
+    .map(([id, r], i): BoardRow => ({ rank: i + 1, userId: id, name: people.get(id) ?? 'Traveller', ...r }));
+}
+
+/** Explorers by points in the period (week, month or all time), optionally in one country. The team is left out. */
+export async function board(db: PrismaClient, opts: BoardOptions = {}) {
+  return (await standings(db, opts)).slice(0, Math.max(1, opts.take ?? 20));
+}
+
+/** My place on the board, and the points I still need for the top 10. */
+export async function myStanding(db: PrismaClient, userId: string, opts: BoardOptions = {}) {
+  const rows = await standings(db, opts);
+  const me = rows.find((r) => r.userId === userId);
+  const tenth = rows[9]?.points ?? 0;
+  const points = me?.points ?? 0;
+  return {
+    rank: me?.rank ?? null,
+    points,
+    toTop10: me && me.rank <= 10 ? 0 : Math.max(0, tenth - points),
+    moments: me?.moments ?? 0,
+    likes: me?.likes ?? 0,
+    inTrips: me?.inTrips ?? 0,
+  };
 }

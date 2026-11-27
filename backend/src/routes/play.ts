@@ -3,7 +3,7 @@ import { Router, Response, NextFunction } from 'express';
 import { prisma } from '../utils/prisma';
 import { optionalAuth, requireAuth, AuthRequest } from '../middleware/auth';
 import { isAdmin } from '../community/rules';
-import { board, createPost, feed, review, suggestGem, toggleLike } from '../community/service';
+import { board, createPost, feed, myStanding, review, suggestGem, toggleLike } from '../community/service';
 import { fallbackChallenge, writeChallenge } from '../community/aiCheck';
 import { autoReview } from '../community/autoReview';
 import { addGemToTrip } from '../community/adds';
@@ -155,22 +155,28 @@ router.get('/monthly', wrap(async (_req, res) => {
   res.json({ challenge: monthlyChallenge(), plusOnly: true });
 }));
 
-router.get('/board', wrap(async (_req, res) => {
-  res.json(await board(prisma));
+const boardOpts = (q: Record<string, unknown>) => {
+  const period = q.period === 'month' || q.period === 'all' ? q.period : 'week';
+  const country = typeof q.country === 'string' && q.country.trim() ? q.country.trim().slice(0, 60) : undefined;
+  return { period, country } as const;
+};
+
+router.get('/board', wrap(async (req, res) => {
+  res.json(await board(prisma, boardOpts(req.query)));
 }));
 
 router.get('/me', requireAuth, wrap(async (req, res) => {
-  const [posts, me] = await Promise.all([
+  const [posts, me, standing] = await Promise.all([
     prisma.post.findMany({
       where: { userId: req.userId! },
       orderBy: { createdAt: 'desc' },
       take: 50,
       select: { id: true, status: true, points: true, challenge: true, createdAt: true, gem: { select: { name: true } } },
     }),
-    prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true } }),
+    prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true, name: true } }),
+    myStanding(prisma, req.userId!, boardOpts(req.query)),
   ]);
-  const rank = (await board(prisma, 1000)).find((r) => r.userId === req.userId);
-  res.json({ posts: posts.map((p) => ({ ...p, photoUrl: `/api/community/posts/${p.id}/photo` })), points: rank?.points ?? 0, rank: rank?.rank ?? null, moderator: isAdmin(me?.email) });
+  res.json({ posts: posts.map((p) => ({ ...p, photoUrl: `/api/community/posts/${p.id}/photo` })), name: me?.name ?? '', ...standing, moderator: isAdmin(me?.email) });
 }));
 
 /** The photo challenge of a gem, written once and kept. Google gems are added on first use. */

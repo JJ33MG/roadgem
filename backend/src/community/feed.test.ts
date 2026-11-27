@@ -76,4 +76,12 @@ describe.skipIf(!url)('community feed', () => {
     const [item] = await feed(db, null, { period: 'week' });
     expect(item.inTrips).toBe(3);
   });
+
+  it("shows the poster's place in this week's top 10", async () => {
+    const u = await user();
+    const g = await gem('Bridge', 47.3, 11.2);
+    await post(u.id, g.id, 1);
+    const [item] = await feed(db, null, { period: 'week' });
+    expect(item.rank).toBe(1);
+  });
 });

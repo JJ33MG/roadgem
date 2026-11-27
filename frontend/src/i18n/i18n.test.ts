@@ -57,3 +57,16 @@ describe('planner choices', () => {
     expect(need.filter((k) => !keys[k])).toEqual([]);
   });
 });
+
+describe('real translations', () => {
+  // Words that stay the same in every language: brand and product names, and the handful of words that really are equal.
+  const SAME = /^(RoamGem( team)?|Plus|Trip pass|Google Maps|Waze|Roadsurfer|Indie Campers|Localrent|Hotel|Hotels|Camping|Campings|Community|Feedback|Bug|Idea|Comfort|Wellness|Diesel|Hostel|Café|Privacy|Start|Home|Filters|Luxe|Culture|Nature|Couple|Familie|Famille|Auto|Ok|OK|Plus|\{\{.*)$/;
+  const base = flat(en as Tree);
+  for (const [code, file] of Object.entries({ nl, fr, de, es, it: it_ })) {
+    it(`${code} is translated, not copied from English`, () => {
+      const other = flat(file as Tree);
+      const same = Object.keys(base).filter((k) => other[k] === base[k] && !SAME.test(base[k].trim()));
+      expect(same.length / Object.keys(base).length).toBeLessThan(0.05);
+    });
+  }
+});

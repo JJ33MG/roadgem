@@ -36,7 +36,7 @@ export function LandingPage() {
                 Your road trip, set just right.
               </h1>
               <p className="mt-20 max-w-[34ch] text-[20px] leading-[1.45] text-band-ink md:text-[22px]" style={{ opacity: 0.88 }}>
-                Set the pace and the detours. Routify plans the days, beds and gems.
+                Set the pace and the detours. RoamGem plans the days, beds and gems.
               </p>
               <Link to="/plan" className="btn-primary mt-[32px] min-h-[56px] px-[32px] text-[19px] no-underline">
                 Start your road trip
@@ -78,10 +78,10 @@ export function LandingPage() {
 
       <section className={`${wrap} pb-80`}>
         <h2 className="max-w-[20ch] font-display text-[36px] leading-[1.08] text-ink md:text-[52px]" style={{ fontWeight: 400, letterSpacing: '-0.035em' }}>
-          AI invents places. Routify checks them.
+          AI invents places. RoamGem checks them.
         </h2>
         <p className="mt-16 max-w-[52ch] text-[19px]">
-          Other planners write a nice list and hope it exists. Every gem on a Routify trip passed three checks before it reached your plan.
+          Other planners write a nice list and hope it exists. Every gem on a RoamGem trip passed three checks before it reached your plan.
         </p>
         <ol className="mt-[36px] grid list-none gap-24 p-0 md:grid-cols-3">
           {CHECKS.map((c, i) => (

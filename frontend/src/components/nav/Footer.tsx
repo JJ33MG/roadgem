@@ -14,8 +14,8 @@ export function Footer() {
     <footer className="border-t border-rule bg-paper">
       <div className="mx-auto flex max-w-[1240px] flex-wrap items-start justify-between gap-24 px-16 py-40 md:px-40">
         <div>
-          <p className="font-display text-[22px] text-ink" style={{ fontWeight: 500 }}>Routify</p>
-          <p className="mt-8 text-[16px] text-muted">© {new Date().getFullYear()} Routify</p>
+          <p className="font-display text-[22px] text-ink" style={{ fontWeight: 500 }}>RoamGem</p>
+          <p className="mt-8 text-[16px] text-muted">© {new Date().getFullYear()} RoamGem</p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-24">
           {LINKS.map((l) => (

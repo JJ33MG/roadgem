@@ -8,7 +8,7 @@ vi.mock('@/components/planner/TripPlanner', () => ({ TripPlanner: () => <form ar
 describe('LandingPage', () => {
   it('says why the gems can be trusted', () => {
     render(<MemoryRouter><LandingPage /></MemoryRouter>);
-    expect(screen.getByRole('heading', { level: 2, name: 'AI invents places. Routify checks them.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'AI invents places. RoamGem checks them.' })).toBeInTheDocument();
   });
 
   it('opens with one clear button to the planner instead of the whole form', () => {

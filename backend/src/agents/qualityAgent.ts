@@ -99,7 +99,7 @@ Regenerate=true if score < 6 or stops are generic/wrong cities.`;
                 <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;background:#080c14;color:white;">
                   <h2 style="color:#f5a623;">Good news, ${trip.user.name} 👋</h2>
                   <p style="color:rgba(255,255,255,0.7);">Our AI reviewed your <strong>${trip.destination}</strong> trip and found some improvements. We've updated it automatically.</p>
-                  <a href="https://routify.ink/trips/${trip.id}" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">View updated trip →</a>
+                  <a href="https://roamgem.com/trips/${trip.id}" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">View updated trip →</a>
                 </div>`,
             });
           }

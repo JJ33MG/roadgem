@@ -1,4 +1,4 @@
-// Honest launch content: gems of the week from the gem library, and posts by the Routify team labelled as such.
+// Honest launch content: gems of the week from the gem library, and posts by the RoamGem team labelled as such.
 import { createHash } from 'node:crypto';
 import { isAdmin } from './rules';
 
@@ -31,7 +31,7 @@ export function pickOfTheWeek<T extends LibraryGem>(gems: T[], now = new Date(),
   return picked;
 }
 
-/** The team account and the moderators post as "Routify team", so it is clear the post is ours. */
+/** The team account and the moderators post as "RoamGem team", so it is clear the post is ours. */
 export function teamLabel(user: { isTeam: boolean; email: string; name: string }, admins = process.env.ADMIN_EMAILS) {
-  return user.isTeam || isAdmin(user.email, admins) ? { team: true, by: 'Routify team' } : { team: false, by: user.name };
+  return user.isTeam || isAdmin(user.email, admins) ? { team: true, by: 'RoamGem team' } : { team: false, by: user.name };
 }

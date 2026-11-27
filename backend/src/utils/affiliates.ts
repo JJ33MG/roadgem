@@ -63,7 +63,7 @@ export function buildTrainlineUrl(
   const affiliate = process.env.TRAINLINE_AFFILIATE_ID;
   // Trainline affiliate uses impact.com — partner ID appended as utm source until full integration
   const base = `https://www.trainline.eu/search/${encodeURIComponent(origin)}/${encodeURIComponent(destination)}`;
-  return affiliate ? `${base}?utm_source=routify&utm_medium=affiliate&ref=${affiliate}` : base;
+  return affiliate ? `${base}?utm_source=roamgem&utm_medium=affiliate&ref=${affiliate}` : base;
 }
 
 export function buildOmioUrl(
@@ -82,7 +82,7 @@ export function buildFlixbusUrl(origin: string, destination: string): string {
   const q = `${encodeURIComponent(origin)}-${encodeURIComponent(destination)}`;
   const affiliate = process.env.FLIXBUS_AFFILIATE_ID;
   const base = `https://shop.flixbus.com/search?rideDate=&departureCity=${encodeURIComponent(origin)}&arrivalCity=${encodeURIComponent(destination)}`;
-  return affiliate ? `${base}&utm_source=routify&utm_medium=affiliate&utm_campaign=${affiliate}` : base;
+  return affiliate ? `${base}&utm_source=roamgem&utm_medium=affiliate&utm_campaign=${affiliate}` : base;
 }
 
 // --- Car Rental ---

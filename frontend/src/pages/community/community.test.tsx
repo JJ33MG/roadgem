@@ -112,13 +112,13 @@ describe('ModeratePage', () => {
     expect(screen.getByRole('heading', { name: 'Challenge of the month' })).toBeInTheDocument();
   });
 
-  it('shows gems of the week, and labels team posts as the Routify team', async () => {
-    api.feed.mockResolvedValue([{ id: 'x', caption: 'Sunrise', challenge: false, points: 10, createdAt: '2027-03-01', by: 'Routify team', team: true, gem: { id: 'g', name: 'Lerma', status: 'official', address: '', lat: 0, lng: 0 }, likes: 0, likedByMe: false, photoUrl: '/p' }]);
+  it('shows gems of the week, and labels team posts as the RoamGem team', async () => {
+    api.feed.mockResolvedValue([{ id: 'x', caption: 'Sunrise', challenge: false, points: 10, createdAt: '2027-03-01', by: 'RoamGem team', team: true, gem: { id: 'g', name: 'Lerma', status: 'official', address: '', lat: 0, lng: 0 }, likes: 0, likedByMe: false, photoUrl: '/p' }]);
     api.board.mockResolvedValue([]);
     render(<MemoryRouter><CommunityPage /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Gems of the week' })).toBeInTheDocument();
     expect(screen.getByText('Castle of Peñafiel')).toBeInTheDocument();
-    expect(await screen.findByText('Routify team')).toBeInTheDocument();
+    expect(await screen.findByText('RoamGem team')).toBeInTheDocument();
   });
 
   it('lists waiting photos and approves one', async () => {

@@ -43,7 +43,7 @@ const ALLOWED = new Set([
   // Places (New) kinds (26 Nov: more than sights: views, hikes, nature, days out)
   'national_park', 'hiking_area', 'historical_landmark', 'observation_deck', 'botanical_garden', 'beach', 'amusement_park',
 ]);
-/** What Routify asks Google for along the road: sights, views, hikes, nature and days out. */
+/** What RoamGem asks Google for along the road: sights, views, hikes, nature and days out. */
 export const GEM_TYPES = ['tourist_attraction', 'park', 'national_park', 'hiking_area', 'museum', 'historical_landmark', 'observation_deck', 'botanical_garden', 'beach', 'zoo', 'aquarium', 'amusement_park'];
 const BLOCKED = new Set([
   'lodging', 'gas_station', 'car_rental', 'store', 'shopping_mall', 'supermarket', 'travel_agency', 'parking', 'bank', 'real_estate_agency',

@@ -1,4 +1,4 @@
-// Prices Routify uses to estimate a trip's costs. Averages, rounded; the trip page labels them as an
+// Prices RoamGem uses to estimate a trip's costs. Averages, rounded; the trip page labels them as an
 // estimate with this date. Update `updated` whenever a number changes.
 
 export const TABLES = {

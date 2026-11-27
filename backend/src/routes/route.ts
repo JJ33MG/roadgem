@@ -23,7 +23,7 @@ export async function geocode(place: string): Promise<LatLng | null> {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) return null;
   // Places text search (new service) instead of the Geocoding API, which this key does not have.
-  // Text search returns several matches: Routify plans European trips, so the first one in Europe wins.
+  // Text search returns several matches: RoamGem plans European trips, so the first one in Europe wins.
   // The server runs in the US, so Google leans American: hint Europe, and ask again with ", Europe" if needed.
   const search = async (query: string): Promise<LatLng[]> =>
     (await searchText(query, apiKey, { europe: true, max: 5 })).map((r) => ({ lat: r.lat, lng: r.lng }));

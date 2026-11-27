@@ -3,10 +3,10 @@ import { LegalLayout, OPERATOR, Section } from './LegalLayout';
 export function TermsPage() {
   return (
     <LegalLayout title="Terms">
-      <p className="mt-24 text-[19px]">{`These terms apply to Routify, run by ${OPERATOR.name}, ${OPERATOR.address}. By using Routify you agree to them.`}</p>
+      <p className="mt-24 text-[19px]">{`These terms apply to RoamGem, run by ${OPERATOR.name}, ${OPERATOR.address}. By using RoamGem you agree to them.`}</p>
 
-      <Section title="What Routify does">
-        <p>Routify plans road trips: the days, where to sleep, gems on the way and what it may cost. It is a planning aid. You stay responsible for your journey, your vehicle and following the road rules.</p>
+      <Section title="What RoamGem does">
+        <p>RoamGem plans road trips: the days, where to sleep, gems on the way and what it may cost. It is a planning aid. You stay responsible for your journey, your vehicle and following the road rules.</p>
       </Section>
 
       <Section title="Estimates, not promises">
@@ -26,11 +26,11 @@ export function TermsPage() {
       </Section>
 
       <Section title="Community photos and gems">
-        <p>You keep the rights to photos you post. You allow Routify to show them in the app and in its own promotion, with your explorer name. Post only your own photos, nothing unsafe, offensive or private about others. We may remove posts and suggested gems that break these rules.</p>
+        <p>You keep the rights to photos you post. You allow RoamGem to show them in the app and in its own promotion, with your explorer name. Post only your own photos, nothing unsafe, offensive or private about others. We may remove posts and suggested gems that break these rules.</p>
       </Section>
 
       <Section title="Liability">
-        <p>We do our best to keep Routify correct and available, but cannot promise it is always error-free. We are not liable for indirect damage, or for what partners and places do. Nothing in these terms limits rights you have as a consumer by law.</p>
+        <p>We do our best to keep RoamGem correct and available, but cannot promise it is always error-free. We are not liable for indirect damage, or for what partners and places do. Nothing in these terms limits rights you have as a consumer by law.</p>
       </Section>
 
       <Section title="Changes and law">

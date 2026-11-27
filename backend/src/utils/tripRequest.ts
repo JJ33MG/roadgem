@@ -1,4 +1,4 @@
-// Validates the body of POST /api/trips/generate, including the Routify planner fields
+// Validates the body of POST /api/trips/generate, including the RoamGem planner fields
 // (kilometres a day, gems a day, the gems switch, sleep types, filters), with safe defaults.
 
 export type StayType = 'campsite' | 'hotel' | 'holiday_home';

@@ -17,8 +17,8 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
-        name: 'Routify',
-        short_name: 'Routify',
+        name: 'RoamGem',
+        short_name: 'RoamGem',
         description: 'Plan a road trip with the days, the stays and the gems on the way.',
         theme_color: '#035f5c',
         background_color: '#fcf9f3',

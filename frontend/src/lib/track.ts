@@ -34,7 +34,7 @@ export function trackClick(partner: string, tripId?: string): void {
   }
 }
 
-/** A partner link sent through the server, which adds Routify's affiliate id and counts the click; other links unchanged. */
+/** A partner link sent through the server, which adds RoamGem's affiliate id and counts the click; other links unchanged. */
 export function goLink(href: string, tripId?: string): string {
   const partner = partnerFor(href);
   if (!partner) return href;

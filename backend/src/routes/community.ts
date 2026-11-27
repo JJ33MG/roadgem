@@ -20,7 +20,7 @@ router.post('/gems', requireAuth, async (req: any, res: Response, next: NextFunc
     }
 
     // Claude verification — quality check before storing
-    const verifyPrompt = `You are reviewing a user-submitted hidden gem for a European road trip app called Routify.
+    const verifyPrompt = `You are reviewing a user-submitted hidden gem for a European road trip app called RoamGem.
 
 Gem details:
 - Name: "${name}"

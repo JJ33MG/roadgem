@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parsePlaces, parseRoute, photoMediaUrl, routeBody } from './google';
 
 // Google's new Places and Routes services (26 Nov: new Cloud projects cannot use the old ones).
-describe('parsePlaces: a Places (New) answer as Routify places', () => {
+describe('parsePlaces: a Places (New) answer as RoamGem places', () => {
   it('reads id, name, rating, reviews, address, position, types, first photo and price level', () => {
     const [p] = parsePlaces({
       places: [{

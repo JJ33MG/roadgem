@@ -51,7 +51,7 @@ export function checkoutParams(i: CheckoutInput, prices: { monthly?: string; yea
           unit_amount: TRIP_PASS_CENTS,
           // €4.99 includes VAT; the tax code (SaaS for private customers) is required by Stripe Managed Payments.
           tax_behavior: 'inclusive',
-          product_data: { name: 'Routify Trip pass', description: 'Every gem, the cheapest route and the printable PDF for one trip.', tax_code: 'txcd_10103000' },
+          product_data: { name: 'RoamGem Trip pass', description: 'Every gem, the cheapest route and the printable PDF for one trip.', tax_code: 'txcd_10103000' },
         },
       },
     ],
@@ -63,7 +63,7 @@ export function checkoutParams(i: CheckoutInput, prices: { monthly?: string; yea
 
 type Db = { user: Pick<PrismaClient['user'], 'update' | 'findUnique'>; trip: Pick<PrismaClient['trip'], 'findUnique' | 'update'> };
 
-/** What a Stripe event changes in Routify. Safe to receive twice (Stripe retries). */
+/** What a Stripe event changes in RoamGem. Safe to receive twice (Stripe retries). */
 export async function applyStripeEvent(db: Db, event: Stripe.Event, now = new Date()): Promise<void> {
   if (event.type === 'checkout.session.completed') {
     const s = event.data.object as Stripe.Checkout.Session;

@@ -11,6 +11,6 @@ describe('share card text', () => {
   it('works for a trip without check-ins, distance or invite', () => {
     const t = cardText({ from: 'Lyon', to: 'Nice', done: 0, total: 9, km: 0, countries: [] });
     expect(t.stats).toEqual(['0 of 9 gems collected']);
-    expect(t.footer).toBe('Planned with Routify');
+    expect(t.footer).toBe('Planned with RoamGem');
   });
 });

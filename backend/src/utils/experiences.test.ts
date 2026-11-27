@@ -23,7 +23,7 @@ describe('parseExperiences', () => {
   });
 });
 
-describe('verifiedExperience: Routify checks what the AI suggests', () => {
+describe('verifiedExperience: RoamGem checks what the AI suggests', () => {
   const town = { lat: 50.08, lng: 14.43 };
   const exp = { name: 'Beer Spa Bernard', what: 'Bathe in warm beer', kind: 'experience' as const, for: ['couples' as const] };
   const real = { id: 'p1', name: 'Beer Spa Bernard', rating: 4.7, reviews: 3100, address: 'Dlouhá 727', lat: 50.09, lng: 14.43, types: ['spa'], photo: 'places/p1/photos/a', open: true, priceLevel: null };

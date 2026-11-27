@@ -1,5 +1,5 @@
-// Routify reports to the Brain (27 Nov, ready for testers): tester feedback and server errors, which the Brain
-// passes to Jarne on Telegram. Signed with STATS_TOKEN (the token the Brain already reads Routify's numbers with).
+// RoamGem reports to the Brain (27 Nov, ready for testers): tester feedback and server errors, which the Brain
+// passes to Jarne on Telegram. Signed with STATS_TOKEN (the token the Brain already reads RoamGem's numbers with).
 const TYPES = ['bug', 'idea', 'other'] as const;
 export type Feedback = { type: (typeof TYPES)[number]; message: string; page: string; email: string };
 

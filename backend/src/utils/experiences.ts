@@ -1,5 +1,5 @@
 // Experiences in the town where the traveller sleeps (Jarne, 26 Nov: "a beer spa in Prague", things to do
-// with family, a partner or friends). Claude suggests them by exact name; Routify checks each one on
+// with family, a partner or friends). Claude suggests them by exact name; RoamGem checks each one on
 // Google (a real, open, well-rated place near the town) and finds a photo before it becomes a gem.
 import { kmBetween, type LatLng, type RouteGem } from './routeGems';
 import type { GPlace } from './google';

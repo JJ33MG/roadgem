@@ -54,7 +54,7 @@ export interface TripSearchParams {
   priorities: Priority[];
   accommodationTypes?: AccommodationType[];
   transportType?: 'own_car' | 'rental_car' | 'public';
-  /** Routify planner (phase 1): see src/lib/tripPlan.ts. */
+  /** RoamGem planner (phase 1): see src/lib/tripPlan.ts. */
   kmPerDay?: number;
   gemsPerDay?: number;
   gemsEnabled?: boolean;
@@ -313,7 +313,7 @@ export interface GeneratedTrip {
   editKey?: string;
   /** True when the signed-in viewer owns this trip (and may change it on any device). */
   yours?: boolean;
-  /** The planner choices the trip was made with (absent on trips made before Routify). */
+  /** The planner choices the trip was made with (absent on trips made before RoamGem). */
   planner?: {
     kmPerDay: number;
     gemsPerDay: number;

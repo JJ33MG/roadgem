@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('Routify error boundary caught an error:', error, info);
+    console.error('RoamGem error boundary caught an error:', error, info);
   }
 
   render() {

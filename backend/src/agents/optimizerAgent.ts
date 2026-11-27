@@ -77,7 +77,7 @@ Respond ONLY with JSON:
                 <ul style="color:rgba(255,255,255,0.7);padding-left:20px;">
                   ${result.improvements.map(i => `<li style="margin-bottom:8px;">${i}</li>`).join('')}
                 </ul>
-                <a href="https://routify.ink/trips/${trip.id}" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">See updated trip →</a>
+                <a href="https://roamgem.com/trips/${trip.id}" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">See updated trip →</a>
               </div>`,
           });
         }

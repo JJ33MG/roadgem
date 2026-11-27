@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-const card = vi.hoisted(() => ({ cardFile: vi.fn(async () => new File(['x'], 'routify-trip.png', { type: 'image/png' })) }));
+const card = vi.hoisted(() => ({ cardFile: vi.fn(async () => new File(['x'], 'roamgem-trip.png', { type: 'image/png' })) }));
 vi.mock('@/lib/shareCard', () => card);
 vi.mock('@/lib/road', () => ({ getPassport: vi.fn(async () => ({ total: 9, stamps: [{ placeId: 'a' }, { placeId: 'b' }] })) }));
 vi.mock('@/lib/community', () => ({ myInvite: vi.fn(async () => ({ code: 'C', url: 'https://routify.test/signup?invite=C' })) }));

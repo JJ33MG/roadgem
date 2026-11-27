@@ -43,7 +43,7 @@ describe('partner links', () => {
   });
 });
 
-describe('Travelpayouts partners (Jarne, 26 Nov): every click carries the Routify marker and opens the exact page', () => {
+describe('Travelpayouts partners (Jarne, 26 Nov): every click carries the RoamGem marker and opens the exact page', () => {
   const tp = (campaign: number, program: number, url: string) =>
     `https://tp.media/r?campaign_id=${campaign}&marker=649342&p=${program}&trs=607287&u=${encodeURIComponent(url)}`;
 

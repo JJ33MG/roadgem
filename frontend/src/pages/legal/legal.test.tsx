@@ -14,7 +14,7 @@ describe('legal pages', () => {
     for (const h of ['What we collect', 'Who processes it', 'How long we keep it', 'Your rights', 'Cookies and storage']) {
       expect(screen.getByRole('heading', { level: 2, name: h })).toBeInTheDocument();
     }
-    expect(document.title).toBe('Privacy | Routify');
+    expect(document.title).toBe('Privacy | RoamGem');
   });
 
   it('terms explain estimates, partner links, Plus and the Trip pass', () => {
@@ -22,7 +22,7 @@ describe('legal pages', () => {
     for (const h of ['Estimates, not promises', 'Partner links', 'Plus and the Trip pass', 'Community photos and gems']) {
       expect(screen.getByRole('heading', { level: 2, name: h })).toBeInTheDocument();
     }
-    expect(document.title).toBe('Terms | Routify');
+    expect(document.title).toBe('Terms | RoamGem');
   });
 
   it('the footer links to both', () => {
@@ -34,6 +34,6 @@ describe('legal pages', () => {
   it('the 404 page uses the current design and a title', () => {
     const { container } = wrap(<NotFoundPage />);
     expect(container.innerHTML).not.toMatch(/mercury|starlight/);
-    expect(document.title).toBe('Page not found | Routify');
+    expect(document.title).toBe('Page not found | RoamGem');
   });
 });

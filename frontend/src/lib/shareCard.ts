@@ -1,4 +1,4 @@
-// A story-size image (1080 × 1920) of a finished trip to share, drawn in the browser with Routify's fonts.
+// A story-size image (1080 × 1920) of a finished trip to share, drawn in the browser with RoamGem's fonts.
 import { tokenHex } from './color';
 
 export type CardInput = { from: string; to: string; done: number; total: number; km: number; countries: string[]; inviteUrl?: string };
@@ -10,7 +10,7 @@ export function cardText(i: CardInput) {
   return {
     title: `${i.from} to ${i.to}`,
     stats,
-    footer: i.inviteUrl ? i.inviteUrl.replace(/^https?:\/\//, '') : 'Planned with Routify',
+    footer: i.inviteUrl ? i.inviteUrl.replace(/^https?:\/\//, '') : 'Planned with RoamGem',
   };
 }
 
@@ -55,7 +55,7 @@ export async function cardFile(i: CardInput): Promise<File> {
   ctx.globalAlpha = 1;
   ctx.fillStyle = light;
   ctx.font = '500 56px "Instrument Sans", sans-serif';
-  ctx.fillText('Routify', 96, 170);
+  ctx.fillText('RoamGem', 96, 170);
   ctx.font = '400 112px "Instrument Sans", sans-serif';
   let y = 520;
   for (const row of wrap(ctx, t.title, 888)) {
@@ -76,5 +76,5 @@ export async function cardFile(i: CardInput): Promise<File> {
   ctx.globalAlpha = 1;
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
   if (!blob) throw new Error('The card could not be made.');
-  return new File([blob], 'routify-trip.png', { type: 'image/png' });
+  return new File([blob], 'roamgem-trip.png', { type: 'image/png' });
 }

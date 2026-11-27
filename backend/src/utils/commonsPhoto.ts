@@ -29,7 +29,7 @@ export async function commonsPhotoNear(lat: number, lng: number, name: string): 
         action: 'query', format: 'json', generator: 'geosearch', ggsnamespace: 6, ggsradius: 400, ggslimit: 30,
         ggscoord: `${lat}|${lng}`, prop: 'imageinfo', iiprop: 'url|mime', iiurlwidth: 800,
       },
-      headers: { 'User-Agent': 'Routify/1.0 (road trip planner)' },
+      headers: { 'User-Agent': 'RoamGem/1.0 (road trip planner)' },
       timeout: 6000,
     });
     const pages = Object.values((res.data?.query?.pages ?? {}) as Record<string, CommonsPage>);

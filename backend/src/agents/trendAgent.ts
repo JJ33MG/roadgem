@@ -67,7 +67,7 @@ export async function main() {
     }
 
     // Ask Claude to extract trending destinations from the raw search data
-    const prompt = `You are a trend analyst for Routify, an AI European road trip planner.
+    const prompt = `You are a trend analyst for RoamGem, an AI European road trip planner.
 
 Here is raw data from multiple sources:
 

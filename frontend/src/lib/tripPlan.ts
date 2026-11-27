@@ -1,4 +1,4 @@
-// The Routify trip planner's state and how it becomes a trip request. Defaults come from the
+// The RoamGem trip planner's state and how it becomes a trip request. Defaults come from the
 // approved design (docs/superpowers/specs/2026-11-19-routify-redesign-design.md).
 import type { AccommodationType, Priority, TravelStyle, TripSearchParams } from '@/types';
 

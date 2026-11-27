@@ -19,7 +19,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-rule bg-paper">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-24 px-16 py-12 md:px-40">
         <Link to="/" className="font-display text-[24px] text-ink no-underline" style={{ fontWeight: 500, letterSpacing: '-0.02em' }}>
-          Routify
+          RoamGem
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-[28px] md:flex">
           {NAV_LINKS.map((l) => (

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
-/** Who runs Routify. Filled in before launch; until then the placeholders show plainly. */
+/** Who runs RoamGem. Filled in before launch; until then the placeholders show plainly. */
 export const OPERATOR = {
   name: '[Company name]',
   address: '[Registered address]',

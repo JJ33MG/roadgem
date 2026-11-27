@@ -30,13 +30,13 @@ export async function main() {
       const days = Math.ceil((user.subscriptionExpires!.getTime() - now.getTime()) / 86400000);
       await sendEmail({
         to: user.email,
-        subject: `Your Routify Premium expires in ${days} day${days !== 1 ? 's' : ''}`,
+        subject: `Your RoamGem Premium expires in ${days} day${days !== 1 ? 's' : ''}`,
         html: `
           <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;background:#080c14;color:white;">
             <h2 style="color:#f5a623;margin-bottom:8px;">Hey ${user.name} 👋</h2>
-            <p style="color:rgba(255,255,255,0.7);">Your Routify Premium subscription expires in <strong>${days} day${days !== 1 ? 's' : ''}</strong>.</p>
+            <p style="color:rgba(255,255,255,0.7);">Your RoamGem Premium subscription expires in <strong>${days} day${days !== 1 ? 's' : ''}</strong>.</p>
             <p style="color:rgba(255,255,255,0.7);">Renew now to keep access to hidden gems, unlimited trips and more.</p>
-            <a href="https://routify.ink/pricing" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">Renew Premium →</a>
+            <a href="https://roamgem.com/pricing" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">Renew Premium →</a>
           </div>`,
       });
       await log(`Renewal reminder sent to ${user.email} (${days}d left)`);
@@ -57,12 +57,12 @@ export async function main() {
       });
       await sendEmail({
         to: user.email,
-        subject: 'Your Routify Premium has expired',
+        subject: 'Your RoamGem Premium has expired',
         html: `
           <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;background:#080c14;color:white;">
             <h2 style="color:white;margin-bottom:8px;">Your Premium has ended, ${user.name}</h2>
             <p style="color:rgba(255,255,255,0.7);">Your trips are still saved. Upgrade again anytime to unlock hidden gems and unlimited planning.</p>
-            <a href="https://routify.ink/pricing" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">Reactivate →</a>
+            <a href="https://roamgem.com/pricing" style="display:inline-block;margin-top:16px;background:#f5a623;color:#080c14;padding:12px 28px;border-radius:9999px;text-decoration:none;font-weight:600;">Reactivate →</a>
           </div>`,
       });
       await log(`Downgraded ${user.email} to free (expired)`);

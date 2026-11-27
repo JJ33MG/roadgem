@@ -291,7 +291,7 @@ describe('TripResultsPage', () => {
     const first = within(tonight).getAllByRole('listitem')[0];
     expect(first).toHaveTextContent('Camping Burgos');
     expect(first).toHaveTextContent('About €32 a night');
-    // Through Routify's server, which adds the affiliate id and counts the click.
+    // Through RoamGem's server, which adds the affiliate id and counts the click.
     const href = within(first).getByRole('link', { name: 'Check prices for Camping Burgos' }).getAttribute('href')!;
     expect(href).toMatch(/\/track\/go\/booking\?/);
     expect(new URLSearchParams(href.split('?')[1]).get('to')).toBe('https://www.booking.com/y?aid=1');
@@ -408,7 +408,7 @@ describe('TripResultsPage booking clicks', () => {
     expect(to('Hotels').searchParams.get('group_adults')).toBe('2');
   });
 
-  it('offers a rental car that fits the group, with the dates and places, through Routify', () => {
+  it('offers a rental car that fits the group, with the dates and places, through RoamGem', () => {
     renderTrip(trip({ ...base, travellers: 6 } as never));
     const panel = screen.getByRole('heading', { name: 'Rental car' }).closest('div')!;
     expect(panel).toHaveTextContent('Pick up in Madrid on 4 June, drop off in Brussels on 6 June.');

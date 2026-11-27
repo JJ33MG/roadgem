@@ -42,7 +42,7 @@ router.post('/click', optionalAuth, async (req: AuthRequest, res: Response) => {
   res.status(204).end();
 });
 
-// A partner link: counted, credited to Routify (affiliate id or network deep link), then on to the partner.
+// A partner link: counted, credited to RoamGem (affiliate id or network deep link), then on to the partner.
 router.get('/go/:partner', optionalAuth, async (req: AuthRequest, res: Response) => {
   const to = partnerTarget(req.params.partner, String(req.query.to ?? ''));
   if (!to) return res.status(400).json({ error: 'Unknown partner link' });

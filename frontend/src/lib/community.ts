@@ -5,7 +5,7 @@ export type FeedItem = {
   id: string; caption: string; challenge: boolean; points: number; createdAt: string; by: string;
   gem: { id: string; name: string; status: string; address: string; lat: number; lng: number };
   likes: number; likedByMe: boolean; photoUrl: string;
-  /** Posted by the Routify team (labelled, never presented as a traveller). */
+  /** Posted by the RoamGem team (labelled, never presented as a traveller). */
   team?: boolean;
 };
 export type BoardRow = { rank: number; userId: string; name: string; points: number; photos: number; gems: number };

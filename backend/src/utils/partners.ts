@@ -1,4 +1,4 @@
-// Booking partners the site sends travellers to, and how each one is credited to Routify.
+// Booking partners the site sends travellers to, and how each one is credited to RoamGem.
 // IDs live in Railway variables: a partner pays from the moment its ID is set, no code change.
 
 type Partner = {
@@ -12,7 +12,7 @@ type Partner = {
   deeplink?: string;
 };
 
-// Routify's Travelpayouts account: marker (partner) and trs (project). These are in every link a visitor clicks.
+// RoamGem's Travelpayouts account: marker (partner) and trs (project). These are in every link a visitor clicks.
 const travelpayouts = (campaign: number, program: number) =>
   `https://tp.media/r?campaign_id=${campaign}&marker=649342&p=${program}&trs=607287&u={url}`;
 
@@ -38,7 +38,7 @@ export const PARTNERS: Record<string, Partner> = {
 
 const onHost = (url: URL, hosts: string[]) => url.protocol === 'https:' && hosts.some((h) => url.hostname === h || url.hostname.endsWith(`.${h}`));
 
-/** Where a click on `partner` should go, credited to Routify; null for an unknown partner or a foreign website. */
+/** Where a click on `partner` should go, credited to RoamGem; null for an unknown partner or a foreign website. */
 export function partnerTarget(partner: string, target: string): string | null {
   const p = Object.prototype.hasOwnProperty.call(PARTNERS, partner) ? PARTNERS[partner] : null;
   let url: URL;

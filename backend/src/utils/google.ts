@@ -1,6 +1,6 @@
 // Google's new Places and Routes services. New Google Cloud projects cannot switch on the old Places
 // and Directions services any more (26 Nov 2026: "You're calling a legacy API"), and Google is phasing
-// them out, so every Google call of Routify goes through here.
+// them out, so every Google call of RoamGem goes through here.
 import axios from 'axios';
 
 export type LatLng = { lat: number; lng: number };

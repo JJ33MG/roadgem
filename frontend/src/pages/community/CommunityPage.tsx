@@ -59,7 +59,7 @@ export function CommunityPage() {
       {week.length > 0 && (
         <section aria-labelledby="week-head" className="mt-32">
           <h2 id="week-head" className="font-display text-[28px] text-ink" style={head}>Gems of the week</h2>
-          <p className="mt-6 text-[17px] text-muted">Real places from Routify's gem library, each with its Google rating.</p>
+          <p className="mt-6 text-[17px] text-muted">Real places from RoamGem's gem library, each with its Google rating.</p>
           {/* A row to swipe on a phone, a grid on wider screens. */}
           <ul className="-mx-16 mt-16 flex snap-x gap-12 overflow-x-auto px-16 pb-8 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4" style={{ listStyle: 'none' }}>
             {week.map((g) => (
@@ -113,7 +113,7 @@ export function CommunityPage() {
                 <div className="grid gap-6 p-16">
                   <h2 className="font-display text-[24px] text-ink" style={head}>{item.gem.name}</h2>
                   {item.team ? (
-                    <p className="text-[16px] text-accent" style={{ fontWeight: 500 }}>Routify team</p>
+                    <p className="text-[16px] text-accent" style={{ fontWeight: 500 }}>RoamGem team</p>
                   ) : (
                     <p className="text-[16px] text-muted">{`By ${item.by}${item.gem.address ? `, ${item.gem.address}` : ''}`}</p>
                   )}

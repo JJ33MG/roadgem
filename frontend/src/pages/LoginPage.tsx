@@ -42,7 +42,7 @@ export function LoginPage() {
       busy={busy}
       error={error}
       onSubmit={submit}
-      footer={<>New to Routify? <Link to={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : '/signup'}>Make an account</Link></>}
+      footer={<>New to RoamGem? <Link to={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : '/signup'}>Make an account</Link></>}
     />
   );
 }

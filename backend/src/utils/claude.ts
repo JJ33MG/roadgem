@@ -35,7 +35,7 @@ const STAY_WORDS: Record<PlannerOptions['stayTypes'][number], string> = {
   holiday_home: 'holiday homes (Airbnb)',
 };
 
-/** The Routify planner's rules for the itinerary: daily distance, overnight stops, gems on or off. */
+/** The RoamGem planner's rules for the itinerary: daily distance, overnight stops, gems on or off. */
 export function plannerPrompt(p: PlannerOptions, transportType: string): string {
   const lines: string[] = [];
   if (p.vehicle) lines.push(VEHICLE_RULES[p.vehicle]);
@@ -50,7 +50,7 @@ export function plannerPrompt(p: PlannerOptions, transportType: string): string 
     'DAYS AND STOPS MATCH: stop 1 is the start. Day N drives from stop N to stop N+1, and the evening of day N is in stop N+1 (that is where the traveller sleeps). ' +
       'Never mention sleeping or staying overnight anywhere else. Days after the last stop are spent at the destination without long drives.',
   );
-  lines.push('Never call a place a "road gem" or "hidden gem" in the itinerary text: Routify adds its own checked gems next to the plan.');
+  lines.push('Never call a place a "road gem" or "hidden gem" in the itinerary text: RoamGem adds its own checked gems next to the plan.');
   lines.push(
     p.gemsEnabled
       ? `ROAD GEMS: on each travel day suggest about ${p.gemsPerDay} short stops (old towns, viewpoints, nature) spread along that day's road, each a short detour.`

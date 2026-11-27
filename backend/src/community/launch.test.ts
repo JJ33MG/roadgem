@@ -18,10 +18,10 @@ describe('gems of the week', () => {
   });
 });
 
-describe('the Routify team', () => {
-  it('labels posts of the team account and of the moderators as the Routify team', () => {
-    expect(teamLabel({ isTeam: true, email: 'x@y.z', name: 'Anna' }, '')).toEqual({ team: true, by: 'Routify team' });
-    expect(teamLabel({ isTeam: false, email: 'boss@example.com', name: 'Jo' }, 'boss@example.com')).toEqual({ team: true, by: 'Routify team' });
+describe('the RoamGem team', () => {
+  it('labels posts of the team account and of the moderators as the RoamGem team', () => {
+    expect(teamLabel({ isTeam: true, email: 'x@y.z', name: 'Anna' }, '')).toEqual({ team: true, by: 'RoamGem team' });
+    expect(teamLabel({ isTeam: false, email: 'boss@example.com', name: 'Jo' }, 'boss@example.com')).toEqual({ team: true, by: 'RoamGem team' });
     expect(teamLabel({ isTeam: false, email: 'a@b.c', name: 'Anna' }, 'boss@example.com')).toEqual({ team: false, by: 'Anna' });
   });
 });

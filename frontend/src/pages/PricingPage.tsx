@@ -42,7 +42,7 @@ const FAQS = [
   { q: 'What happens to my trips if I stop?', a: 'They stay. You can open every trip you saved; only new trips follow the free plan again.' },
   { q: 'Do I need a card for the free plan?', a: 'No. Plan and save one full trip without paying anything.' },
   { q: 'Trip pass or Plus?', a: 'One road trip a year: the Trip pass unlocks everything for that trip, once. Several trips, or planning and comparing a lot: Plus.' },
-  { q: 'How does the cheapest route work?', a: 'Routify also asks Google for the route without toll roads and prices both. When it saves money, you see how much and how much longer it takes, and switch in one tap.' },
+  { q: 'How does the cheapest route work?', a: 'RoamGem also asks Google for the route without toll roads and prices both. When it saves money, you see how much and how much longer it takes, and switch in one tap.' },
 ];
 
 const head = { fontWeight: 400, letterSpacing: '-0.035em' } as const;

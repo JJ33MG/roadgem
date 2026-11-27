@@ -37,8 +37,8 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
-  'https://routify.ink',
-  'https://www.routify.ink',
+  'https://roamgem.com',
+  'https://www.roamgem.com',
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 

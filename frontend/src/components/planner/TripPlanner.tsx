@@ -49,7 +49,7 @@ export function TripPlanner({ initial }: { initial?: TripPlan }) {
           <p className="text-error" role="alert">{error}</p>
         </Panel>
       )}
-      <PaywallModal isOpen={limitReached} onClose={dismissLimit} title="Your free trip is saved" message="The free plan keeps one trip. Routify Plus keeps every trip and shows every gem." />
+      <PaywallModal isOpen={limitReached} onClose={dismissLimit} title="Your free trip is saved" message="The free plan keeps one trip. RoamGem Plus keeps every trip and shows every gem." />
     </>
   );
 }

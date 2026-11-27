@@ -35,14 +35,42 @@ function spread<T extends { address: string }>(places: T[]): T[] {
   return out;
 }
 
+/** The file name behind an upload.wikimedia.org address (full upload or thumbnail), and its wiki. */
+export function fileOf(url: string): { wiki: 'commons' | 'en'; file: string } | null {
+  const m = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/(commons|en)\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/]+)/.exec(url);
+  return m ? { wiki: m[1] as 'commons' | 'en', file: decodeURIComponent(m[2]) } : null;
+}
+
+type Meta = Record<string, { value?: string } | undefined>;
+const plain = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/\s+/g, ' ').trim();
+
+/** "Photo: author, licence, via Wikimedia Commons", or null when the author or licence is unknown (then the photo is not used). */
+export function creditFrom(meta: Meta): string | null {
+  const artist = plain(meta.Artist?.value ?? '').slice(0, 80);
+  const licence = plain(meta.LicenseShortName?.value ?? '').slice(0, 40);
+  return artist && licence ? `Photo: ${artist}, ${licence}, via Wikimedia Commons` : null;
+}
+
+const UA = { 'User-Agent': 'RoamGem/1.0 (road trip planner)' };
+
+async function creditOf(url: string): Promise<string | null> {
+  const f = fileOf(url);
+  if (!f) return null;
+  const api = f.wiki === 'commons' ? 'https://commons.wikimedia.org/w/api.php' : 'https://en.wikipedia.org/w/api.php';
+  const res = await axios.get(api, { params: { action: 'query', format: 'json', titles: `File:${f.file}`, prop: 'imageinfo', iiprop: 'extmetadata' }, headers: UA, timeout: 6000 }).catch(() => null);
+  const page = Object.values((res?.data?.query?.pages ?? {}) as Record<string, { imageinfo?: { extmetadata?: Meta }[] }>)[0];
+  return creditFrom(page?.imageinfo?.[0]?.extmetadata ?? {});
+}
+
 export const commonsPhoto: FetchPhoto = async (place) => {
   const url = await commonsPhotoNear(place.lat, place.lng, place.name);
   if (!url) return null;
-  const res = await axios.get<ArrayBuffer>(url, { responseType: 'arraybuffer', timeout: 10_000, maxContentLength: 2_000_000, headers: { 'User-Agent': 'RoamGem/1.0 (road trip planner)' } }).catch(() => null);
+  const credit = await creditOf(url);
+  if (!credit) return null;
+  const res = await axios.get<ArrayBuffer>(url, { responseType: 'arraybuffer', timeout: 10_000, maxContentLength: 2_000_000, headers: UA }).catch(() => null);
   const type = String(res?.headers['content-type'] ?? '').split(';')[0];
   if (!res || !['image/jpeg', 'image/png', 'image/webp'].includes(type)) return null;
-  const source = url.includes('wikipedia') ? 'Wikipedia' : 'Wikimedia Commons';
-  return { bytes: Buffer.from(res.data), type, credit: `Photo: ${source}` };
+  return { bytes: Buffer.from(res.data), type, credit };
 };
 
 export async function seedTeamMoments(db: PrismaClient, opts: { fetchPhoto?: FetchPhoto; target?: number } = {}): Promise<{ created: number }> {

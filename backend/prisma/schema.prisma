@@ -283,6 +283,8 @@ model Post {
   aiNote     String    @default("")
   /// Photo credit of team posts (Wikimedia Commons author).
   credit     String    @default("")
+  /// Failed AI checks so far; the sweep tries the fewest first and gives up after MAX_CHECKS.
+  checkAttempts Int     @default(0)
   points     Int       @default(0)
   createdAt  DateTime  @default(now())
   reviewedAt DateTime?

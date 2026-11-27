@@ -45,3 +45,19 @@ describe.skipIf(!url)('filling the feed with team moments', () => {
     expect(await db.post.count({ where: { gem: { placeId: 'seed-1' } } })).toBe(0);
   });
 });
+
+describe('Wikimedia credits', () => {
+  it('finds the file behind a thumbnail or a full upload', async () => {
+    const { fileOf } = await import('./seed');
+    expect(fileOf('https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Lago_di_Braies.jpg/800px-Lago_di_Braies.jpg')).toEqual({ wiki: 'commons', file: 'Lago_di_Braies.jpg' });
+    expect(fileOf('https://upload.wikimedia.org/wikipedia/en/c/cd/Castle%20view.jpg')).toEqual({ wiki: 'en', file: 'Castle view.jpg' });
+    expect(fileOf('https://example.com/x.jpg')).toBeNull();
+  });
+
+  it('credits the author and licence, and refuses a photo without them', async () => {
+    const { creditFrom } = await import('./seed');
+    expect(creditFrom({ Artist: { value: '<a href="//commons.wikimedia.org/wiki/User:Anna">Anna Rossi</a>' }, LicenseShortName: { value: 'CC BY-SA 4.0' } })).toBe('Photo: Anna Rossi, CC BY-SA 4.0, via Wikimedia Commons');
+    expect(creditFrom({ LicenseShortName: { value: 'CC BY 2.0' } })).toBeNull();
+    expect(creditFrom({ Artist: { value: 'Anna' } })).toBeNull();
+  });
+});

@@ -3,7 +3,8 @@ import { apiClient } from './apiClient';
 
 export type FeedItem = {
   id: string; userId: string; caption: string; challenge: boolean; points: number; createdAt: string; by: string;
-  gem: { id: string; name: string; status: string; address: string; lat: number; lng: number };
+  /** No coordinates: a new place is where the poster stood. */
+  gem: { id: string; name: string; status: string; address: string };
   likes: number; likedByMe: boolean; photoUrl: string;
   /** Kilometres from the gem, rounded to 0.1 (the exact spot is never shared). */
   distanceKm: number;

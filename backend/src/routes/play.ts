@@ -186,9 +186,13 @@ router.post('/challenge', requireAuth, wrap(async (req, res) => {
   const { gemId, placeId, name, lat, lng, address } = req.body ?? {};
   let gem = gemId ? await prisma.gem.findUnique({ where: { id: String(gemId) } }) : null;
   if (!gem && typeof placeId === 'string' && typeof name === 'string' && Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
+    // Only a place in the gem library starts as checked (official); any other name a client sends is a suggestion.
+    const known = await prisma.placeGem.findUnique({ where: { placeId: placeId.slice(0, 300) }, select: { name: true, lat: true, lng: true, address: true } });
     gem = await prisma.gem.upsert({
       where: { placeId: placeId.slice(0, 300) },
-      create: { placeId: placeId.slice(0, 300), name: name.slice(0, 120), lat: Number(lat), lng: Number(lng), address: String(address ?? '').slice(0, 200) },
+      create: known
+        ? { placeId: placeId.slice(0, 300), ...known, status: 'official' }
+        : { placeId: placeId.slice(0, 300), name: name.slice(0, 120), lat: Number(lat), lng: Number(lng), address: String(address ?? '').slice(0, 200), status: 'suggested' },
       update: {},
     });
   }

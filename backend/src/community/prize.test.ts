@@ -37,7 +37,7 @@ describe.skipIf(!url)('monthly explorer prize', () => {
     const oct = await user('oct');
     await post(nov.id, '2026-11-15T10:00:00Z', 30);
     await post(oct.id, '2026-10-30T10:00:00Z', 500);
-    expect(await monthWinner(db, '2026-11')).toMatchObject({ userId: nov.id, name: 'nov', points: 30 });
+    expect(await monthWinner(db, '2026-11')).toMatchObject({ userId: nov.id, name: 'nov', points: 30, moments: 1, likes: 0, inTrips: 0 });
     expect(await monthWinner(db, '2026-09')).toBeNull();
   });
 

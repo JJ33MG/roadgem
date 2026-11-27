@@ -13,7 +13,7 @@ export function monthRange(month: string): { from: Date; to: Date } {
 
 export async function monthWinner(db: PrismaClient, month: string) {
   const [top] = await board(db, { ...monthRange(month), take: 1 });
-  return top && top.points > 0 ? { userId: top.userId, name: top.name, points: top.points } : null;
+  return top && top.points > 0 ? { userId: top.userId, name: top.name, points: top.points, moments: top.moments, likes: top.likes, inTrips: top.inTrips, gems: top.gems } : null;
 }
 
 const YEAR_MS = 365 * 86_400_000;

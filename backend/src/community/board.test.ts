@@ -16,7 +16,7 @@ describe.skipIf(!url)('explorers board', () => {
   const post = (userId: string, gemId: string, at: Date, points = 10) =>
     db.post.create({ data: { userId, gemId, photo: Buffer.from([1]), photoType: 'image/jpeg', distanceM: 10, status: 'public', points, createdAt: at } });
   const like = async (postId: string, at: Date) => db.like.create({ data: { postId, userId: (await user()).id, createdAt: at } });
-  const add = async (gemId: string, postId: string, at: Date) => db.gemAdd.create({ data: { userId: (await user()).id, gemId, postId, createdAt: at } });
+  const add = async (gemId: string, postId: string, at: Date, tripId: string | null = 'trip-1') => db.gemAdd.create({ data: { userId: (await user()).id, gemId, postId, tripId, createdAt: at } });
 
   beforeEach(async () => {
     await db.gemAdd.deleteMany();
@@ -35,6 +35,7 @@ describe.skipIf(!url)('explorers board', () => {
     await like(p.id, ago(9));
     await add(g.id, p.id, ago(1));
     await add(g.id, p.id, ago(1));
+    await add(g.id, p.id, ago(1), null); // only saved, not in a trip yet: no points
     const [row] = await board(db, { period: 'week', now: NOW });
     expect(row).toMatchObject({ name: 'anna', points: 63, moments: 1, likes: 3, inTrips: 2 });
   });

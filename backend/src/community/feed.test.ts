@@ -55,6 +55,9 @@ describe.skipIf(!url)('community feed', () => {
     const [item] = await feed(db, null, { period: 'week' });
     expect(item.distanceKm).toBe(1.8);
     expect(item).not.toHaveProperty('distanceM');
+    // A suggested gem is where the poster stood: the feed never gives coordinates.
+    expect(item.gem).not.toHaveProperty('lat');
+    expect(item.gem).not.toHaveProperty('lng');
   });
 
   it('along my route lists only posts whose gem is within 20 km of the road', async () => {
@@ -72,7 +75,8 @@ describe.skipIf(!url)('community feed', () => {
     const u = await user();
     const g = await gem('Viewpoint', 47.2, 11.4);
     const p = await post(u.id, g.id, 1);
-    for (let i = 0; i < 3; i++) await db.gemAdd.create({ data: { userId: (await user()).id, gemId: g.id, postId: p.id } });
+    for (let i = 0; i < 3; i++) await db.gemAdd.create({ data: { userId: (await user()).id, gemId: g.id, postId: p.id, tripId: `t${i}` } });
+    await db.gemAdd.create({ data: { userId: (await user()).id, gemId: g.id, postId: p.id } }); // saved only
     const [item] = await feed(db, null, { period: 'week' });
     expect(item.inTrips).toBe(3);
   });

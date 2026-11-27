@@ -128,11 +128,6 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       weatherP,
     ]);
     if (free?.legs.length) savedPlanner.alt = { route: free.encoded, legs: free.legs, tollFree: true };
-    // Gems this traveller saved from the community join the trip when the road passes within 15 km.
-    if (req.userId && gemsEnabled) {
-      const withSaved = await placeSavedGems(prisma, req.userId, road.points, hiddenGems as never[]).catch(() => null);
-      if (withSaved) hiddenGems.splice(0, hiddenGems.length, ...(withSaved as typeof hiddenGems));
-    }
     console.log(`[generate] ${days} days: plan ${tPlan - t0} ms, road and gems ${Date.now() - tPlan} ms`);
 
     const saved = await prisma.trip.create({
@@ -156,6 +151,16 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
         planner: JSON.stringify({ ...savedPlanner, editKeyHash: editKey.hash }),
       },
     });
+    // Gems this traveller saved from the community join the trip when the road passes within 15 km
+    // (after the trip is stored, so a failed save never loses them).
+    if (req.userId && gemsEnabled) {
+      const withSaved = await placeSavedGems(prisma, req.userId, road.points, hiddenGems as never[], saved.id).catch(() => null);
+      if (withSaved && withSaved.length > hiddenGems.length) {
+        hiddenGems.splice(0, hiddenGems.length, ...(withSaved as typeof hiddenGems));
+        await prisma.trip.update({ where: { id: saved.id }, data: { hiddenGems: JSON.stringify(hiddenGems) } });
+      }
+    }
+
     // The days are written now, after the answer: the page shows each one as it arrives.
     void track(fillDays(saved.id).catch((err) => console.error('[generate] fillDays', logLine(err))));
 

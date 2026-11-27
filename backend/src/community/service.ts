@@ -1,5 +1,6 @@
 // The community game on top of the database: posts, suggestions, moderation, likes, feed and board.
 import type { PrismaClient } from '@prisma/client';
+import sharp from 'sharp';
 import { hasPlus } from '../utils/billing';
 import { teamLabel } from './launch';
 import { decodePhoto, metresBetween, NEAR_GEM_METRES, onTheSpot, periodStart, POINTS, pointsFor, readyToBeOfficial, type Point } from './rules';
@@ -35,11 +36,30 @@ async function gemFor(db: PrismaClient, ref: GemRef) {
   const placeId = clean(ref.placeId, 300);
   const name = clean(ref.name, 120);
   if (!placeId || !name) throw fail('This gem is missing its place.');
+  // Only a place in the gem library counts as checked; any other place a client names starts as a suggestion.
+  const known = await db.placeGem.findUnique({ where: { placeId }, select: { name: true, lat: true, lng: true, address: true } });
   return db.gem.upsert({
     where: { placeId },
-    create: { placeId, name, lat: at.lat, lng: at.lng, address: clean(ref.address, 200), status: 'official' },
+    create: known
+      ? { placeId, name: known.name, lat: known.lat, lng: known.lng, address: known.address, status: 'official' }
+      : { placeId, name, lat: at.lat, lng: at.lng, address: clean(ref.address, 200), status: 'suggested' },
     update: {},
   });
+}
+
+/** Every upload is re-encoded on the server: no location or camera data survives, and broken files are refused. */
+export async function normalizePhoto(dataUrl: unknown): Promise<{ bytes: Buffer; type: string }> {
+  const { bytes } = decodePhoto(dataUrl);
+  try {
+    const out = await sharp(bytes, { limitInputPixels: 60_000_000 })
+      .rotate()
+      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+    return { bytes: out, type: 'image/jpeg' };
+  } catch {
+    throw fail('This photo could not be read. Try another one.');
+  }
 }
 
 export async function createPost(
@@ -57,7 +77,7 @@ export async function createPost(
   const metres = metresBetween(gem, at);
   if (input.challenge === true && !onTheSpot(gem, at)) throw fail('A challenge counts only at the gem itself (within 300 m). Try again when you are there.');
   if (metres > NEAR_GEM_METRES) throw fail('Tag a gem within 5 km of where you are.');
-  const { bytes, type } = decodePhoto(input.photo);
+  const { bytes, type } = await normalizePhoto(input.photo);
   return db.post.create({
     data: {
       userId: input.userId,
@@ -83,7 +103,7 @@ export async function suggestGem(
   if (name.length < 3) throw fail('Give the gem a name.');
   if (description.length < 15) throw fail('Say in a sentence what makes it special.');
   const at = point(input.at);
-  decodePhoto(input.photo); // check before creating anything
+  await normalizePhoto(input.photo); // check before creating anything
   const gem = await db.gem.create({
     data: { name, description, category: clean(input.category, 30) || 'other', lat: at.lat, lng: at.lng, status: 'suggested', finderId: input.userId },
   });
@@ -168,7 +188,7 @@ export async function feed(db: PrismaClient, viewerId: string | null, opts: Feed
   const gemIds = [...new Set(posts.map((p) => p.gem.id))];
   const placeIds = posts.filter((p) => p.user.isTeam && p.gem.placeId).map((p) => p.gem.placeId!);
   const [adds, places, top] = await Promise.all([
-    gemIds.length ? db.gemAdd.groupBy({ by: ['gemId'], where: { gemId: { in: gemIds } }, _count: { _all: true } }) : [],
+    gemIds.length ? db.gemAdd.groupBy({ by: ['gemId'], where: { gemId: { in: gemIds }, tripId: { not: null } }, _count: { _all: true } }) : [],
     placeIds.length ? db.placeGem.findMany({ where: { placeId: { in: placeIds } }, select: { placeId: true, rating: true } }) : [],
     board(db, { period: 'week', take: 10, now: opts.now }),
   ]);
@@ -183,7 +203,7 @@ export async function feed(db: PrismaClient, viewerId: string | null, opts: Feed
     createdAt: p.createdAt,
     userId: p.userId,
     ...teamLabel(p.user),
-    gem: { id: p.gem.id, name: p.gem.name, status: p.gem.status, address: p.gem.address, lat: p.gem.lat, lng: p.gem.lng },
+    gem: { id: p.gem.id, name: p.gem.name, status: p.gem.status, address: p.gem.status === 'official' ? p.gem.address : '' },
     distanceKm: Math.round(p.distanceM / 100) / 10,
     likes: p._count.likes,
     likedByMe: Array.isArray(p.likes) && p.likes.length > 0,
@@ -209,7 +229,7 @@ async function standings(db: PrismaClient, opts: BoardOptions) {
   const [posts, likes, adds, found, checkIns] = await Promise.all([
     db.post.findMany({ where: { status: 'public', createdAt: range }, select: { userId: true, points: true, gem: { select: { address: true } } } }),
     db.like.findMany({ where: { createdAt: range, post: { status: 'public' } }, select: { post: { select: { userId: true, gem: { select: { address: true } } } } } }),
-    db.gemAdd.findMany({ where: { createdAt: range, postId: { not: null } }, select: { post: { select: { userId: true, gem: { select: { address: true } } } } } }),
+    db.gemAdd.findMany({ where: { createdAt: range, postId: { not: null }, tripId: { not: null } }, select: { post: { select: { userId: true, gem: { select: { address: true } } } } } }),
     db.gem.findMany({ where: { status: 'official', finderId: { not: null }, officialAt: range }, select: { finderId: true, address: true } }),
     country ? Promise.resolve([]) : db.checkIn.findMany({ where: { createdAt: range }, select: { userId: true, points: true } }),
   ]);

@@ -17,22 +17,34 @@ type Check = typeof checkPhoto;
 export async function autoReview(db: PrismaClient, postId: string, check: Check = checkPhoto): Promise<Decision | 'retry' | 'gone'> {
   const post = await db.post.findUnique({ where: { id: postId }, include: { gem: true } });
   if (!post || post.status !== 'pending') return 'gone';
-  const v = await check(Buffer.from(post.photo), post.photoType, post.gem.name, post.gem.challenge || fallbackChallenge(post.gem.name)).catch(() => null);
+  const v = await check(Buffer.from(post.photo), post.photoType, post.gem.name, post.gem.challenge || fallbackChallenge(post.gem.name), post.caption).catch(() => null);
   const d = decide(v, post.challenge);
-  if (d === 'retry') return d;
+  if (d === 'retry') {
+    // Count the failed try; a photo that can never be checked is refused instead of waiting forever.
+    const tried = await db.post.update({ where: { id: postId }, data: { checkAttempts: { increment: 1 } }, select: { checkAttempts: true } });
+    if (tried.checkAttempts >= MAX_CHECKS) {
+      await review(db, postId, 'reject', 'Could not be checked by the AI.');
+      return 'reject';
+    }
+    return d;
+  }
   await review(db, postId, d, d === 'reject' ? `AI: ${v?.note ?? ''}` : undefined);
   if (d !== 'reject' && v?.note) await db.post.update({ where: { id: postId }, data: { aiNote: v.note } });
   return d;
 }
 
 const SWEEP_MS = 10 * 60_000;
+/** Tries before a photo that cannot be checked is refused (about 2 hours of sweeps). */
+export const MAX_CHECKS = 12;
 const STUCK_MS = 24 * 3_600_000;
 
 /** Every 10 minutes: re-check up to 20 posts that are still pending; tell the Brain when one is stuck for a day. */
 export async function sweepOnce(db: PrismaClient, now = new Date(), check: Check = checkPhoto) {
   const posts = await db.post.findMany({
-    where: { status: 'pending', createdAt: { lt: new Date(now.getTime() - 2 * 60_000) } },
-    orderBy: { createdAt: 'asc' },
+    // 15 minutes: the first check (right after posting) has finished by then.
+    where: { status: 'pending', createdAt: { lt: new Date(now.getTime() - 15 * 60_000) } },
+    // Fewest tries first: photos that keep failing cannot block newer ones.
+    orderBy: [{ checkAttempts: 'asc' }, { createdAt: 'asc' }],
     take: 20,
     select: { id: true, createdAt: true },
   });

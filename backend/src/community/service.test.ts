@@ -5,7 +5,8 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { board, createPost, feed, review, suggestGem, toggleLike } from './service';
 
 const url = process.env.TEST_DATABASE_URL;
-const JPEG = `data:image/jpeg;base64,${Buffer.from([0xff, 0xd8, 0xff, 0xe0, 9, 9]).toString('base64')}`;
+// A real 2x2 JPEG: every upload is re-encoded on the server.
+const JPEG = 'data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAACAAIDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAT/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AKwAf//Z';
 const GEM = { placeId: 'place-grand-place', name: 'Grand-Place', lat: 50.8467, lng: 4.3525, address: 'Brussels' };
 const HERE = { lat: 50.8469, lng: 4.3527 }; // ~25 m away
 const FAR = { lat: 50.9, lng: 4.4 };

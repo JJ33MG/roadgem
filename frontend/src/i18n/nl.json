@@ -416,5 +416,63 @@
     "family": "Een gezinsauto of break (5 zitplaatsen, grote koffer)",
     "seven": "Een 7-zitter",
     "nine": "Een minibusje met 9 zitplaatsen"
+  },
+  "costs": {
+    "title": "Kosten vandaag",
+    "label": "Kosten van dag {{n}}",
+    "estimate": "Schatting",
+    "fuel": {
+      "car": "Benzine",
+      "ev": "Laden",
+      "campervan": "Diesel",
+      "caravan": "Diesel",
+      "other": "Brandstof"
+    },
+    "tolls": "Tol",
+    "night": {
+      "campsite": "Camping vannacht",
+      "hotel": "Hotel vannacht",
+      "holiday_home": "Vakantiehuis vannacht",
+      "other": "Vannacht"
+    },
+    "dayTotal": "Totaal van de dag",
+    "pricesOf": "Schatting, prijzen van {{date}}"
+  },
+  "vignette": {
+    "AT": "Oostenrijks vignet (10 dagen)",
+    "CH": "Zwitsers jaarvignet",
+    "CZ": "Tsjechisch vignet (10 dagen)",
+    "SK": "Slowaaks vignet (10 dagen)",
+    "SI": "Sloveens vignet (7 dagen)",
+    "HU": "Hongaars vignet (10 dagen)"
+  },
+  "costWarning": {
+    "DE": "Duitsland: steden hebben milieuzones; je hebt een Umweltplakette-sticker nodig.",
+    "FR": "Frankrijk: veel steden vragen een Crit’Air-sticker.",
+    "BE": "België: Brussel, Antwerpen en Gent hebben lage-emissiezones; registreer een buitenlandse auto eerst online.",
+    "NL": "Nederland: sommige steden sluiten hun centrum voor oudere dieselbusjes.",
+    "IT": "Italië: oude stadscentra zijn ZTL-zones; wie erin rijdt, krijgt een boete.",
+    "AT": "Oostenrijk: voertuigen boven 3,5 t betalen per kilometer met een GO-Box in plaats van het vignet.",
+    "CH": "Zwitserland: voertuigen boven 3,5 t betalen een heffing voor zware voertuigen in plaats van het vignet."
+  },
+  "cheaper": {
+    "region": "Goedkoopste route",
+    "using": "Op de route zonder tol, je bespaart ongeveer {{amount}}",
+    "skip": "Vermijd de tolwegen en bespaar ongeveer {{amount}}",
+    "followsRoute": "De kosten en de kaart hieronder volgen deze route.",
+    "longer": "Ongeveer {{time}} langer.",
+    "longerKm": "Ongeveer {{time}} langer, {{km}} km meer.",
+    "plusNote": "Plus vindt de goedkoopste route en zet je trip er met één tik op.",
+    "back": "Terug naar de snelste route",
+    "use": "Neem de route zonder tol"
+  },
+  "proof": {
+    "rated": "Echte plek, score {{rating}} van {{count}} Google-reviewers",
+    "ratedShort": "Echte plek, score {{rating}} op Google"
+  },
+  "explorer": {
+    "title": "Ontdekkersgems",
+    "locked_one": "{{count}} ontdekkersgem op deze weg, gevonden door reizigers. Die krijg je met Plus.",
+    "locked_other": "{{count}} ontdekkersgems op deze weg, gevonden door reizigers. Die krijg je met Plus."
   }
 }

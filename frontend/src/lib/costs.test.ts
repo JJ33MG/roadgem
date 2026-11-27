@@ -5,7 +5,7 @@ const costs = {
   updated: '2026-11-22',
   overnight: 35,
   legs: [
-    { fuel: 30, tolls: 10, vignettes: [], warnings: ['France: many cities need a Crit’Air sticker.'], total: 40 },
+    { fuel: 30, tolls: 10, vignettes: [], warnings: ['France: many cities need a Crit’Air sticker.'], warningCountries: ['FR'], total: 40 },
     { fuel: 20, tolls: 0, vignettes: [{ country: 'AT', label: 'Austrian 10-day vignette', price: 12.8 }], warnings: [], total: 32.8 },
   ],
 };
@@ -13,7 +13,7 @@ const costs = {
 describe('day costs', () => {
   it('adds up the legs of a day and the night', () => {
     expect(dayCost(costs, 0, 2, true)).toEqual({
-      fuel: 50, tolls: 10, vignettes: costs.legs[1].vignettes, warnings: costs.legs[0].warnings, overnight: 35, total: 107.8,
+      fuel: 50, tolls: 10, vignettes: costs.legs[1].vignettes, warnings: [{ text: 'France: many cities need a Crit’Air sticker.', country: 'FR' }], overnight: 35, total: 107.8,
     });
   });
 

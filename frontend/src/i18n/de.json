@@ -416,5 +416,63 @@
     "family": "Ein Familienauto oder Kombi (5 Sitze, großer Kofferraum)",
     "seven": "Ein Siebensitzer",
     "nine": "Ein Kleinbus mit 9 Sitzen"
+  },
+  "costs": {
+    "title": "Kosten heute",
+    "label": "Kosten von Tag {{n}}",
+    "estimate": "Schätzung",
+    "fuel": {
+      "car": "Benzin",
+      "ev": "Laden",
+      "campervan": "Diesel",
+      "caravan": "Diesel",
+      "other": "Kraftstoff"
+    },
+    "tolls": "Maut",
+    "night": {
+      "campsite": "Campingplatz heute",
+      "hotel": "Hotel heute",
+      "holiday_home": "Ferienhaus heute",
+      "other": "Heute Nacht"
+    },
+    "dayTotal": "Tagessumme",
+    "pricesOf": "Schätzung, Preise vom {{date}}"
+  },
+  "vignette": {
+    "AT": "Österreichische 10-Tages-Vignette",
+    "CH": "Schweizer Jahresvignette",
+    "CZ": "Tschechische 10-Tages-Vignette",
+    "SK": "Slowakische 10-Tages-Vignette",
+    "SI": "Slowenische 7-Tages-Vignette",
+    "HU": "Ungarische 10-Tages-Vignette"
+  },
+  "costWarning": {
+    "DE": "Deutschland: Städte haben Umweltzonen; du brauchst eine Umweltplakette.",
+    "FR": "Frankreich: viele Städte verlangen eine Crit’Air-Plakette.",
+    "BE": "Belgien: Brüssel, Antwerpen und Gent haben Umweltzonen; ausländische Autos vorher online registrieren.",
+    "NL": "Niederlande: manche Städte sperren ihre Zentren für ältere Diesel-Transporter.",
+    "IT": "Italien: Altstädte sind ZTL-Zonen; wer hineinfährt, bekommt ein Bußgeld.",
+    "AT": "Österreich: Fahrzeuge über 3,5 t zahlen mit der GO-Box pro Kilometer statt der Vignette.",
+    "CH": "Schweiz: Fahrzeuge über 3,5 t zahlen die Schwerverkehrsabgabe statt der Vignette."
+  },
+  "cheaper": {
+    "region": "Günstigste Route",
+    "using": "Auf der mautfreien Route, du sparst etwa {{amount}}",
+    "skip": "Mautstraßen meiden und etwa {{amount}} sparen",
+    "followsRoute": "Die Kosten und die Karte unten folgen dieser Route.",
+    "longer": "Etwa {{time}} länger.",
+    "longerKm": "Etwa {{time}} länger, {{km}} km mehr.",
+    "plusNote": "Plus findet die günstigste Route und stellt deine Reise mit einem Tipp um.",
+    "back": "Zurück zur schnellsten Route",
+    "use": "Mautfreie Route nehmen"
+  },
+  "proof": {
+    "rated": "Echter Ort, bewertet mit {{rating}} von {{count}} Google-Rezensenten",
+    "ratedShort": "Echter Ort, bewertet mit {{rating}} auf Google"
+  },
+  "explorer": {
+    "title": "Entdecker-Gems",
+    "locked_one": "{{count}} Entdecker-Gem auf dieser Strecke, von Reisenden gefunden. Er gehört zu Plus.",
+    "locked_other": "{{count}} Entdecker-Gems auf dieser Strecke, von Reisenden gefunden. Sie gehören zu Plus."
   }
 }

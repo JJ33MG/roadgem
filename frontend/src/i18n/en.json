@@ -416,5 +416,63 @@
     "family": "A family car or estate (5 seats, big boot)",
     "seven": "A 7-seater",
     "nine": "A 9-seat minivan"
+  },
+  "costs": {
+    "title": "Costs today",
+    "label": "Costs of day {{n}}",
+    "estimate": "Estimate",
+    "fuel": {
+      "car": "Petrol",
+      "ev": "Charging",
+      "campervan": "Diesel",
+      "caravan": "Diesel",
+      "other": "Fuel"
+    },
+    "tolls": "Tolls",
+    "night": {
+      "campsite": "Campsite tonight",
+      "hotel": "Hotel tonight",
+      "holiday_home": "Holiday home tonight",
+      "other": "Tonight"
+    },
+    "dayTotal": "Day total",
+    "pricesOf": "Estimate, prices of {{date}}"
+  },
+  "vignette": {
+    "AT": "Austrian 10-day vignette",
+    "CH": "Swiss yearly vignette",
+    "CZ": "Czech 10-day vignette",
+    "SK": "Slovak 10-day vignette",
+    "SI": "Slovenian 7-day vignette",
+    "HU": "Hungarian 10-day vignette"
+  },
+  "costWarning": {
+    "DE": "Germany: cities have low-emission zones; you need an Umweltplakette sticker.",
+    "FR": "France: many cities need a Crit’Air sticker.",
+    "BE": "Belgium: Brussels, Antwerp and Ghent have low-emission zones; register foreign cars online first.",
+    "NL": "Netherlands: some cities close their centres to older diesel vans.",
+    "IT": "Italy: old town centres are ZTL zones; driving in brings a fine.",
+    "AT": "Austria: vehicles over 3.5 t pay by kilometre with a GO-Box instead of the vignette.",
+    "CH": "Switzerland: vehicles over 3.5 t pay a heavy-vehicle charge instead of the vignette."
+  },
+  "cheaper": {
+    "region": "Cheapest route",
+    "using": "On the toll-free route, saving about {{amount}}",
+    "skip": "Skip the toll roads and save about {{amount}}",
+    "followsRoute": "The costs and the map below follow this route.",
+    "longer": "About {{time}} longer.",
+    "longerKm": "About {{time}} longer, {{km}} km more.",
+    "plusNote": "Plus finds the cheapest route and switches your trip to it in one tap.",
+    "back": "Back to the fastest route",
+    "use": "Use the toll-free route"
+  },
+  "proof": {
+    "rated": "Real place, rated {{rating}} by {{count}} Google reviewers",
+    "ratedShort": "Real place, rated {{rating}} on Google"
+  },
+  "explorer": {
+    "title": "Explorer gems",
+    "locked_one": "{{count}} Explorer gem on this road, found by travellers. It comes with Plus.",
+    "locked_other": "{{count}} Explorer gems on this road, found by travellers. They come with Plus."
   }
 }

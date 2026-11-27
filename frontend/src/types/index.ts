@@ -343,7 +343,7 @@ export interface GeneratedTrip {
 
 /** Estimated costs per leg of the road (between two stops), from the server's price tables. */
 export interface TripCosts {
-  legs: { fuel: number; tolls: number; vignettes: { country: string; label: string; price: number }[]; warnings: string[]; total: number }[];
+  legs: { fuel: number; tolls: number; vignettes: { country: string; label: string; price: number }[]; warnings: string[]; warningCountries?: string[]; total: number }[];
   overnight: number;
   updated: string;
   /** The toll-free road against the fastest, when it saves at least €5. */

@@ -416,5 +416,63 @@
     "family": "Un coche familiar o ranchera (5 plazas, maletero grande)",
     "seven": "Un coche de 7 plazas",
     "nine": "Una furgoneta de 9 plazas"
+  },
+  "costs": {
+    "title": "Costes de hoy",
+    "label": "Costes del día {{n}}",
+    "estimate": "Estimación",
+    "fuel": {
+      "car": "Gasolina",
+      "ev": "Carga",
+      "campervan": "Diésel",
+      "caravan": "Diésel",
+      "other": "Combustible"
+    },
+    "tolls": "Peajes",
+    "night": {
+      "campsite": "Camping esta noche",
+      "hotel": "Hotel esta noche",
+      "holiday_home": "Casa vacacional esta noche",
+      "other": "Esta noche"
+    },
+    "dayTotal": "Total del día",
+    "pricesOf": "Estimación, precios del {{date}}"
+  },
+  "vignette": {
+    "AT": "Viñeta austriaca de 10 días",
+    "CH": "Viñeta suiza anual",
+    "CZ": "Viñeta checa de 10 días",
+    "SK": "Viñeta eslovaca de 10 días",
+    "SI": "Viñeta eslovena de 7 días",
+    "HU": "Viñeta húngara de 10 días"
+  },
+  "costWarning": {
+    "DE": "Alemania: las ciudades tienen zonas de bajas emisiones; necesitas la pegatina Umweltplakette.",
+    "FR": "Francia: muchas ciudades piden la pegatina Crit’Air.",
+    "BE": "Bélgica: Bruselas, Amberes y Gante tienen zonas de bajas emisiones; registra antes tu coche extranjero en línea.",
+    "NL": "Países Bajos: algunas ciudades cierran el centro a furgonetas diésel antiguas.",
+    "IT": "Italia: los cascos antiguos son zonas ZTL; entrar con el coche trae multa.",
+    "AT": "Austria: los vehículos de más de 3,5 t pagan por kilómetro con una GO-Box en vez de la viñeta.",
+    "CH": "Suiza: los vehículos de más de 3,5 t pagan una tasa de vehículos pesados en vez de la viñeta."
+  },
+  "cheaper": {
+    "region": "Ruta más barata",
+    "using": "En la ruta sin peajes, ahorras unos {{amount}}",
+    "skip": "Evita los peajes y ahorra unos {{amount}}",
+    "followsRoute": "Los costes y el mapa de abajo siguen esta ruta.",
+    "longer": "Unos {{time}} más.",
+    "longerKm": "Unos {{time}} más, {{km}} km más.",
+    "plusNote": "Plus encuentra la ruta más barata y cambia tu viaje con un toque.",
+    "back": "Volver a la ruta más rápida",
+    "use": "Usar la ruta sin peajes"
+  },
+  "proof": {
+    "rated": "Lugar real, valorado con {{rating}} por {{count}} reseñas de Google",
+    "ratedShort": "Lugar real, valorado con {{rating}} en Google"
+  },
+  "explorer": {
+    "title": "Joyas de exploradores",
+    "locked_one": "{{count}} joya de explorador en esta carretera, encontrada por viajeros. Viene con Plus.",
+    "locked_other": "{{count}} joyas de exploradores en esta carretera, encontradas por viajeros. Vienen con Plus."
   }
 }

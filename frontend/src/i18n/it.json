@@ -416,5 +416,63 @@
     "family": "Un'auto familiare o station wagon (5 posti, bagagliaio grande)",
     "seven": "Un'auto a 7 posti",
     "nine": "Un minivan a 9 posti"
+  },
+  "costs": {
+    "title": "Costi di oggi",
+    "label": "Costi del giorno {{n}}",
+    "estimate": "Stima",
+    "fuel": {
+      "car": "Benzina",
+      "ev": "Ricarica",
+      "campervan": "Gasolio",
+      "caravan": "Gasolio",
+      "other": "Carburante"
+    },
+    "tolls": "Pedaggi",
+    "night": {
+      "campsite": "Campeggio stanotte",
+      "hotel": "Hotel stanotte",
+      "holiday_home": "Casa vacanza stanotte",
+      "other": "Stanotte"
+    },
+    "dayTotal": "Totale del giorno",
+    "pricesOf": "Stima, prezzi del {{date}}"
+  },
+  "vignette": {
+    "AT": "Vignetta austriaca (10 giorni)",
+    "CH": "Vignetta svizzera annuale",
+    "CZ": "Vignetta ceca (10 giorni)",
+    "SK": "Vignetta slovacca (10 giorni)",
+    "SI": "Vignetta slovena (7 giorni)",
+    "HU": "Vignetta ungherese (10 giorni)"
+  },
+  "costWarning": {
+    "DE": "Germania: le città hanno zone a basse emissioni; serve il bollino Umweltplakette.",
+    "FR": "Francia: molte città richiedono il bollino Crit’Air.",
+    "BE": "Belgio: Bruxelles, Anversa e Gand hanno zone a basse emissioni; registra prima online l'auto straniera.",
+    "NL": "Paesi Bassi: alcune città chiudono il centro ai vecchi furgoni diesel.",
+    "IT": "Italia: i centri storici sono ZTL; entrarci costa una multa.",
+    "AT": "Austria: i veicoli oltre 3,5 t pagano a chilometro con la GO-Box invece della vignetta.",
+    "CH": "Svizzera: i veicoli oltre 3,5 t pagano una tassa sui mezzi pesanti invece della vignetta."
+  },
+  "cheaper": {
+    "region": "Percorso più economico",
+    "using": "Sul percorso senza pedaggi, risparmi circa {{amount}}",
+    "skip": "Evita i pedaggi e risparmia circa {{amount}}",
+    "followsRoute": "I costi e la mappa qui sotto seguono questo percorso.",
+    "longer": "Circa {{time}} in più.",
+    "longerKm": "Circa {{time}} in più, {{km}} km in più.",
+    "plusNote": "Plus trova il percorso più economico e ci sposta il viaggio con un tocco.",
+    "back": "Torna al percorso più veloce",
+    "use": "Usa il percorso senza pedaggi"
+  },
+  "proof": {
+    "rated": "Posto reale, voto {{rating}} da {{count}} recensioni Google",
+    "ratedShort": "Posto reale, voto {{rating}} su Google"
+  },
+  "explorer": {
+    "title": "Gemme degli esploratori",
+    "locked_one": "{{count}} gemma degli esploratori su questa strada, trovata dai viaggiatori. È inclusa in Plus.",
+    "locked_other": "{{count}} gemme degli esploratori su questa strada, trovate dai viaggiatori. Sono incluse in Plus."
   }
 }

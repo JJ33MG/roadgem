@@ -416,5 +416,63 @@
     "family": "Une familiale ou un break (5 places, grand coffre)",
     "seven": "Un 7 places",
     "nine": "Un minibus 9 places"
+  },
+  "costs": {
+    "title": "Coûts du jour",
+    "label": "Coûts du jour {{n}}",
+    "estimate": "Estimation",
+    "fuel": {
+      "car": "Essence",
+      "ev": "Recharge",
+      "campervan": "Gazole",
+      "caravan": "Gazole",
+      "other": "Carburant"
+    },
+    "tolls": "Péages",
+    "night": {
+      "campsite": "Camping ce soir",
+      "hotel": "Hôtel ce soir",
+      "holiday_home": "Location ce soir",
+      "other": "Ce soir"
+    },
+    "dayTotal": "Total du jour",
+    "pricesOf": "Estimation, prix du {{date}}"
+  },
+  "vignette": {
+    "AT": "Vignette autrichienne (10 jours)",
+    "CH": "Vignette suisse annuelle",
+    "CZ": "Vignette tchèque (10 jours)",
+    "SK": "Vignette slovaque (10 jours)",
+    "SI": "Vignette slovène (7 jours)",
+    "HU": "Vignette hongroise (10 jours)"
+  },
+  "costWarning": {
+    "DE": "Allemagne : les villes ont des zones à faibles émissions ; il faut une vignette Umweltplakette.",
+    "FR": "France : beaucoup de villes demandent une vignette Crit’Air.",
+    "BE": "Belgique : Bruxelles, Anvers et Gand ont des zones à faibles émissions ; enregistre d'abord ta voiture étrangère en ligne.",
+    "NL": "Pays-Bas : certaines villes ferment leur centre aux vieux utilitaires diesel.",
+    "IT": "Italie : les centres historiques sont des zones ZTL ; y entrer coûte une amende.",
+    "AT": "Autriche : les véhicules de plus de 3,5 t paient au kilomètre avec une GO-Box au lieu de la vignette.",
+    "CH": "Suisse : les véhicules de plus de 3,5 t paient une redevance poids lourds au lieu de la vignette."
+  },
+  "cheaper": {
+    "region": "Itinéraire le moins cher",
+    "using": "Sur l'itinéraire sans péage, environ {{amount}} d'économie",
+    "skip": "Évite les péages et économise environ {{amount}}",
+    "followsRoute": "Les coûts et la carte ci-dessous suivent cet itinéraire.",
+    "longer": "Environ {{time}} de plus.",
+    "longerKm": "Environ {{time}} de plus, {{km}} km en plus.",
+    "plusNote": "Plus trouve l'itinéraire le moins cher et y bascule ton voyage en un geste.",
+    "back": "Revenir à l'itinéraire le plus rapide",
+    "use": "Prendre l'itinéraire sans péage"
+  },
+  "proof": {
+    "rated": "Lieu réel, noté {{rating}} par {{count}} avis Google",
+    "ratedShort": "Lieu réel, noté {{rating}} sur Google"
+  },
+  "explorer": {
+    "title": "Pépites d'explorateurs",
+    "locked_one": "{{count}} pépite d'explorateur sur cette route, trouvée par des voyageurs. Elle vient avec Plus.",
+    "locked_other": "{{count}} pépites d'explorateurs sur cette route, trouvées par des voyageurs. Elles viennent avec Plus."
   }
 }

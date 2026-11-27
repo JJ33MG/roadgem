@@ -29,6 +29,7 @@ describe('costsForLegs', () => {
     const c = costsForLegs({ vehicle: 'car', legs: [leg([{ code: 'DE', km: 300 }, { code: 'CH', km: 80 }])], stayTypes: ['hotel'] });
     expect(c.legs[0].vignettes.map((v) => v.country)).toEqual(['CH']);
     expect(c.legs[0].warnings.join(' ')).toMatch(/Umweltplakette/);
+    expect(c.legs[0].warningCountries).toContain('DE');
   });
 
   it('still prices a country it has no table for: average fuel, no tolls', () => {

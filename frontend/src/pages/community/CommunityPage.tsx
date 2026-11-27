@@ -5,22 +5,19 @@ import { useAuth } from '@/context/AuthContext';
 import { feed as loadFeed, like, type FeedItem, type FeedPeriod } from '@/lib/community';
 import { MomentCard } from '@/components/community/MomentCard';
 import { AddToTrip } from '@/components/community/AddToTrip';
+import { useTranslation } from 'react-i18next';
 
 const head = { fontWeight: 400, letterSpacing: '-0.035em' } as const;
 const TABS: { id: FeedPeriod; label: string }[] = [
-  { id: 'today', label: 'Today' },
-  { id: 'week', label: 'This week' },
-  { id: 'route', label: 'Along my route' },
+  { id: 'today', label: 'cm.today' },
+  { id: 'week', label: 'cm.week' },
+  { id: 'route', label: 'cm.route' },
 ];
-const EMPTY: Record<FeedPeriod, string> = {
-  today: 'Nothing posted today yet. Look at this week, or post the first moment.',
-  week: 'No moments this week yet. Post the first one from your next stop.',
-  route: 'No moments along your trips yet. Plan a trip, or look at this week.',
-};
 
 /** The community feed: moments travellers posted near gems, the most liked first. */
 export function CommunityPage() {
-  usePageTitle('Community');
+  const { t } = useTranslation();
+  usePageTitle(t('cm.title'));
   const { user } = useAuth();
   const navigate = useNavigate();
   const [period, setPeriod] = useState<FeedPeriod>('week');
@@ -72,34 +69,34 @@ export function CommunityPage() {
     <section className="mx-auto max-w-[1120px] px-16 py-40 md:px-40 md:py-[64px]">
       <div className="flex flex-wrap items-end justify-between gap-16">
         <div>
-          <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[60px]" style={head}>Community</h1>
-          <p className="mt-12 max-w-[46ch] text-[19px]">Moments from travellers near real gems. Like the best, put a gem in your trip with one tap.</p>
+          <h1 className="font-display text-[44px] leading-[1.04] text-ink md:text-[60px]" style={head}>{t('cm.title')}</h1>
+          <p className="mt-12 max-w-[46ch] text-[19px]">{t('cm.lead')}</p>
         </div>
         <div className="flex flex-wrap gap-12">
-          <Link to="/community/explorers" className="btn-header no-underline">Top explorers</Link>
-          <Link to={user ? '/community/post' : '/login?next=/community/post'} className="btn-primary no-underline">Post a moment</Link>
+          <Link to="/community/explorers" className="btn-header no-underline">{t('cm.topExplorers')}</Link>
+          <Link to={user ? '/community/post' : '/login?next=/community/post'} className="btn-primary no-underline">{t('cm.post')}</Link>
         </div>
       </div>
 
-      <div role="tablist" aria-label="Moments" className="cm-tabs mt-32">
-        {TABS.map((t) => (
-          <button key={t.id} role="tab" type="button" className="cm-tab" aria-selected={period === t.id} onClick={() => choose(t.id)}>{t.label}</button>
+      <div role="tablist" aria-label={t('cm.moments')} className="cm-tabs mt-32">
+        {TABS.map((tab) => (
+          <button key={tab.id} role="tab" type="button" className="cm-tab" aria-selected={period === tab.id} onClick={() => choose(tab.id)}>{t(tab.label)}</button>
         ))}
       </div>
       {error && <p className="mt-16 text-error" role="alert">{error}</p>}
 
-      <div role="tabpanel" aria-label={TABS.find((t) => t.id === period)?.label} className="mt-24">
+      <div role="tabpanel" aria-label={t(TABS.find((tab) => tab.id === period)?.label ?? 'cm.week')} className="mt-24">
         {period === 'route' && !user && (
-          <p className="text-[19px]"><Link to="/login?next=/community">Sign in</Link> to see moments along the trips you planned.</p>
+          <p className="text-[19px]"><Link to="/login?next=/community">{t('cm.signIn')}</Link> {t('cm.signInRest')}</p>
         )}
-        {items === null && !error && <p role="status">Loading moments</p>}
-        {items?.length === 0 && (period !== 'route' || user) && <p className="text-[19px]">{EMPTY[period]}</p>}
+        {items === null && !error && <p role="status">{t('cm.loading')}</p>}
+        {items?.length === 0 && (period !== 'route' || user) && <p className="text-[19px]">{t(`cm.empty.${period}`)}</p>}
         <ul className="cm-feed">
           {items?.map((item) => (
             <li key={item.id}><MomentCard item={item} onLike={toggle} onAdd={add} /></li>
           ))}
         </ul>
-        {more && <button type="button" className="btn-header mt-32" onClick={() => setPage((p) => p + 1)}>Show more moments</button>}
+        {more && <button type="button" className="btn-header mt-32" onClick={() => setPage((p) => p + 1)}>{t('cm.more')}</button>}
       </div>
 
       {adding && (

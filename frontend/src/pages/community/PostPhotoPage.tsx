@@ -4,6 +4,7 @@ import { Button, Panel } from '@/components/ui';
 import { challenge as loadChallenge, nearby as loadNearby, sendPost, type GemChallenge, type GemRef, type NearbyGem } from '@/lib/community';
 import { whereAmI } from '@/lib/geo';
 import { shrinkPhoto } from '@/lib/photo';
+import { useTranslation } from 'react-i18next';
 
 const head = { fontWeight: 400, letterSpacing: '-0.03em' } as const;
 
@@ -26,13 +27,14 @@ export function PostPhotoPage() {
 const nearRef = (g: NearbyGem): GemRef => (g.gemId ? { gemId: g.gemId } : { placeId: g.placeId!, name: g.name, lat: g.lat, lng: g.lng, address: g.address });
 
 function Thanks({ again }: { again: () => void }) {
+  const { t } = useTranslation();
   return (
     <section className="mx-auto max-w-[640px] px-16 py-[64px]">
-      <h1 className="font-display text-[40px] text-ink" style={head}>Thank you</h1>
-      <p className="mt-12 text-[19px]">We are checking your photo. It appears in the feed in a minute, and your points count from then on.</p>
+      <h1 className="font-display text-[40px] text-ink" style={head}>{t('pm.thanks')}</h1>
+      <p className="mt-12 text-[19px]">{t('pm.checking')}</p>
       <div className="mt-24 flex flex-wrap gap-12">
-        <Link to="/community" className="btn-primary no-underline">Open the feed</Link>
-        <Button onClick={again}>Post another moment</Button>
+        <Link to="/community" className="btn-primary no-underline">{t('pm.openFeed')}</Link>
+        <Button onClick={again}>{t('pm.another')}</Button>
       </div>
     </section>
   );
@@ -40,6 +42,7 @@ function Thanks({ again }: { again: () => void }) {
 
 /** Anywhere on the road: a photo, a line, and the gem it is near (within 5 km). */
 function PostMoment() {
+  const { t } = useTranslation();
   const ids = { photo: useId(), caption: useId(), near: useId() };
   const [photo, setPhoto] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
@@ -87,29 +90,29 @@ function PostMoment() {
 
   return (
     <section className="mx-auto max-w-[560px] px-16 py-40 md:py-[64px]">
-      <Link to="/community" className="text-[16px]">Back to the community</Link>
-      <h1 className="mt-12 font-display text-[40px] leading-[1.06] text-ink md:text-[52px]" style={head}>Post a moment</h1>
-      <p className="mt-8 text-[18px]">The view, your group at the lake, your camper at the camping nearby: any photo, tagged to a gem within 5 km.</p>
+      <Link to="/community" className="text-[16px]">{t('ex.back')}</Link>
+      <h1 className="mt-12 font-display text-[40px] leading-[1.06] text-ink md:text-[52px]" style={head}>{t('pm.title')}</h1>
+      <p className="mt-8 text-[18px]">{t('pm.lead')}</p>
       <div className="mt-24 grid gap-16">
         <label htmlFor={ids.photo} className="btn-header min-h-[56px] cursor-pointer justify-center text-[18px]">
-          {photo ? 'Choose another photo' : 'Choose a photo'}
+          {photo ? t('pm.chooseAnother') : t('pm.choose')}
         </label>
-        <input id={ids.photo} aria-label="Choose a photo" type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
-        {busy === 'photo' && <p role="status">Preparing the photo</p>}
-        {busy === 'where' && <p role="status">Finding gems near you</p>}
-        {photo && <img src={photo} alt="Your photo, ready to post" className="aspect-[4/3] w-full rounded-card object-cover" />}
+        <input id={ids.photo} aria-label={t('pm.choose')} type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+        {busy === 'photo' && <p role="status">{t('pm.preparing')}</p>}
+        {busy === 'where' && <p role="status">{t('pm.finding')}</p>}
+        {photo && <img src={photo} alt={t('pm.photoAlt')} className="aspect-[4/3] w-full rounded-card object-cover" />}
 
         {photo && (
           <label htmlFor={ids.caption} className="flex flex-col gap-[6px] text-[15px] text-ink" style={{ fontWeight: 600 }}>
-            Say something
+            {t('pm.say')}
             <textarea id={ids.caption} maxLength={280} rows={2} className="rounded-input border border-rule bg-paper p-12 text-[17px] text-ink" style={{ fontWeight: 400 }} value={caption} onChange={(e) => setCaption(e.target.value)} />
           </label>
         )}
 
         {gems && (
           <fieldset className="grid gap-8 border-0 p-0">
-            <legend className="mb-8 text-[15px] text-ink" style={{ fontWeight: 600 }}>Which gem is this near?</legend>
-            {gems.length === 0 && <p className="text-[16px]">No checked gem within 5 km of here.</p>}
+            <legend className="mb-8 text-[15px] text-ink" style={{ fontWeight: 600 }}>{t('pm.which')}</legend>
+            {gems.length === 0 && <p className="text-[16px]">{t('pm.none')}</p>}
             <div className="cm-opts">
               {gems.map((g, i) => (
                 <label key={g.gemId ?? g.placeId} className="cm-opt">
@@ -118,16 +121,16 @@ function PostMoment() {
                   <span className="cm-opt-km">{`${g.distanceKm.toFixed(1)} km`}</span>
                 </label>
               ))}
-              <Link to="/community/suggest" className="cm-opt no-underline">A new place, not on RoamGem yet</Link>
+              <Link to="/community/suggest" className="cm-opt no-underline">{t('pm.newPlace')}</Link>
             </div>
           </fieldset>
         )}
 
         {gems && gems.length > 0 && (
           <>
-            <p className="text-[15px] text-muted">We use your location only to find gems nearby; it is never shown. Every photo gets a quick automatic check.</p>
+            <p className="text-[15px] text-muted">{t('pm.privacy')}</p>
             <Button variant="primary" className="w-full" onClick={send} disabled={busy !== ''}>
-              {busy === 'sending' ? 'Posting' : 'Post to the community'}
+              {busy === 'sending' ? t('pm.posting') : t('pm.submit')}
             </Button>
           </>
         )}
@@ -139,6 +142,7 @@ function PostMoment() {
 
 /** At a gem from a trip: the photo, the challenge if you like, send. Location is checked when it is sent. */
 function PostAtGem() {
+  const { t } = useTranslation();
   const [q] = useSearchParams();
   const ids = { photo: useId(), caption: useId(), done: useId() };
   const [gem, setGem] = useState<GemChallenge | null>(null);
@@ -152,7 +156,7 @@ function PostAtGem() {
   useEffect(() => {
     const ref = refFrom(q);
     if (!ref) {
-      setError('This link is missing its gem. Open a gem from a trip or the feed.');
+      setError(t('pm.missingGem'));
       return;
     }
     loadChallenge(ref).then(setGem).catch((e: Error) => setError(e.message));
@@ -190,38 +194,38 @@ function PostAtGem() {
 
   return (
     <section className="mx-auto max-w-[640px] px-16 py-40 md:py-[64px]">
-      <h1 className="font-display text-[40px] leading-[1.06] text-ink md:text-[52px]" style={head}>{gem?.name ?? 'Post a photo'}</h1>
+      <h1 className="font-display text-[40px] leading-[1.06] text-ink md:text-[52px]" style={head}>{gem?.name ?? t('pm.postAPhoto')}</h1>
       {gem && (
         <Panel className="mt-24">
-          <h2 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>Photo challenge, 50 points</h2>
+          <h2 className="text-[19px] text-ink" style={{ fontWeight: 500 }}>{t('pm.challengeTitle')}</h2>
           <p className="mt-6 text-[20px] text-ink">{gem.challenge}</p>
-          <p className="mt-8 text-[16px] text-muted">A normal photo here is 10 points. Both count only when you are at the gem.</p>
+          <p className="mt-8 text-[16px] text-muted">{t('pm.challengeNote')}</p>
         </Panel>
       )}
 
       {gem && (
         <div className="mt-24 grid gap-16">
           <label htmlFor={ids.photo} className="btn-header min-h-[56px] cursor-pointer justify-center text-[18px]">
-            {photo ? 'Take another photo' : 'Take the photo'}
+            {photo ? t('pm.takeAnother') : t('pm.take')}
           </label>
-          <input id={ids.photo} aria-label="Take the photo" type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
-          {busy === 'photo' && <p role="status">Preparing the photo</p>}
-          {photo && <img src={photo} alt="Your photo, ready to send" className="w-full rounded-card border border-rule" />}
+          <input id={ids.photo} aria-label={t('pm.take')} type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+          {busy === 'photo' && <p role="status">{t('pm.preparing')}</p>}
+          {photo && <img src={photo} alt={t('pm.sendAlt')} className="w-full rounded-card border border-rule" />}
 
           {photo && (
             <>
               <label htmlFor={ids.done} className="flex min-h-[48px] items-center gap-12 text-[18px] text-ink">
                 <input id={ids.done} type="checkbox" className="h-[24px] w-[24px]" checked={didChallenge} onChange={(e) => setDidChallenge(e.target.checked)} />
-                This photo does the challenge
+                {t('pm.didChallenge')}
               </label>
               <label htmlFor={ids.caption} className="flex flex-col gap-[6px] text-[16px] text-muted" style={{ fontWeight: 500 }}>
-                A line about it (optional)
+                {t('pm.line')}
                 <textarea id={ids.caption} maxLength={280} rows={3} className="rounded-input border border-rule bg-paper p-12 text-[18px] text-ink" value={caption} onChange={(e) => setCaption(e.target.value)} />
               </label>
               <Button variant="primary" className="w-full" onClick={send} disabled={busy !== ''}>
-                {busy === 'sending' ? 'Checking your location' : 'Send the photo'}
+                {busy === 'sending' ? t('pm.checkingLoc') : t('pm.send')}
               </Button>
-              <p className="text-[15px] text-muted">The app asks for your location once, to check you are at the gem. It is not shared with anyone.</p>
+              <p className="text-[15px] text-muted">{t('pm.locNote')}</p>
             </>
           )}
         </div>

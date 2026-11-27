@@ -1,8 +1,10 @@
 import { useEffect, useId, useState } from 'react';
 import { addToTrip, myTrips, type FeedItem, type MyTrip } from '@/lib/community';
+import { useTranslation } from 'react-i18next';
 
 /** A sheet to put a moment's gem into a day of one of my trips, or save it for the next trip. */
 export function AddToTrip({ item, onClose, onAdded }: { item: FeedItem; onClose: () => void; onAdded: (inTrips: number) => void }) {
+  const { t } = useTranslation();
   const ids = { trip: useId(), day: useId(), title: useId() };
   const [trips, setTrips] = useState<MyTrip[] | null>(null);
   const [tripId, setTripId] = useState('');
@@ -28,7 +30,7 @@ export function AddToTrip({ item, onClose, onAdded }: { item: FeedItem; onClose:
     try {
       const r = await addToTrip(item.gem.id, toTrip && tripId ? { postId: item.id, tripId, day } : { postId: item.id });
       onAdded(r.inTrips);
-      setDone(r.added === 'trip' ? `Added to day ${day} of ${trip?.title ?? 'your trip'}.` : 'Saved. We add it when you plan a trip that passes by.');
+      setDone(r.added === 'trip' ? t('add.added', { day, trip: trip?.title ?? t('add.yourTrip') }) : t('add.saved'));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -43,35 +45,35 @@ export function AddToTrip({ item, onClose, onAdded }: { item: FeedItem; onClose:
         {done ? (
           <>
             <p className="text-[17px] text-ink" role="status">{done}</p>
-            <button type="button" className="btn-primary" onClick={onClose}>Done</button>
+            <button type="button" className="btn-primary" onClick={onClose}>{t('add.done')}</button>
           </>
         ) : trips === null ? (
-          <p role="status">Loading your trips</p>
+          <p role="status">{t('add.loadingTrips')}</p>
         ) : trips.length > 0 ? (
           <>
             <label htmlFor={ids.trip} className="grid gap-[6px] text-[15px] text-muted" style={{ fontWeight: 500 }}>
-              Trip
+              {t('add.trip')}
               <select id={ids.trip} className="min-h-[48px] rounded-input border border-rule bg-paper px-12 text-[17px] text-ink" value={tripId} onChange={(e) => { setTripId(e.target.value); setDay(1); }}>
                 {trips.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
               </select>
             </label>
             <label htmlFor={ids.day} className="grid gap-[6px] text-[15px] text-muted" style={{ fontWeight: 500 }}>
-              Day
+              {t('add.day')}
               <select id={ids.day} className="min-h-[48px] rounded-input border border-rule bg-paper px-12 text-[17px] text-ink" value={day} onChange={(e) => setDay(Number(e.target.value))}>
-                {Array.from({ length: trip?.days ?? 1 }, (_, i) => <option key={i + 1} value={i + 1}>{`Day ${i + 1}`}</option>)}
+                {Array.from({ length: trip?.days ?? 1 }, (_, i) => <option key={i + 1} value={i + 1}>{t('trip.day', { n: i + 1 })}</option>)}
               </select>
             </label>
-            <button type="button" className="btn-primary" disabled={busy} onClick={() => add(true)}>Add to this day</button>
-            <button type="button" className="btn-header" disabled={busy} onClick={() => add(false)}>Save for my next trip</button>
+            <button type="button" className="btn-primary" disabled={busy} onClick={() => add(true)}>{t('add.toDay')}</button>
+            <button type="button" className="btn-header" disabled={busy} onClick={() => add(false)}>{t('add.save')}</button>
           </>
         ) : (
           <>
-            <p className="text-[17px] text-ink">You have no trip yet. Save the gem and we put it in the first trip you plan that passes within 15 km.</p>
-            <button type="button" className="btn-primary" disabled={busy} onClick={() => add(false)}>Save for my next trip</button>
+            <p className="text-[17px] text-ink">{t('add.noTrip')}</p>
+            <button type="button" className="btn-primary" disabled={busy} onClick={() => add(false)}>{t('add.save')}</button>
           </>
         )}
         {error && <p className="text-error" role="alert">{error}</p>}
-        {!done && <button type="button" className="btn-header" onClick={onClose}>Cancel</button>}
+        {!done && <button type="button" className="btn-header" onClick={onClose}>{t('add.cancel')}</button>}
       </div>
     </div>
   );

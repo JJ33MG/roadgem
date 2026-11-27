@@ -1,16 +1,18 @@
 // A story-size image (1080 × 1920) of a finished trip to share, drawn in the browser with RoamGem's fonts.
 import { tokenHex } from './color';
+import i18n from '@/i18n';
+import { formatNumber } from '@/i18n/format';
 
 export type CardInput = { from: string; to: string; done: number; total: number; km: number; countries: string[]; inviteUrl?: string };
 
 export function cardText(i: CardInput) {
-  const stats = [`${i.done} of ${i.total} gems collected`];
-  if (i.km > 0) stats.push(`${Math.round(i.km).toLocaleString('en')} km`);
-  if (i.countries.length > 1) stats.push(`${i.countries.length} countries`);
+  const stats = [i18n.t('share.collected', { done: i.done, total: i.total })];
+  if (i.km > 0) stats.push(`${formatNumber(Math.round(i.km))} km`);
+  if (i.countries.length > 1) stats.push(i18n.t('share.countries', { count: i.countries.length }));
   return {
-    title: `${i.from} to ${i.to}`,
+    title: i18n.t('trip.routeTitle', { from: i.from, to: i.to }),
     stats,
-    footer: i.inviteUrl ? i.inviteUrl.replace(/^https?:\/\//, '') : 'Planned with RoamGem',
+    footer: i.inviteUrl ? i.inviteUrl.replace(/^https?:\/\//, '') : i18n.t('share.plannedWith'),
   };
 }
 
@@ -35,7 +37,7 @@ export async function cardFile(i: CardInput): Promise<File> {
   canvas.width = 1080;
   canvas.height = 1920;
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('This browser cannot draw the card.');
+  if (!ctx) throw new Error(i18n.t('share.cannotDraw'));
   await document.fonts?.ready;
   const band = tokenHex('--color-band', '#0b2a2a');
   const light = tokenHex('--color-band-ink', '#f4efe6');
@@ -75,6 +77,6 @@ export async function cardFile(i: CardInput): Promise<File> {
   footer.forEach((row, k) => ctx.fillText(row, 96, 1820 - (footer.length - 1 - k) * 50));
   ctx.globalAlpha = 1;
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
-  if (!blob) throw new Error('The card could not be made.');
+  if (!blob) throw new Error(i18n.t('share.failed'));
   return new File([blob], 'roamgem-trip.png', { type: 'image/png' });
 }

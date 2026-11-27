@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Panel } from '@/components/ui';
 import { checkInAt, getPassport, here } from '@/lib/road';
+import { useTranslation } from 'react-i18next';
 
 type Gem = { placeId?: string; name: string; latitude: number; longitude: number };
 type Props = { tripId: string; gems: Gem[]; signedIn: boolean };
 
 /** At a gem of the day: one tap to collect it for the trip passport (checked on the spot). */
 export function OnTheRoad({ tripId, gems, signedIn }: Props) {
+  const { t } = useTranslation();
   const [stamps, setStamps] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function OnTheRoad({ tripId, gems, signedIn }: Props) {
     try {
       at = await here();
     } catch {
-      setNote({ placeId: g.placeId, text: 'Allow location to check in' });
+      setNote({ placeId: g.placeId, text: t('road.allowLocation') });
       setBusy(null);
       return;
     }
@@ -41,7 +43,7 @@ export function OnTheRoad({ tripId, gems, signedIn }: Props) {
       setTotal(r.total);
       setNote({ placeId: g.placeId, text: `Collected, +${r.points} points` });
     } catch (err) {
-      setNote({ placeId: g.placeId, text: err instanceof Error ? err.message : 'The check-in did not go through.' });
+      setNote({ placeId: g.placeId, text: err instanceof Error ? err.message : t('road.checkinFailed') });
     } finally {
       setBusy(null);
     }
@@ -49,13 +51,13 @@ export function OnTheRoad({ tripId, gems, signedIn }: Props) {
 
   if (!collectable.length) return null;
   return (
-    <Panel className="mt-24" role="region" aria-label="On the road">
-      <h3 className="font-display text-[26px] text-ink" style={{ fontWeight: 400, letterSpacing: '-0.02em' }}>On the road</h3>
+    <Panel className="mt-24" role="region" aria-label={t('road.title')}>
+      <h3 className="font-display text-[26px] text-ink" style={{ fontWeight: 400, letterSpacing: '-0.02em' }}>{t('road.title')}</h3>
       {signedIn ? (
         <>
           {total > 0 && (
             <div className="mt-8">
-              <p className="text-ink" style={{ fontWeight: 500 }}>{`${stamps.length} of ${total} gems`}</p>
+              <p className="text-ink" style={{ fontWeight: 500 }}>{t('road.progress', { done: stamps.length, total })}</p>
               <div className="mt-8 h-[8px] overflow-hidden rounded-pill bg-rule" aria-hidden="true">
                 <div className="h-full bg-accent" style={{ width: `${Math.round((stamps.length / total) * 100)}%` }} />
               </div>
@@ -68,17 +70,17 @@ export function OnTheRoad({ tripId, gems, signedIn }: Props) {
                 <li key={g.placeId} className="grid gap-8 border-t border-rule pt-12">
                   <span className="text-ink" style={{ fontWeight: 500 }}>{g.name}</span>
                   {done ? (
-                    <span className="text-[16px] text-accent" style={{ fontWeight: 500 }}>Collected</span>
+                    <span className="text-[16px] text-accent" style={{ fontWeight: 500 }}>{t('road.collected')}</span>
                   ) : (
                     <button
                       type="button"
                       disabled={busy === g.placeId}
                       onClick={() => void collect(g)}
-                      aria-label={`I'm at ${g.name}`}
+                      aria-label={t('road.imAt', { name: g.name })}
                       className="min-h-[48px] justify-self-start rounded-btn border border-ink px-16 text-[17px] text-ink"
                       style={{ fontWeight: 500 }}
                     >
-                      {busy === g.placeId ? 'Checking where you are' : "I'm here"}
+                      {busy === g.placeId ? t('road.checking') : t('road.imHere')}
                     </button>
                   )}
                   {note?.placeId === g.placeId && <span className="text-[16px] text-muted" role="status">{note.text}</span>}
@@ -86,12 +88,12 @@ export function OnTheRoad({ tripId, gems, signedIn }: Props) {
               );
             })}
           </ul>
-          <p className="mt-12 text-[15px] text-muted">Check in when you are at the gem (within 300 m) to collect it for your trip passport.</p>
+          <p className="mt-12 text-[15px] text-muted">{t('road.howTo')}</p>
         </>
       ) : (
         <p className="mt-8">
-          Collect every gem you visit in your trip passport.{' '}
-          <Link to="/login" className="text-ink">Log in to collect stamps</Link>
+          {t('road.collectAll')}{' '}
+          <Link to="/login" className="text-ink">{t('road.loginToCollect')}</Link>
         </p>
       )}
     </Panel>

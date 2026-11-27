@@ -3,11 +3,13 @@ import { Button } from '@/components/ui';
 import { cardFile } from '@/lib/shareCard';
 import { getPassport } from '@/lib/road';
 import { myInvite } from '@/lib/community';
+import { useTranslation } from 'react-i18next';
 
 type Props = { tripId: string; from: string; to: string; km: number; countries: string[]; totalGems: number; signedIn: boolean };
 
 /** A story card of the trip (gems collected, km, countries, your invite link) for the share sheet. */
 export function ShareTrip({ tripId, from, to, km, countries, totalGems, signedIn }: Props) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   // The finished card, kept for a second tap when the browser wants the share sheet straight after a tap (Safari).
@@ -31,17 +33,17 @@ export function ShareTrip({ tripId, from, to, km, countries, totalGems, signedIn
         } catch (err) {
           if ((err as Error)?.name !== 'NotAllowedError') throw err;
           setReady(file);
-          setNote('Your card is ready.');
+          setNote(t('share.ready'));
         }
       } else {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(file);
         a.download = file.name;
         a.click();
-        setNote('The card is saved to your downloads.');
+        setNote(t('share.saved'));
       }
     } catch (err) {
-      if ((err as Error)?.name !== 'AbortError') setNote('The card could not be made. Try again.');
+      if ((err as Error)?.name !== 'AbortError') setNote(t('share.failed'));
     } finally {
       setBusy(false);
     }
@@ -57,10 +59,10 @@ export function ShareTrip({ tripId, from, to, km, countries, totalGems, signedIn
             open(ready).then(() => setReady(null)).catch(() => undefined);
           }}
         >
-          Share the card
+          {t('share.shareCard')}
         </Button>
       ) : (
-        <Button onClick={() => void share()} disabled={busy}>{busy ? 'Making your card' : 'Share your trip'}</Button>
+        <Button onClick={() => void share()} disabled={busy}>{busy ? t('share.making') : t('share.button')}</Button>
       )}
       {note && <span className="text-[16px] text-muted" role="status">{note}</span>}
     </>

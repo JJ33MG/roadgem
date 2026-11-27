@@ -474,5 +474,31 @@
     "title": "Entdecker-Gems",
     "locked_one": "{{count}} Entdecker-Gem auf dieser Strecke, von Reisenden gefunden. Er gehört zu Plus.",
     "locked_other": "{{count}} Entdecker-Gems auf dieser Strecke, von Reisenden gefunden. Sie gehören zu Plus."
+  },
+  "road": {
+    "title": "Unterwegs",
+    "allowLocation": "Erlaube den Standort zum Einchecken",
+    "checkinFailed": "Das Einchecken hat nicht geklappt.",
+    "progress": "{{done}} von {{total}} Gems",
+    "collected": "Gesammelt",
+    "imAt": "Ich bin bei {{name}}",
+    "checking": "Wir prüfen, wo du bist",
+    "imHere": "Ich bin hier",
+    "howTo": "Check ein, wenn du beim Gem bist (im Umkreis von 300 m), um ihn für deinen Reisepass zu sammeln.",
+    "collectAll": "Sammle jeden Gem, den du besuchst, in deinem Reisepass.",
+    "loginToCollect": "Melde dich an, um Stempel zu sammeln"
+  },
+  "share": {
+    "ready": "Deine Karte ist fertig.",
+    "saved": "Die Karte ist in deinen Downloads.",
+    "failed": "Die Karte konnte nicht erstellt werden. Versuch es noch einmal.",
+    "making": "Deine Karte wird erstellt",
+    "button": "Teile deine Reise",
+    "open": "Karte öffnen",
+    "collected": "{{done}} von {{total}} Gems gesammelt",
+    "countries": "{{count}} Länder",
+    "plannedWith": "Geplant mit RoamGem",
+    "cannotDraw": "Dieser Browser kann die Karte nicht zeichnen.",
+    "shareCard": "Karte teilen"
   }
 }

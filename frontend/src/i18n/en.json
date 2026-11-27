@@ -474,5 +474,31 @@
     "title": "Explorer gems",
     "locked_one": "{{count}} Explorer gem on this road, found by travellers. It comes with Plus.",
     "locked_other": "{{count}} Explorer gems on this road, found by travellers. They come with Plus."
+  },
+  "road": {
+    "title": "On the road",
+    "allowLocation": "Allow location to check in",
+    "checkinFailed": "The check-in did not go through.",
+    "progress": "{{done}} of {{total}} gems",
+    "collected": "Collected",
+    "imAt": "I'm at {{name}}",
+    "checking": "Checking where you are",
+    "imHere": "I'm here",
+    "howTo": "Check in when you are at the gem (within 300 m) to collect it for your trip passport.",
+    "collectAll": "Collect every gem you visit in your trip passport.",
+    "loginToCollect": "Log in to collect stamps"
+  },
+  "share": {
+    "ready": "Your card is ready.",
+    "saved": "The card is saved to your downloads.",
+    "failed": "The card could not be made. Try again.",
+    "making": "Making your card",
+    "button": "Share your trip",
+    "open": "Open the card",
+    "collected": "{{done}} of {{total}} gems collected",
+    "countries": "{{count}} countries",
+    "plannedWith": "Planned with RoamGem",
+    "cannotDraw": "This browser cannot draw the card.",
+    "shareCard": "Share the card"
   }
 }

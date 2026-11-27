@@ -474,5 +474,31 @@
     "title": "Gemme degli esploratori",
     "locked_one": "{{count}} gemma degli esploratori su questa strada, trovata dai viaggiatori. È inclusa in Plus.",
     "locked_other": "{{count}} gemme degli esploratori su questa strada, trovate dai viaggiatori. Sono incluse in Plus."
+  },
+  "road": {
+    "title": "In viaggio",
+    "allowLocation": "Consenti la posizione per registrarti",
+    "checkinFailed": "La registrazione non è riuscita.",
+    "progress": "{{done}} di {{total}} gemme",
+    "collected": "Raccolta",
+    "imAt": "Sono a {{name}}",
+    "checking": "Verifico dove sei",
+    "imHere": "Sono qui",
+    "howTo": "Registrati quando sei alla gemma (entro 300 m) per aggiungerla al tuo passaporto di viaggio.",
+    "collectAll": "Colleziona ogni gemma che visiti nel tuo passaporto di viaggio.",
+    "loginToCollect": "Accedi per raccogliere i timbri"
+  },
+  "share": {
+    "ready": "La tua card è pronta.",
+    "saved": "La card è nei tuoi download.",
+    "failed": "Non è stato possibile creare la card. Riprova.",
+    "making": "Creazione della card",
+    "button": "Condividi il viaggio",
+    "open": "Apri la card",
+    "collected": "{{done}} di {{total}} gemme raccolte",
+    "countries": "{{count}} paesi",
+    "plannedWith": "Pianificato con RoamGem",
+    "cannotDraw": "Questo browser non può disegnare la card.",
+    "shareCard": "Condividi la card"
   }
 }

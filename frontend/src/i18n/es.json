@@ -474,5 +474,31 @@
     "title": "Joyas de exploradores",
     "locked_one": "{{count}} joya de explorador en esta carretera, encontrada por viajeros. Viene con Plus.",
     "locked_other": "{{count}} joyas de exploradores en esta carretera, encontradas por viajeros. Vienen con Plus."
+  },
+  "road": {
+    "title": "En la carretera",
+    "allowLocation": "Permite la ubicación para registrarte",
+    "checkinFailed": "No se pudo registrar.",
+    "progress": "{{done}} de {{total}} joyas",
+    "collected": "Conseguida",
+    "imAt": "Estoy en {{name}}",
+    "checking": "Comprobando dónde estás",
+    "imHere": "Estoy aquí",
+    "howTo": "Regístrate cuando estés en la joya (a menos de 300 m) para añadirla a tu pasaporte de viaje.",
+    "collectAll": "Colecciona cada joya que visites en tu pasaporte de viaje.",
+    "loginToCollect": "Inicia sesión para coleccionar sellos"
+  },
+  "share": {
+    "ready": "Tu tarjeta está lista.",
+    "saved": "La tarjeta está en tus descargas.",
+    "failed": "No se pudo crear la tarjeta. Inténtalo de nuevo.",
+    "making": "Creando tu tarjeta",
+    "button": "Comparte tu viaje",
+    "open": "Abrir la tarjeta",
+    "collected": "{{done}} de {{total}} joyas conseguidas",
+    "countries": "{{count}} países",
+    "plannedWith": "Planeado con RoamGem",
+    "cannotDraw": "Este navegador no puede dibujar la tarjeta.",
+    "shareCard": "Compartir la tarjeta"
   }
 }

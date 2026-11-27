@@ -474,5 +474,31 @@
     "title": "Pépites d'explorateurs",
     "locked_one": "{{count}} pépite d'explorateur sur cette route, trouvée par des voyageurs. Elle vient avec Plus.",
     "locked_other": "{{count}} pépites d'explorateurs sur cette route, trouvées par des voyageurs. Elles viennent avec Plus."
+  },
+  "road": {
+    "title": "Sur la route",
+    "allowLocation": "Autorise la localisation pour pointer",
+    "checkinFailed": "Le pointage n'a pas marché.",
+    "progress": "{{done}} sur {{total}} pépites",
+    "collected": "Récupérée",
+    "imAt": "Je suis à {{name}}",
+    "checking": "Vérification de ta position",
+    "imHere": "Je suis là",
+    "howTo": "Pointe quand tu es à la pépite (à moins de 300 m) pour l'ajouter à ton passeport de voyage.",
+    "collectAll": "Collectionne chaque pépite visitée dans ton passeport de voyage.",
+    "loginToCollect": "Connecte-toi pour collectionner les tampons"
+  },
+  "share": {
+    "ready": "Ta carte est prête.",
+    "saved": "La carte est dans tes téléchargements.",
+    "failed": "La carte n'a pas pu être créée. Réessaie.",
+    "making": "Création de ta carte…",
+    "button": "Partage ton voyage",
+    "open": "Ouvrir la carte",
+    "collected": "{{done}} pépites sur {{total}} récupérées",
+    "countries": "{{count}} pays",
+    "plannedWith": "Planifié avec RoamGem",
+    "cannotDraw": "Ce navigateur ne peut pas dessiner la carte.",
+    "shareCard": "Partager la carte"
   }
 }

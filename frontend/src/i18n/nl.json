@@ -474,5 +474,31 @@
     "title": "Ontdekkersgems",
     "locked_one": "{{count}} ontdekkersgem op deze weg, gevonden door reizigers. Die krijg je met Plus.",
     "locked_other": "{{count}} ontdekkersgems op deze weg, gevonden door reizigers. Die krijg je met Plus."
+  },
+  "road": {
+    "title": "Onderweg",
+    "allowLocation": "Sta je locatie toe om in te checken",
+    "checkinFailed": "Het inchecken lukte niet.",
+    "progress": "{{done}} van {{total}} gems",
+    "collected": "Verzameld",
+    "imAt": "Ik ben bij {{name}}",
+    "checking": "We checken waar je bent",
+    "imHere": "Ik ben hier",
+    "howTo": "Check in als je bij de gem bent (binnen 300 m) om hem te verzamelen in je trippaspoort.",
+    "collectAll": "Verzamel elke gem die je bezoekt in je trippaspoort.",
+    "loginToCollect": "Log in om stempels te verzamelen"
+  },
+  "share": {
+    "ready": "Je kaart is klaar.",
+    "saved": "De kaart staat in je downloads.",
+    "failed": "De kaart kon niet gemaakt worden. Probeer opnieuw.",
+    "making": "Je kaart wordt gemaakt",
+    "button": "Deel je trip",
+    "open": "Open de kaart",
+    "collected": "{{done}} van {{total}} gems verzameld",
+    "countries": "{{count}} landen",
+    "plannedWith": "Gepland met RoamGem",
+    "cannotDraw": "Deze browser kan de kaart niet tekenen.",
+    "shareCard": "Deel de kaart"
   }
 }

@@ -47,7 +47,7 @@ Marketing will show the community in the videos once it is good (series "communi
 **Post a moment** (`/community/post`)
 - Pick a photo, write a sentence, choose the gem nearby. RoamGem lists checked gems within **5 km** of the phone's location at posting time, nearest first. Last option: "A new place, not on RoamGem yet" (the existing suggest flow; it becomes a gem after the usual checks).
 - Replaces the 300 m "on the spot" rule for normal posts. The challenge (photo at the gem itself) keeps the 300 m rule.
-- The existing AI photo check stays: unsafe photos are rejected; photos with people wait for a moderator (Jarne) before they are public. Other photos go public after the AI check.
+- No manual review (Jarne, 27 Nov: he will not check photos). The AI photo check decides: unsafe photos are rejected, all others go public. When the check fails it is retried; a post is never published unchecked.
 - Free members: 1 post a day (as now); Plus: unlimited.
 
 **Add to my trip**

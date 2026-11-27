@@ -42,7 +42,7 @@ export interface User {
   subscriptionTier: SubscriptionTier;
   subscriptionExpires: string | null;
   /** The language the traveller chose (en, nl, fr, de, es, it). */
-  language?: string;
+  language?: string | null;
 }
 
 export interface TripSearchParams {

@@ -11,5 +11,5 @@ const NAME: Record<Exclude<Lang, 'en'>, string> = {
 
 export function languageLine(lang: Lang | undefined): string {
   if (!lang || lang === 'en') return '';
-  return ` Write every text for the traveller in ${NAME[lang]}. Keep place names, addresses and brand names exactly as they are, and keep the JSON keys in English.`;
+  return ` Write every text for the traveller in ${NAME[lang]}. Keep place names, addresses and brand names exactly as they are, and keep the JSON keys in English. Keep the values of "kind", "for" and "mode" exactly as listed, in English.`;
 }

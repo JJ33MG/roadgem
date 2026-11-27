@@ -144,7 +144,7 @@
     "free3": "Der beste geprüfte Gem jedes Tages",
     "free4": "Ändere den Plan: verschiebe eine Nacht, füge einen Ruhetag ein",
     "free5": "Die Route mit einem Tipp in Google Maps",
-    "free6": "Sammle Gems unterwegs in deinem Reisepass",
+    "free6": "Sammle Gems unterwegs in deinem Stempelpass",
     "free7": "Ein Community-Foto pro Tag",
     "free8": "Eine gespeicherte Reise",
     "pass1": "Alles aus Kostenlos, für eine Reise",
@@ -487,9 +487,10 @@
     "imAt": "Ich bin bei {{name}}",
     "checking": "Wir prüfen, wo du bist",
     "imHere": "Ich bin hier",
-    "howTo": "Check ein, wenn du beim Gem bist (im Umkreis von 300 m), um ihn für deinen Reisepass zu sammeln.",
-    "collectAll": "Sammle jeden Gem, den du besuchst, in deinem Reisepass.",
-    "loginToCollect": "Melde dich an, um Stempel zu sammeln"
+    "howTo": "Check ein, wenn du beim Gem bist (im Umkreis von 300 m), um ihn für deinen Stempelpass zu sammeln.",
+    "collectAll": "Sammle jeden Gem, den du besuchst, in deinem Stempelpass.",
+    "loginToCollect": "Melde dich an, um Stempel zu sammeln",
+    "collectedPoints": "Gesammelt, +{{points}} Punkte"
   },
   "share": {
     "ready": "Deine Karte ist fertig.",
@@ -698,5 +699,16 @@
     "takeHere": "Hier ein Foto machen",
     "photoAlt": "Dein Foto des neuen Gems",
     "send": "Gem senden"
+  },
+  "weather": {
+    "Clear": "Klar",
+    "Clouds": "Bewölkt",
+    "Rain": "Regen",
+    "Drizzle": "Nieselregen",
+    "Thunderstorm": "Gewitter",
+    "Snow": "Schnee",
+    "Mist": "Dunst",
+    "Fog": "Nebel",
+    "Haze": "Dunstig"
   }
 }

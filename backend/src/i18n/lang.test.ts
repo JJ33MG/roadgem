@@ -39,3 +39,17 @@ describe('server messages in the visitor\'s language', () => {
     expect((req as { lang: string }).lang).toBe('fr');
   });
 });
+
+describe('the refusals people meet most', () => {
+  it('translates the rate limits and the check-in distance', async () => {
+    const { translateMessage } = await import('./messages');
+    for (const m of [
+      'You planned 3 trips this hour. Make a free account to plan more, or try again later.',
+      'You planned 20 trips today. Try again tomorrow.',
+      'Too many requests. Please wait a moment and try again.',
+      'Too many attempts. Try again in an hour.',
+      'Too many new accounts from here. Try again in an hour.',
+      'Check-ins count only within 300 m of the gem.',
+    ]) expect(translateMessage(m, 'nl'), m).not.toBe(m);
+  });
+});

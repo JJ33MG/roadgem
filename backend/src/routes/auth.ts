@@ -24,7 +24,8 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
 
     const hashed = await bcrypt.hash(password, 10);
     let user = await prisma.user.create({
-      data: { email, password: hashed, name },
+      // The language the site showed at sign-up; null when unknown (then the app sets it on first visit).
+      data: { email, password: hashed, name, language: isLang(req.body?.language) ? req.body.language : null },
     });
     // Signed up through a friend's link: both get Plus time (never blocks the sign-up).
     if (typeof invite === 'string' && invite.trim()) {

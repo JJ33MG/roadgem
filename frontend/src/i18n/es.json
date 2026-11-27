@@ -489,7 +489,8 @@
     "imHere": "Estoy aquí",
     "howTo": "Regístrate cuando estés en la joya (a menos de 300 m) para añadirla a tu pasaporte de viaje.",
     "collectAll": "Colecciona cada joya que visites en tu pasaporte de viaje.",
-    "loginToCollect": "Inicia sesión para coleccionar sellos"
+    "loginToCollect": "Inicia sesión para coleccionar sellos",
+    "collectedPoints": "Conseguida, +{{points}} puntos"
   },
   "share": {
     "ready": "Tu tarjeta está lista.",
@@ -698,5 +699,16 @@
     "takeHere": "Haz una foto aquí",
     "photoAlt": "Tu foto de la joya nueva",
     "send": "Enviar la joya"
+  },
+  "weather": {
+    "Clear": "Despejado",
+    "Clouds": "Nublado",
+    "Rain": "Lluvia",
+    "Drizzle": "Llovizna",
+    "Thunderstorm": "Tormenta",
+    "Snow": "Nieve",
+    "Mist": "Neblina",
+    "Fog": "Niebla",
+    "Haze": "Calima"
   }
 }

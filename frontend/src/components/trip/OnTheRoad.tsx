@@ -41,7 +41,7 @@ export function OnTheRoad({ tripId, gems, signedIn }: Props) {
       const r = await checkInAt(tripId, g.placeId, at);
       setStamps((s) => [...s, g.placeId]);
       setTotal(r.total);
-      setNote({ placeId: g.placeId, text: `Collected, +${r.points} points` });
+      setNote({ placeId: g.placeId, text: t('road.collectedPoints', { points: r.points }) });
     } catch (err) {
       setNote({ placeId: g.placeId, text: err instanceof Error ? err.message : t('road.checkinFailed') });
     } finally {

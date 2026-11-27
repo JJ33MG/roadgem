@@ -70,3 +70,23 @@ describe('real translations', () => {
     });
   }
 });
+
+describe('the account language', () => {
+  it('keeps the phone language when the account never chose one', async () => {
+    const { default: i18n, applyAccountLanguage } = await import('./index');
+    await i18n.changeLanguage('nl');
+    applyAccountLanguage(null);
+    expect(i18n.language).toBe('nl');
+    applyAccountLanguage('de');
+    expect(i18n.language).toBe('de');
+    await i18n.changeLanguage('en');
+  });
+});
+
+describe('weather in every language', () => {
+  it('has a word for every weather OpenWeather reports', () => {
+    const keys = flat(en as Tree);
+    const need = ['Clear', 'Clouds', 'Rain', 'Drizzle', 'Thunderstorm', 'Snow', 'Mist', 'Fog', 'Haze'].map((w) => `weather.${w}`);
+    expect(need.filter((k) => !keys[k])).toEqual([]);
+  });
+});

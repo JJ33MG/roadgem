@@ -16,7 +16,7 @@ import type {
 
 // --- Auth ---
 export const authApi = {
-  signup: (data: { email: string; password: string; name: string; invite?: string }) =>
+  signup: (data: { email: string; password: string; name: string; invite?: string; language?: string }) =>
     apiClient.post<{ token: string; user: User }>('/auth/signup', data),
 
   login: (data: { email: string; password: string }) =>

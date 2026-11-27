@@ -489,7 +489,8 @@
     "imHere": "Sono qui",
     "howTo": "Registrati quando sei alla gemma (entro 300 m) per aggiungerla al tuo passaporto di viaggio.",
     "collectAll": "Colleziona ogni gemma che visiti nel tuo passaporto di viaggio.",
-    "loginToCollect": "Accedi per raccogliere i timbri"
+    "loginToCollect": "Accedi per raccogliere i timbri",
+    "collectedPoints": "Raccolta, +{{points}} punti"
   },
   "share": {
     "ready": "La tua card è pronta.",
@@ -698,5 +699,16 @@
     "takeHere": "Scatta una foto qui",
     "photoAlt": "La tua foto della nuova gemma",
     "send": "Invia la gemma"
+  },
+  "weather": {
+    "Clear": "Sereno",
+    "Clouds": "Nuvoloso",
+    "Rain": "Pioggia",
+    "Drizzle": "Pioggerella",
+    "Thunderstorm": "Temporale",
+    "Snow": "Neve",
+    "Mist": "Foschia",
+    "Fog": "Nebbia",
+    "Haze": "Foschia"
   }
 }

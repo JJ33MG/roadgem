@@ -489,7 +489,8 @@
     "imHere": "Ik ben hier",
     "howTo": "Check in als je bij de gem bent (binnen 300 m) om hem te verzamelen in je trippaspoort.",
     "collectAll": "Verzamel elke gem die je bezoekt in je trippaspoort.",
-    "loginToCollect": "Log in om stempels te verzamelen"
+    "loginToCollect": "Log in om stempels te verzamelen",
+    "collectedPoints": "Verzameld, +{{points}} punten"
   },
   "share": {
     "ready": "Je kaart is klaar.",
@@ -698,5 +699,16 @@
     "takeHere": "Maak hier een foto",
     "photoAlt": "Je foto van de nieuwe gem",
     "send": "Verstuur de gem"
+  },
+  "weather": {
+    "Clear": "Helder",
+    "Clouds": "Bewolkt",
+    "Rain": "Regen",
+    "Drizzle": "Motregen",
+    "Thunderstorm": "Onweer",
+    "Snow": "Sneeuw",
+    "Mist": "Nevel",
+    "Fog": "Mist",
+    "Haze": "Heiig"
   }
 }

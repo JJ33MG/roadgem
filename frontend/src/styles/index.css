@@ -176,3 +176,6 @@ body { font-size: max(18px, var(--text-md)); color: var(--color-ink-2); }
 .lang-item { min-height: 44px; padding: 0 var(--space-sm); text-align: left; border: 0; border-radius: var(--radius-part); background: none; color: var(--color-ink); font-size: 16px; }
 .lang-item:hover, .lang-item[aria-checked="true"] { background: var(--color-paper-2); }
 .lang-item[aria-checked="true"] { font-weight: 600; }
+
+/* Long words (German, French) wrap inside headings instead of running off a phone screen (27 Nov). */
+h1, h2, h3 { overflow-wrap: anywhere; hyphens: auto; }

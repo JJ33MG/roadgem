@@ -489,7 +489,8 @@
     "imHere": "I'm here",
     "howTo": "Check in when you are at the gem (within 300 m) to collect it for your trip passport.",
     "collectAll": "Collect every gem you visit in your trip passport.",
-    "loginToCollect": "Log in to collect stamps"
+    "loginToCollect": "Log in to collect stamps",
+    "collectedPoints": "Collected, +{{points}} points"
   },
   "share": {
     "ready": "Your card is ready.",
@@ -698,5 +699,16 @@
     "takeHere": "Take a photo here",
     "photoAlt": "Your photo of the new gem",
     "send": "Send the gem"
+  },
+  "weather": {
+    "Clear": "Clear",
+    "Clouds": "Clouds",
+    "Rain": "Rain",
+    "Drizzle": "Drizzle",
+    "Thunderstorm": "Thunderstorm",
+    "Snow": "Snow",
+    "Mist": "Mist",
+    "Fog": "Fog",
+    "Haze": "Haze"
   }
 }

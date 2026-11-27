@@ -404,6 +404,48 @@ export const MESSAGES: Record<string, Record<Other, string>> = {
     "de": "Nutzer nicht gefunden",
     "es": "Usuario no encontrado",
     "it": "Utente non trovato"
+  },
+  "You planned 3 trips this hour. Make a free account to plan more, or try again later.": {
+    "nl": "Je plande 3 trips dit uur. Maak een gratis account om meer te plannen, of probeer het later opnieuw.",
+    "fr": "Tu as planifié 3 voyages cette heure-ci. Crée un compte gratuit pour en planifier plus, ou réessaie plus tard.",
+    "de": "Du hast in dieser Stunde 3 Reisen geplant. Erstelle ein kostenloses Konto, um mehr zu planen, oder versuch es später noch einmal.",
+    "es": "Has planeado 3 viajes en esta hora. Crea una cuenta gratis para planear más o inténtalo más tarde.",
+    "it": "Hai pianificato 3 viaggi in quest'ora. Crea un account gratuito per pianificarne altri o riprova più tardi."
+  },
+  "You planned 20 trips today. Try again tomorrow.": {
+    "nl": "Je plande vandaag 20 trips. Probeer het morgen opnieuw.",
+    "fr": "Tu as planifié 20 voyages aujourd'hui. Réessaie demain.",
+    "de": "Du hast heute 20 Reisen geplant. Versuch es morgen wieder.",
+    "es": "Hoy has planeado 20 viajes. Inténtalo mañana.",
+    "it": "Oggi hai pianificato 20 viaggi. Riprova domani."
+  },
+  "Too many requests. Please wait a moment and try again.": {
+    "nl": "Te veel verzoeken. Wacht even en probeer opnieuw.",
+    "fr": "Trop de demandes. Patiente un instant et réessaie.",
+    "de": "Zu viele Anfragen. Warte kurz und versuch es noch einmal.",
+    "es": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+    "it": "Troppe richieste. Aspetta un attimo e riprova."
+  },
+  "Too many attempts. Try again in an hour.": {
+    "nl": "Te veel pogingen. Probeer het over een uur opnieuw.",
+    "fr": "Trop de tentatives. Réessaie dans une heure.",
+    "de": "Zu viele Versuche. Versuch es in einer Stunde noch einmal.",
+    "es": "Demasiados intentos. Inténtalo dentro de una hora.",
+    "it": "Troppi tentativi. Riprova tra un'ora."
+  },
+  "Too many new accounts from here. Try again in an hour.": {
+    "nl": "Te veel nieuwe accounts vanaf hier. Probeer het over een uur opnieuw.",
+    "fr": "Trop de nouveaux comptes depuis ici. Réessaie dans une heure.",
+    "de": "Zu viele neue Konten von hier. Versuch es in einer Stunde noch einmal.",
+    "es": "Demasiadas cuentas nuevas desde aquí. Inténtalo dentro de una hora.",
+    "it": "Troppi nuovi account da qui. Riprova tra un'ora."
+  },
+  "Check-ins count only within 300 m of the gem.": {
+    "nl": "Inchecken telt alleen binnen 300 m van de gem.",
+    "fr": "Le pointage ne compte qu'à moins de 300 m de la pépite.",
+    "de": "Einchecken zählt nur im Umkreis von 300 m um den Gem.",
+    "es": "El registro solo cuenta a menos de 300 m de la joya.",
+    "it": "La registrazione conta solo entro 300 m dalla gemma."
   }
 };
 

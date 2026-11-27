@@ -32,7 +32,7 @@ export async function checkIn(db: Db, i: { userId: string; tripId: string; place
   const gem = gems.find((g) => g.placeId === i.placeId);
   if (!gem) throw fail('That gem is not on this trip.', 404);
   const distance = metresBetween({ lat: gem.latitude, lng: gem.longitude }, i.at);
-  if (distance > SPOT_METRES) throw fail(`Check-ins count only within ${SPOT_METRES} m of the gem.`, 400);
+  if (distance > SPOT_METRES) throw fail('Check-ins count only within 300 m of the gem.', 400);
   const key = { userId: i.userId, tripId: i.tripId, placeId: i.placeId };
   if (await db.checkIn.findUnique({ where: { userId_tripId_placeId: key } })) throw fail('Already collected', 409);
   const points = CHECKIN_POINTS * (i.plus ? 2 : 1);

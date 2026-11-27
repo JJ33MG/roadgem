@@ -89,7 +89,7 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
     // Weather needs only the destination and dates: fetched while Claude writes the plan.
     const t0 = Date.now();
     const lang = langOf(req.headers['x-lang']);
-    const weatherP = getWeather(destination, startDate, endDate, lang).catch(() => []);
+    const weatherP = getWeather(destination, startDate, endDate).catch(() => []);
     // First only the route (stops and where each night is): the trip page opens in seconds and the
     // day texts are written afterwards, one per day, in parallel (fillDays below).
     const tripData = await generateTripSkeleton(

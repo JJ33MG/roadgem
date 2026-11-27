@@ -407,7 +407,7 @@ export function TripResultsPage() {
             <div className="day-glance" role="region" aria-label={t('trip.glance', { n: activeDay })}>
               <div><span className="day-glance-k">{t('trip.drive')}</span><span className="day-glance-v">{!onRoad ? t('trip.noLongDrive') : dayKm > 0 ? `${formatNumber(Math.round(dayKm))} km` : '–'}</span></div>
               <div><span className="day-glance-k">{t('trip.time')}</span><span className="day-glance-v">{onRoad && dayHours > 0 ? hoursLabel(dayHours) : '–'}</span></div>
-              <div><span className="day-glance-k">{t('trip.weather')}</span><span className="day-glance-v">{weather ? `${Math.round(weather.temp)}°, ${weather.condition}` : '–'}</span></div>
+              <div><span className="day-glance-k">{t('trip.weather')}</span><span className="day-glance-v">{weather ? `${Math.round(weather.temp)}°, ${t(`weather.${weather.condition}`, { defaultValue: weather.condition })}` : '–'}</span></div>
               <div><span className="day-glance-k">{t('trip.costToday')}</span><span className="day-glance-v">{costToday !== null ? euros(costToday) : '–'}</span></div>
             </div>
             <nav className="day-jump" aria-label={t('trip.jumpTo')}>

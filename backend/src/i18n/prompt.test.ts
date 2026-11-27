@@ -18,3 +18,9 @@ describe('trips in the traveller\'s language', () => {
     expect(experiencePrompt('Prague', 'balanced', 'de')).toContain('in German');
   });
 });
+
+describe('values the app reads stay English', () => {
+  it('asks to keep kind, for and transit mode values as listed', () => {
+    expect(languageLine('fr')).toMatch(/"kind", "for" and "mode" exactly as listed, in English/);
+  });
+});

@@ -30,7 +30,7 @@ function mockWeather(days: number): WeatherDay[] {
   return weather;
 }
 
-export async function getWeather(destination: string, startDate: string, endDate: string, lang = 'en'): Promise<WeatherDay[]> {
+export async function getWeather(destination: string, startDate: string, endDate: string): Promise<WeatherDay[]> {
   const apiKey = process.env.OPENWEATHER_API_KEY;
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -40,7 +40,7 @@ export async function getWeather(destination: string, startDate: string, endDate
     return mockWeather(days);
   }
 
-  const cacheKey = `${destination.toLowerCase()}|${startDate}|${endDate}|${lang}`;
+  const cacheKey = `${destination.toLowerCase()}|${startDate}|${endDate}`;
   const cached = cache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
     return cached.data;
@@ -52,8 +52,6 @@ export async function getWeather(destination: string, startDate: string, endDate
         q: destination,
         appid: apiKey,
         units: 'metric',
-        // The day's weather in the traveller's language ("lichte regen").
-        lang,
       },
     });
 

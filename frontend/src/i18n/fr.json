@@ -489,7 +489,8 @@
     "imHere": "Je suis là",
     "howTo": "Pointe quand tu es à la pépite (à moins de 300 m) pour l'ajouter à ton passeport de voyage.",
     "collectAll": "Collectionne chaque pépite visitée dans ton passeport de voyage.",
-    "loginToCollect": "Connecte-toi pour collectionner les tampons"
+    "loginToCollect": "Connecte-toi pour collectionner les tampons",
+    "collectedPoints": "Récupérée, +{{points}} points"
   },
   "share": {
     "ready": "Ta carte est prête.",
@@ -698,5 +699,16 @@
     "takeHere": "Prendre une photo ici",
     "photoAlt": "Ta photo de la nouvelle pépite",
     "send": "Envoyer la pépite"
+  },
+  "weather": {
+    "Clear": "Ciel dégagé",
+    "Clouds": "Nuageux",
+    "Rain": "Pluie",
+    "Drizzle": "Bruine",
+    "Thunderstorm": "Orage",
+    "Snow": "Neige",
+    "Mist": "Brume",
+    "Fog": "Brouillard",
+    "Haze": "Brume sèche"
   }
 }

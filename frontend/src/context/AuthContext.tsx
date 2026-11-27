@@ -3,7 +3,7 @@ import { authApi } from '@/lib/api';
 import { getAuthToken, setAuthToken } from '@/lib/apiClient';
 import type { User } from '@/types';
 import { apiClient } from '@/lib/apiClient';
-import { applyAccountLanguage, onLanguageChosen } from '@/i18n';
+import { applyAccountLanguage, currentLang, onLanguageChosen } from '@/i18n';
 
 interface AuthContextValue {
   user: User | null;
@@ -22,7 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // The account remembers the language: applied on sign-in, saved when the traveller picks one.
   useEffect(() => {
-    if (user) applyAccountLanguage(user.language);
+    if (!user) return;
+    // An account that never chose a language takes the one this browser shows; one that chose keeps its own.
+    if (user.language) applyAccountLanguage(user.language);
+    else void apiClient.patch('/auth/me/language', { language: currentLang() }).catch(() => undefined);
   }, [user]);
   useEffect(() => onLanguageChosen((lang) => {
     if (getAuthToken()) void apiClient.patch('/auth/me/language', { language: lang }).catch(() => undefined);
@@ -49,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signup(email: string, password: string, name: string, invite?: string) {
-    const res = await authApi.signup({ email, password, name, ...(invite ? { invite } : {}) });
+    const res = await authApi.signup({ email, password, name, language: currentLang(), ...(invite ? { invite } : {}) });
     setAuthToken(res.data.token);
     setUser(res.data.user);
   }

@@ -1,3 +1,5 @@
+import { languageLine } from '../i18n/prompt';
+import type { Lang } from '../i18n/lang';
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
 import { dayPrompt, parseDay, parseSkeleton, type PlannedDay, type Skeleton } from './dayByDay';
@@ -166,6 +168,7 @@ export async function generateTripSkeleton(
   priorities: string[],
   transportType: string,
   planner: PlannerOptions,
+  lang: Lang = 'en',
 ): Promise<Skeleton> {
   const prompt = `You are a travel planning assistant. Plan the ROUTE of a road trip from "${startLocation}" to/around "${destination}", ${days} days, total budget €${budget}, style "${travelStyle}", priorities: ${priorities.join(', ')}.
 
@@ -184,7 +187,7 @@ Respond with ONLY one JSON object:
   "totalCost": number,
   "highlights": [string],
   "tips": [string]
-}`;
+}${lang === 'en' ? '' : `\n${languageLine(lang).trim()} Exception: stops[].location and overnights stay in English, as Google Maps names them.`}`;
   const message = await client.messages.create({ model: MODEL, max_tokens: 4000, messages: [{ role: 'user', content: prompt }] });
   const content = message.content[0];
   return parseSkeleton(content.type === 'text' ? content.text : '', days);
@@ -200,20 +203,21 @@ export async function generateTripDay(i: {
   priorities: string[];
   transportType: string;
   planner: PlannerOptions;
+  lang?: Lang;
 }): Promise<PlannedDay> {
   const rules = `${transportNoteFor(i.transportType)}\n${plannerPrompt(i.planner, i.transportType)}`;
   const message = await client.messages.create({
     model: MODEL,
     max_tokens: 1500,
-    messages: [{ role: 'user', content: dayPrompt({ day: i.day, from: i.from, to: i.to, destination: i.destination, rules, style: i.travelStyle, priorities: i.priorities }) }],
+    messages: [{ role: 'user', content: dayPrompt({ day: i.day, from: i.from, to: i.to, destination: i.destination, rules, style: i.travelStyle, priorities: i.priorities, lang: i.lang }) }],
   });
   const content = message.content[0];
   return parseDay(content.type === 'text' ? content.text : '', i.day, i.to);
 }
 
 /** Experiences in one town, by exact name (checked on Google before they show). */
-export async function generateExperiences(town: string, travelStyle: string): Promise<Experience[]> {
-  const message = await client.messages.create({ model: MODEL, max_tokens: 1200, messages: [{ role: 'user', content: experiencePrompt(town, travelStyle) }] });
+export async function generateExperiences(town: string, travelStyle: string, lang?: Lang): Promise<Experience[]> {
+  const message = await client.messages.create({ model: MODEL, max_tokens: 1200, messages: [{ role: 'user', content: experiencePrompt(town, travelStyle, lang) }] });
   const content = message.content[0];
   return parseExperiences(content.type === 'text' ? content.text : '');
 }

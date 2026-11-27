@@ -1,3 +1,5 @@
+import { languageLine } from '../i18n/prompt';
+import type { Lang } from '../i18n/lang';
 // Experiences in the town where the traveller sleeps (Jarne, 26 Nov: "a beer spa in Prague", things to do
 // with family, a partner or friends). Claude suggests them by exact name; RoamGem checks each one on
 // Google (a real, open, well-rated place near the town) and finds a photo before it becomes a gem.
@@ -10,8 +12,8 @@ export type ExperienceKind = (typeof EXPERIENCE_KINDS)[number];
 export type Audience = (typeof AUDIENCES)[number];
 export interface Experience { name: string; what: string; kind: ExperienceKind; for: Audience[] }
 
-export function experiencePrompt(town: string, style: string): string {
-  return (
+export function experiencePrompt(town: string, style: string, lang?: Lang): string {
+  return languageLine(lang) + (
     `List 6 memorable things to do in or right around ${town} for road trippers (travel style: ${style}). ` +
     'Mix them: unusual local experiences (a beer spa, a cooking class, a boat trip, thermal baths), food and drink spots locals love, ' +
     'a view or short walk, and something for children. Each must be one real place you can find on Google Maps: give its exact name as Google lists it. ' +

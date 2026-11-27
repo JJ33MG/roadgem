@@ -1,3 +1,4 @@
+import { isLang, langOf } from '../i18n/lang';
 import { Router, Response, NextFunction } from 'express';
 import { generateExperiences, generateTripDay, generateTripSkeleton } from '../utils/claude';
 import { verifiedExperience, type ExperienceGem } from '../utils/experiences';
@@ -87,7 +88,8 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
 
     // Weather needs only the destination and dates: fetched while Claude writes the plan.
     const t0 = Date.now();
-    const weatherP = getWeather(destination, startDate, endDate).catch(() => []);
+    const lang = langOf(req.headers['x-lang']);
+    const weatherP = getWeather(destination, startDate, endDate, lang).catch(() => []);
     // First only the route (stops and where each night is): the trip page opens in seconds and the
     // day texts are written afterwards, one per day, in parallel (fillDays below).
     const tripData = await generateTripSkeleton(
@@ -98,12 +100,13 @@ router.post('/generate', optionalAuth, generateLimit(), async (req: AuthRequest,
       travelStyle || 'balanced',
       priorities || [],
       transportType || 'own_car',
-      planner
+      planner,
+      lang
     );
 
     // The page follows each day's overnight town as the plan names it.
     const editKey = newEditKey();
-    const savedPlanner: typeof planner & { overnights: string[]; planning?: boolean; transportType?: string; route?: string; legs?: RoadLeg[]; hiddenGems?: string[]; alt?: { route: string; legs: RoadLeg[]; tollFree: boolean } } = { ...planner, transportType: transportType || 'own_car', overnights: tripData.overnights, planning: true };
+    const savedPlanner: typeof planner & { overnights: string[]; planning?: boolean; transportType?: string; route?: string; legs?: RoadLeg[]; hiddenGems?: string[]; alt?: { route: string; legs: RoadLeg[]; tollFree: boolean }; language?: string } = { ...planner, transportType: transportType || 'own_car', overnights: tripData.overnights, planning: true, language: lang };
 
     const tPlan = Date.now();
 
@@ -219,7 +222,7 @@ export async function addExperiences(tripId: string): Promise<void> {
       const stop = stops[idx];
       if (!stop) return [];
       const point = { lat: Number(stop.latitude), lng: Number(stop.longitude) };
-      const ideas = (await generateExperiences(stop.location, trip.travelStyle).catch(() => [])).slice(0, 4);
+      const ideas = (await generateExperiences(stop.location, trip.travelStyle, isLang(planner.language) ? planner.language : 'en').catch(() => [])).slice(0, 4);
       const out: ExperienceGem[] = [];
       for (const e of ideas) {
         const matches = await searchText(`${e.name}, ${stop.location}`, key, { max: 3 }).catch(() => []);
@@ -260,6 +263,8 @@ export async function fillDays(tripId: string): Promise<void> {
         const day = await generateTripDay({
           day: d, from, to, destination: trip.destination, travelStyle: trip.travelStyle,
           priorities: JSON.parse(trip.priorities || '[]'), transportType: planner.transportType ?? 'own_car', planner,
+          // A trip stays in the language it was planned in.
+          lang: isLang(planner.language) ? planner.language : 'en',
         });
         await prisma.tripDay.create({
           data: {

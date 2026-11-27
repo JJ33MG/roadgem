@@ -1,3 +1,5 @@
+import { languageLine } from '../i18n/prompt';
+import type { Lang } from '../i18n/lang';
 // Planning day by day (Jarne, 26 Nov: a plan took 34 s of blank screen). First a quick skeleton (stops and
 // where each night is) so the trip page opens in seconds; then each day's text is written separately and in
 // parallel, and appears on the page as soon as it is ready.
@@ -46,7 +48,7 @@ export function parseSkeleton(text: string, days: number): Skeleton {
   };
 }
 
-export function dayPrompt(i: { day: number; from: string; to: string; destination: string; rules: string; style: string; priorities: string[] }): string {
+export function dayPrompt(i: { day: number; from: string; to: string; destination: string; rules: string; style: string; priorities: string[]; lang?: Lang }): string {
   const drive = i.from === i.to ? `stays around ${i.to} (no long drive)` : `drives from ${i.from} to ${i.to}`;
   return (
     `You plan Day ${i.day} of a road trip towards ${i.destination}. On this day the traveller ${drive} and sleeps in ${i.to}. ` +
@@ -54,7 +56,8 @@ export function dayPrompt(i: { day: number; from: string; to: string; destinatio
     'Keep text short: each "description" one sentence under 25 words, "notes" under 15 words or empty. ' +
     'Respond with ONLY one JSON object: {"morning": slot, "afternoon": slot, "evening": slot} where slot is ' +
     '{"time": string, "activity": string, "location": string, "description": string, "estimatedCost": number, "notes": string}. ' +
-    `The evening is in ${i.to}.`
+    `The evening is in ${i.to}.` +
+    languageLine(i.lang)
   );
 }
 

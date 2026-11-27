@@ -111,6 +111,14 @@ const server = app.listen(PORT, () => {
   // Community photos: the AI check publishes or rejects them; posts whose check failed are tried again.
   import('./community/autoReview').then((m) => m.startReviewSweep(prisma)).catch((err) => console.error('[community] sweep failed:', logLine(err)));
 
+  // Before launch: fill the community feed with moments by the RoamGem team (COMMUNITY_SEED=true; safe to repeat).
+  if (process.env.COMMUNITY_SEED === 'true') {
+    import('./community/seed')
+      .then((m) => m.seedTeamMoments(prisma))
+      .then((r) => console.log(`[community] team moments added: ${r.created}`))
+      .catch((err) => console.error('[community] seed failed:', logLine(err)));
+  }
+
   // Start agent scheduler (only when Redis is available)
   if (process.env.REDIS_URL) {
     // Loaded lazily: importing the queues opens Redis connections.

@@ -4,7 +4,8 @@ import { prisma } from '../utils/prisma';
 import { optionalAuth, requireAuth, AuthRequest } from '../middleware/auth';
 import { isAdmin } from '../community/rules';
 import { board, createPost, feed, review, suggestGem, toggleLike } from '../community/service';
-import { checkPhoto, fallbackChallenge, writeChallenge } from '../community/aiCheck';
+import { fallbackChallenge, writeChallenge } from '../community/aiCheck';
+import { autoReview } from '../community/autoReview';
 import { rateLimiter } from './track';
 import { checkIn, passport } from '../community/road';
 import { explorerGemsNear, monthlyChallenge } from '../community/explorer';
@@ -28,23 +29,13 @@ async function adminOnly(req: AuthRequest, res: Response): Promise<boolean> {
   return true;
 }
 
-/** Runs after the post is stored: unsafe photos are rejected straight away, others get a note for the admin. */
-async function aiFirstLook(postId: string) {
-  const post = await prisma.post.findUnique({ where: { id: postId }, include: { gem: true } });
-  if (!post) return;
-  const v = await checkPhoto(Buffer.from(post.photo), post.photoType, post.gem.name, post.gem.challenge || fallbackChallenge(post.gem.name));
-  const note = `${v.note}${post.challenge ? (v.challengeMet ? ' Challenge looks done.' : ' Challenge not clearly done.') : ''}`.trim();
-  if (v.reject) await review(prisma, postId, 'reject', `AI: ${note}`);
-  else await prisma.post.update({ where: { id: postId }, data: { aiNote: note } });
-}
-
 router.post('/posts', requireAuth, wrap(async (req, res) => {
   if (!allowPost(req.userId!)) return res.status(429).json({ error: 'That is a lot of photos. Try again in an hour.' });
   const { gem, at, photo, caption, challenge, monthly } = req.body ?? {};
   const me = await prisma.user.findUnique({ where: { id: req.userId } });
   const ref = gem?.gemId ? { gemId: String(gem.gemId) } : { placeId: gem?.placeId, name: gem?.name, lat: Number(gem?.lat), lng: Number(gem?.lng), address: gem?.address };
   const post = await createPost(prisma, { userId: req.userId!, gem: ref, at, photo, caption, challenge, monthly, plus: hasPlus(me) });
-  void aiFirstLook(post.id).catch(() => {});
+  void autoReview(prisma, post.id).catch(() => {});
   res.status(201).json(post);
 }));
 
@@ -53,7 +44,7 @@ router.post('/suggest', requireAuth, wrap(async (req, res) => {
   const { name, description, category, at, photo } = req.body ?? {};
   const me = await prisma.user.findUnique({ where: { id: req.userId } });
   const { gem, post } = await suggestGem(prisma, { userId: req.userId!, name, description, category, at, photo, plus: hasPlus(me) });
-  void aiFirstLook(post.id).catch(() => {});
+  void autoReview(prisma, post.id).catch(() => {});
   res.status(201).json({ gemId: gem.id, postId: post.id, status: post.status });
 }));
 

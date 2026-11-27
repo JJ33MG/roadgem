@@ -1,8 +1,8 @@
-// A first look at every photo before a person approves it: unsafe photos are rejected at once,
-// everything else waits for the admin with a short note. Also writes the photo challenge per gem.
+// The AI decides on every community photo (no manual review, Jarne 27 Nov): unsafe photos are rejected,
+// the rest goes public. A failed check is marked failed and tried again. Also writes the photo challenge per gem.
 import Anthropic from '@anthropic-ai/sdk';
 
-export type Verdict = { reject: boolean; challengeMet: boolean; note: string };
+export type Verdict = { reject: boolean; challengeMet: boolean; failed: boolean; note: string };
 
 const model = () => process.env.CLAUDE_MODEL || 'claude-sonnet-4-6';
 let client: Anthropic | null = null;
@@ -12,16 +12,17 @@ export function parseVerdict(text: string): Verdict {
   const m = text.match(/\{[\s\S]*\}/);
   try {
     const v = JSON.parse(m ? m[0] : '');
-    return { reject: v.safe === false, challengeMet: v.challengeMet === true, note: String(v.note ?? '').slice(0, 300) };
+    if (typeof v.safe !== 'boolean') throw new Error('no verdict');
+    return { reject: v.safe === false, challengeMet: v.challengeMet === true, failed: false, note: String(v.note ?? '').slice(0, 300) };
   } catch {
-    return { reject: false, challengeMet: false, note: 'AI check unreadable; please look yourself.' };
+    return { reject: false, challengeMet: false, failed: true, note: 'AI check unreadable; tried again later.' };
   }
 }
 
 export const fallbackChallenge = (gemName: string) => `${gemName} in one shot, with something that shows you were there today.`;
 
 export async function checkPhoto(photo: Buffer, type: string, gemName: string, challenge: string): Promise<Verdict> {
-  if (!process.env.CLAUDE_API_KEY) return { reject: false, challengeMet: false, note: 'Not checked by AI (no key).' };
+  if (!process.env.CLAUDE_API_KEY) return { reject: false, challengeMet: false, failed: true, note: 'Not checked yet (no AI key).' };
   try {
     const msg = await claude().messages.create({
       model: model(),
@@ -32,8 +33,8 @@ export async function checkPhoto(photo: Buffer, type: string, gemName: string, c
           { type: 'image', source: { type: 'base64', media_type: type as 'image/jpeg' | 'image/png' | 'image/webp', data: photo.toString('base64') } },
           {
             type: 'text',
-            text: `This photo was posted in a travel app at the place "${gemName}". Photo challenge: "${challenge}".
-Answer ONLY with JSON: {"safe": boolean (false for nudity, violence, hate, personal documents or anything not fit for a family app), "showsPlace": boolean (it plausibly shows that place), "challengeMet": boolean, "note": "one short sentence for the moderator"}`,
+            text: `This photo was posted in a family travel app, tagged near the place "${gemName}". It may show the place itself, or travellers, a camper, a tent or a meal near it: all fine. Photo challenge: "${challenge}".
+Answer ONLY with JSON: {"safe": boolean (false only for nudity, violence, hate, drugs, personal documents, a readable number plate in close-up, or spam such as screenshots, adverts or text-only images), "challengeMet": boolean (the photo plainly shows the challenge done at that place), "note": "one short sentence"}`,
           },
         ],
       }],
@@ -41,7 +42,7 @@ Answer ONLY with JSON: {"safe": boolean (false for nudity, violence, hate, perso
     const part = msg.content[0];
     return parseVerdict(part && part.type === 'text' ? part.text : '');
   } catch {
-    return { reject: false, challengeMet: false, note: 'AI check failed; please look yourself.' };
+    return { reject: false, challengeMet: false, failed: true, note: 'AI check failed; tried again later.' };
   }
 }
 

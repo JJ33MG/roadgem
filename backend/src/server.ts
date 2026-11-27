@@ -108,6 +108,9 @@ const server = app.listen(PORT, () => {
   // Fill the gem library in the background when a seeding budget is set (GEM_SEED_BUDGET).
   import('./gems/seedRun').then((m) => m.runGemSeed()).catch((err) => console.error('[gems] seed failed:', logLine(err)));
 
+  // Community photos: the AI check publishes or rejects them; posts whose check failed are tried again.
+  import('./community/autoReview').then((m) => m.startReviewSweep(prisma)).catch((err) => console.error('[community] sweep failed:', logLine(err)));
+
   // Start agent scheduler (only when Redis is available)
   if (process.env.REDIS_URL) {
     // Loaded lazily: importing the queues opens Redis connections.
